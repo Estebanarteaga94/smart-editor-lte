@@ -820,3 +820,42 @@ Pendientes inmediatos:
 
 - Implementar estilos base en `src/style.css`.
 - Continuar con Fase 1.5 en orden.
+
+## 2026-07-06 - Estilos base del shell visual
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.5: implementar estilos base en `src/style.css`.
+
+Acciones realizadas:
+
+- Se reforzo el estilo base del contenedor `editor-shell` con borde, sombra, radio y layout vertical.
+- Se configuro la toolbar como `position: sticky` dentro del shell.
+- Se configuro el cuerpo editable con altura controlada y `overflow: auto`.
+- Se agregaron estilos base para foco, botones deshabilitados, listas, citas, codigo inline, tablas y placeholder.
+- Se agrego un indicador visual neutral en la barra de estado.
+- Se conservaron ajustes responsive basicos sin cerrar todavia la tarea especifica de validacion responsive.
+
+Archivos modificados:
+
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 4 archivos de prueba correctos, 11 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se verifico con Playwright sobre `http://127.0.0.1:5173/` que el shell tiene borde `solid`, la toolbar tiene `position: sticky`, el cuerpo editable tiene `overflow: auto` y la barra de estado muestra indicador visual.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio es pequeno, coherente y verificado.
+
+Pendientes inmediatos:
+
+- Agregar estado visual de guardado.
+- Continuar con Fase 1.5 en orden.

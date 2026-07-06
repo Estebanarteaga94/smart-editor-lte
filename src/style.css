@@ -3,9 +3,11 @@
   --surface: #ffffff;
   --surface-muted: #f2f4f7;
   --border: #d8dde5;
+  --border-strong: #b8c0cc;
   --text: #1f2937;
   --muted: #667085;
   --focus: #2563eb;
+  --status-clean: #64748b;
   --shadow: 0 12px 30px rgb(15 23 42 / 0.08);
 
   color: var(--text);
@@ -64,6 +66,10 @@ textarea {
 }
 
 .editor-shell {
+  display: flex;
+  min-height: 560px;
+  max-height: calc(100vh - 144px);
+  flex-direction: column;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -72,9 +78,13 @@ textarea {
 }
 
 .editor-shell__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  flex: 0 0 auto;
   padding: 10px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-muted);
@@ -90,19 +100,31 @@ textarea {
   background: var(--surface);
 }
 
+.editor-shell__tool:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.editor-shell__tool:focus-visible {
+  outline: 3px solid rgb(37 99 235 / 0.24);
+  outline-offset: 2px;
+}
+
 .editor-shell__body {
-  min-height: 420px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 
 .editor-shell__editable .tiptap {
-  min-height: 420px;
+  min-height: 480px;
   padding: 24px;
   outline: none;
 }
 
 .editor-shell__editable .tiptap:focus-visible {
-  outline: 3px solid rgb(37 99 235 / 0.22);
+  outline: 3px solid rgb(37 99 235 / 0.24);
   outline-offset: -3px;
 }
 
@@ -121,10 +143,55 @@ textarea {
   margin: 0;
 }
 
+.editor-shell__editable ul,
+.editor-shell__editable ol {
+  padding-left: 24px;
+}
+
+.editor-shell__editable blockquote {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 3px solid var(--border-strong);
+  color: var(--muted);
+}
+
+.editor-shell__editable code {
+  border-radius: 4px;
+  padding: 2px 5px;
+  background: var(--surface-muted);
+}
+
+.editor-shell__editable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.editor-shell__editable th,
+.editor-shell__editable td {
+  min-width: 80px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.editor-shell__editable th {
+  background: var(--surface-muted);
+}
+
+.editor-shell__editable .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--muted);
+  pointer-events: none;
+}
+
 .editor-shell__status {
+  position: relative;
   display: flex;
   gap: 8px;
   align-items: center;
+  flex: 0 0 auto;
   padding: 10px 12px;
   border-top: 1px solid var(--border);
   color: var(--muted);
@@ -135,9 +202,44 @@ textarea {
   color: var(--text);
 }
 
+.editor-shell__status span {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.editor-shell__status span::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--status-clean);
+  content: '';
+}
+
 @media (max-width: 760px) {
   .editor-app {
     padding: 20px 12px;
+  }
+
+  .editor-shell {
+    min-height: 520px;
+    max-height: calc(100vh - 124px);
+  }
+
+  .editor-shell__toolbar {
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .editor-shell__tool {
+    min-width: 34px;
+    min-height: 32px;
+    padding: 0 8px;
+  }
+
+  .editor-shell__editable .tiptap {
+    min-height: 440px;
+    padding: 18px;
   }
 
   .editor-app__header h1 {
