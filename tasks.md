@@ -75,7 +75,7 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
 
 ### 1.4 Instancia base de Tiptap
 
-- [ ] Implementar `createEditorExtensions`.
+- [x] Implementar `createEditorExtensions`.
   - Criterio: registra StarterKit, Underline, TextStyle, Color, Highlight, TextAlign, Link, Table, TaskList, TaskItem, Placeholder e imagen personalizada segun la fase disponible.
 - [ ] Implementar `createWysiwygEditor`.
   - Criterio: recibe elemento HTML, contenido inicial y callback `onChange`.

@@ -647,3 +647,46 @@ Pendientes inmediatos:
 
 - Implementar `createEditorExtensions`.
 - Continuar con Fase 1.4 en orden.
+
+## 2026-07-06 - Implementacion de createEditorExtensions
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.4: implementar `createEditorExtensions`.
+
+Acciones realizadas:
+
+- Se implemento `createEditorExtensions` en `src/editor/core/editor-extensions.ts`.
+- Se registro StarterKit con `link` y `underline` desactivados para configurar esas extensiones de forma explicita y evitar duplicados.
+- Se registraron Underline, TextStyle, Color, Highlight, TextAlign, Link, Image, Table, TableRow, TableHeader, TableCell, TaskList, TaskItem y Placeholder.
+- Se configuro Highlight multicolor, TextAlign para `heading` y `paragraph`, tabla redimensionable, TaskItem anidable y Placeholder configurable.
+- Se configuro Link con protocolos permitidos, `defaultProtocol: https`, atributos seguros y validacion por `defaultValidate`.
+- Se uso la extension base `Image` porque la extension personalizada redimensionable se implementara en la fase de imagenes.
+- Se agrego prueba unitaria para confirmar el registro de extensiones base esperadas.
+
+Archivos modificados:
+
+- `src/editor/core/editor-extensions.ts`
+- `tasks.md`
+- `worklog.md`
+
+Archivos creados:
+
+- `src/editor/core/editor-extensions.test.ts`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 2 archivos de prueba correctos, 6 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio es pequeno, coherente y ya fue verificado.
+
+Pendientes inmediatos:
+
+- Implementar `createWysiwygEditor`.
+- Continuar con Fase 1.4 en orden.
