@@ -68,9 +68,9 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
   - Criterio: incluye `id`, `documentId`, `fileName`, `mimeType`, `size`, `url`, `altText` opcional y `createdAt`.
 - [x] Implementar `EditorMode`.
   - Criterio: soporta `wysiwyg`, `source-html`, `source-json`, `preview` y `fullscreen`.
-- [ ] Implementar `EditorConfig`.
+- [x] Implementar `EditorConfig`.
   - Criterio: define opciones configurables como `documentId`, `autosave`, limites de imagen, placeholder y modo inicial.
-- [ ] Agregar validaciones basicas de tipos donde se consuman datos externos.
+- [x] Agregar validaciones basicas de tipos donde se consuman datos externos.
   - Criterio: los payloads de persistencia y assets tienen validacion o parsing controlado.
 
 ### 1.4 Instancia base de Tiptap

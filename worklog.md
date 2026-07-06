@@ -598,3 +598,52 @@ Pendientes inmediatos:
 
 - Implementar `EditorConfig`.
 - Continuar con Fase 1.3 en orden.
+
+## 2026-07-06 - Finalizacion de modelos y validaciones Fase 1.3
+
+Objetivo:
+
+- Terminar la Fase 1.3 completa por solicitud directa del usuario.
+
+Acciones realizadas:
+
+- Se implemento `EditorConfig` con `documentId`, `autosave`, `imageLimits`, `placeholder` e `initialMode`.
+- Se agrego `defaultEditorConfig` con autosave activo, limite de imagen de 5 MB, MIME permitidos PNG/JPEG/WEBP y modo inicial `wysiwyg`.
+- Se agregaron schemas y parsers Zod para `EditorDocument`, `EditorAsset`, `EditorMode` y `EditorConfig`.
+- Se agrego parser Zod para `DocumentStoragePayload`.
+- Se tiparon los contratos de `DocumentsApi`, `AssetsApi` y `MediaUploadService` para evitar `unknown` en payloads externos sin parsing disponible.
+- Se agregaron pruebas unitarias para validar payloads validos e invalidos de documento, asset, modo y configuracion.
+
+Archivos modificados:
+
+- `src/editor/models/editor-config.ts`
+- `src/editor/models/editor-document.ts`
+- `src/editor/models/editor-asset.ts`
+- `src/editor/models/editor-mode.ts`
+- `src/editor/services/document-storage.service.ts`
+- `src/editor/services/media-upload.service.ts`
+- `src/api/documents.api.ts`
+- `src/api/assets.api.ts`
+- `tasks.md`
+- `worklog.md`
+
+Archivos creados:
+
+- `src/editor/models/editor-models.test.ts`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 1 archivo de prueba correcto, 5 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar las tareas restantes de Fase 1.3.
+- Se creo commit porque el cambio cierra una fase completa, tiene pruebas y build correcto.
+
+Pendientes inmediatos:
+
+- Implementar `createEditorExtensions`.
+- Continuar con Fase 1.4 en orden.
