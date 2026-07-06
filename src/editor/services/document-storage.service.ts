@@ -1,14 +1,19 @@
 import { z } from 'zod';
 
+import {
+  canonicalEditorContentSchema,
+  type CanonicalEditorContent,
+} from '../models/editor-content';
+
 export interface DocumentStoragePayload {
   title: string;
-  contentJson: unknown;
+  contentJson: CanonicalEditorContent;
   contentHtml: string;
 }
 
 export const documentStoragePayloadSchema = z.object({
   title: z.string(),
-  contentJson: z.unknown(),
+  contentJson: canonicalEditorContentSchema,
   contentHtml: z.string(),
 });
 

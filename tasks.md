@@ -124,21 +124,21 @@ Objetivo medible: el frontend valida que `contentJson` use solo nodos, marcas y 
 
 > Dependencia: requiere que los modelos base de Fase 1.3 existan y que las extensiones registradas en Fase 1.4 esten alineadas con el schema permitido.
 
-- [ ] Implementar definicion de schema para JSON canonico.
+- [x] Implementar definicion de schema para JSON canonico.
   - Criterio: existe una especificacion versionada de nodos, marcas y atributos permitidos para ProseMirror/Tiptap JSON.
-- [ ] Definir nodos permitidos del documento.
+- [x] Definir nodos permitidos del documento.
   - Criterio: solo se aceptan nodos documentados como `doc`, `paragraph`, `text`, `heading`, `bulletList`, `orderedList`, `listItem`, `taskList`, `taskItem`, `table`, `tableRow`, `tableCell`, `tableHeader`, `image`, `blockquote`, `codeBlock` y `horizontalRule`.
-- [ ] Definir marcas permitidas.
+- [x] Definir marcas permitidas.
   - Criterio: solo se aceptan marcas documentadas como `bold`, `italic`, `underline`, `strike`, `link`, `textStyle` y `highlight`.
-- [ ] Validar atributos permitidos.
+- [x] Validar atributos permitidos.
   - Criterio: atributos como `href`, `src`, `alt`, `level`, `width`, `height`, `align`, `color`, `textAlign`, `colspan`, `rowspan` y similares tienen reglas explicitas.
-- [ ] Rechazar JSON con nodos, marcas o atributos no permitidos.
+- [x] Rechazar JSON con nodos, marcas o atributos no permitidos.
   - Criterio: el contenido invalido no se carga directamente en Tiptap, se conserva el documento anterior y se muestra error controlado.
-- [ ] Validar JSON recibido desde la API.
+- [x] Validar JSON recibido desde la API.
   - Criterio: el frontend no confia ciegamente en `contentJson`; todo payload externo pasa por parser o schema antes de montarse.
-- [ ] Validar JSON editado desde la vista `source-json`.
+- [x] Validar JSON editado desde la vista `source-json`.
   - Criterio: JSON invalido o fuera de schema no reemplaza el documento actual y muestra mensaje accionable.
-- [ ] Agregar pruebas del schema.
+- [x] Agregar pruebas del schema.
   - Criterio: existen casos validos, invalidos, nodos desconocidos, marcas desconocidas y atributos inseguros.
 
 ### 1.4 Instancia base de Tiptap

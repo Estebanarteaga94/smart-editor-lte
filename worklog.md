@@ -1011,3 +1011,59 @@ Pendientes inmediatos:
 
 - Implementar definicion de schema para JSON canonico.
 - Continuar con Fase 1.3.1 en orden.
+
+## 2026-07-06 - Finalizacion de schema del JSON canonico
+
+Objetivo:
+
+- Completar Fase 1.3.1 para validar `contentJson` con un schema permitido antes de cargar, persistir o aplicar JSON editado.
+
+Acciones realizadas:
+
+- Se agrego `src/editor/models/editor-content.ts` con especificacion versionada del JSON canonico.
+- Se definieron los nodos permitidos: `doc`, `paragraph`, `text`, `heading`, `bulletList`, `orderedList`, `listItem`, `taskList`, `taskItem`, `table`, `tableRow`, `tableCell`, `tableHeader`, `image`, `blockquote`, `codeBlock` y `horizontalRule`.
+- Se definieron las marcas permitidas: `bold`, `italic`, `underline`, `strike`, `link`, `textStyle` y `highlight`.
+- Se validaron atributos por nodo y marca, incluyendo `href`, `src`, `alt`, `level`, `width`, `height`, `align`, `color`, `textAlign`, `colspan`, `rowspan` y `colwidth`.
+- Se bloquearon atributos desconocidos y protocolos inseguros como `javascript:`.
+- `EditorDocument` ahora valida `contentJson` con `canonicalEditorContentSchema`.
+- `DocumentStoragePayload` ahora usa `CanonicalEditorContent` y valida el payload antes de persistir.
+- Se agrego validacion pura para `source-json` en `source-view.ts`; si el JSON es invalido, conserva el contenido anterior y devuelve mensaje accionable.
+- Se actualizo `context.md` para documentar `EditorViewState`, la separacion de `fullscreen` y el schema canonico.
+- Se agregaron pruebas unitarias para casos validos, nodos desconocidos, marcas desconocidas, atributos inseguros, payloads API/storage y source-json invalido.
+- Se marco Fase 1.3.1 como completada en `tasks.md`.
+
+Archivos creados:
+
+- `src/editor/models/editor-content.ts`
+- `src/editor/models/editor-content.test.ts`
+
+Archivos modificados:
+
+- `context.md`
+- `src/editor/components/source-view.ts`
+- `src/editor/models/editor-document.ts`
+- `src/editor/services/document-storage.service.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 5 archivos de prueba correctos, 19 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+
+Decision Git:
+
+- Se creo commit porque la Fase 1.3.1 quedo completa y verificada.
+
+Pendientes inmediatos:
+
+- Agregar estado visual de guardado.
+- Continuar con Fase 1.5 en orden.

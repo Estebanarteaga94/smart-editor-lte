@@ -90,8 +90,51 @@ export interface EditorAsset {
 Modos esperados:
 
 ```ts
-export type EditorMode = 'wysiwyg' | 'source-html' | 'source-json' | 'preview' | 'fullscreen';
+export type EditorMode = 'wysiwyg' | 'source-html' | 'source-json' | 'preview';
+
+export interface EditorViewState {
+  mode: EditorMode;
+  fullscreen: boolean;
+}
 ```
+
+`fullscreen` es estado visual independiente y no forma parte del modo de contenido.
+
+## Schema del JSON canonico
+
+El frontend valida `contentJson` antes de cargar, persistir o aplicar contenido editado desde JSON.
+
+La especificacion inicial versionada acepta solo los nodos:
+
+- `doc`
+- `paragraph`
+- `text`
+- `heading`
+- `bulletList`
+- `orderedList`
+- `listItem`
+- `taskList`
+- `taskItem`
+- `table`
+- `tableRow`
+- `tableCell`
+- `tableHeader`
+- `image`
+- `blockquote`
+- `codeBlock`
+- `horizontalRule`
+
+Las marcas permitidas son:
+
+- `bold`
+- `italic`
+- `underline`
+- `strike`
+- `link`
+- `textStyle`
+- `highlight`
+
+Los atributos se validan por nodo o marca. Entre otros, se controlan `href`, `src`, `alt`, `level`, `width`, `height`, `align`, `color`, `textAlign`, `colspan`, `rowspan` y `colwidth`. Los atributos desconocidos y protocolos inseguros como `javascript:` se rechazan antes de aplicar el contenido.
 
 ## Arquitectura esperada
 

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { canonicalEditorContentSchema } from './editor-content';
+
 export const editorDocumentStatusSchema = z.enum(['draft', 'published', 'archived']);
 
 export type EditorDocumentStatus = z.infer<typeof editorDocumentStatusSchema>;
@@ -7,7 +9,7 @@ export type EditorDocumentStatus = z.infer<typeof editorDocumentStatusSchema>;
 export const editorDocumentSchema = z.object({
   id: z.string().min(1),
   title: z.string(),
-  contentJson: z.unknown(),
+  contentJson: canonicalEditorContentSchema,
   contentHtml: z.string(),
   status: editorDocumentStatusSchema,
   createdAt: z.string(),
