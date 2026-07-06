@@ -775,3 +775,48 @@ Pendientes inmediatos:
 
 - Implementar `editor-shell.ts`.
 - Continuar con Fase 1.5 en orden.
+
+## 2026-07-06 - Implementacion de editor-shell.ts
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.5: implementar `editor-shell.ts`.
+
+Acciones realizadas:
+
+- Se implemento `createEditorShell` en `src/editor/components/editor-shell.ts`.
+- El shell renderiza contenedor principal, encabezado, toolbar, area editable y barra de estado.
+- `main.ts` ahora usa `createEditorShell` y monta Tiptap sobre `shell.editable`.
+- Se agregaron controles placeholder deshabilitados en la toolbar para reservar la estructura visual sin adelantar comandos de Fase 1.6.
+- Se ajustaron estilos para `editor-shell`, toolbar, body editable y status.
+- Se agregaron pruebas unitarias con `jsdom` para validar estructura del shell, referencias devueltas y accesibilidad basica de controles placeholder.
+
+Archivos modificados:
+
+- `src/editor/components/editor-shell.ts`
+- `src/main.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Archivos creados:
+
+- `src/editor/components/editor-shell.test.ts`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 4 archivos de prueba correctos, 11 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se verifico con Playwright sobre `http://127.0.0.1:5173/` que existe un toolbar, un editor `.tiptap`, barra de estado `Sin cambios` y 7 botones placeholder.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio es pequeno, coherente y verificado.
+
+Pendientes inmediatos:
+
+- Implementar estilos base en `src/style.css`.
+- Continuar con Fase 1.5 en orden.

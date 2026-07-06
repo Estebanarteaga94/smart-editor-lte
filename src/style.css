@@ -63,70 +63,81 @@ textarea {
   color: var(--muted);
 }
 
-.editor-app__workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
-  gap: 16px;
-  align-items: start;
-}
-
-.editor-app__editor,
-.editor-app__status {
+.editor-shell {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
-.editor-app__editor {
+.editor-shell__toolbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.editor-shell__tool {
+  min-width: 38px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.editor-shell__body {
   min-height: 420px;
   overflow: auto;
 }
 
-.editor-app__editor .tiptap {
+.editor-shell__editable .tiptap {
   min-height: 420px;
   padding: 24px;
   outline: none;
 }
 
-.editor-app__editor .tiptap:focus-visible {
+.editor-shell__editable .tiptap:focus-visible {
   outline: 3px solid rgb(37 99 235 / 0.22);
   outline-offset: -3px;
 }
 
-.editor-app__editor .tiptap > * + * {
+.editor-shell__editable .tiptap > * + * {
   margin-top: 12px;
 }
 
-.editor-app__editor h1 {
+.editor-shell__editable h1 {
   margin: 0;
   font-size: 28px;
   line-height: 1.25;
   letter-spacing: 0;
 }
 
-.editor-app__editor p {
+.editor-shell__editable p {
   margin: 0;
 }
 
-.editor-app__status {
-  display: grid;
+.editor-shell__status {
+  display: flex;
   gap: 8px;
-  padding: 16px;
+  align-items: center;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
   color: var(--muted);
+  background: var(--surface-muted);
 }
 
-.editor-app__status strong {
+.editor-shell__status strong {
   color: var(--text);
 }
 
 @media (max-width: 760px) {
   .editor-app {
     padding: 20px 12px;
-  }
-
-  .editor-app__workspace {
-    grid-template-columns: 1fr;
   }
 
   .editor-app__header h1 {

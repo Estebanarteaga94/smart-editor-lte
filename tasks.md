@@ -88,7 +88,7 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
 
 ### 1.5 Shell visual del editor
 
-- [ ] Implementar `editor-shell.ts`.
+- [x] Implementar `editor-shell.ts`.
   - Criterio: renderiza contenedor principal, toolbar, area editable y barra de estado.
 - [ ] Implementar estilos base en `src/style.css`.
   - Criterio: el editor tiene borde, toolbar fija/sticky, area editable con scroll y estados visuales basicos.
