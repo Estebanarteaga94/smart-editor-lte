@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 
-import { parseEditorAsset } from './editor-asset'
-import { parseEditorConfig } from './editor-config'
-import { parseEditorDocument } from './editor-document'
-import { parseEditorMode } from './editor-mode'
+import { parseEditorAsset } from './editor-asset';
+import { parseEditorConfig } from './editor-config';
+import { parseEditorDocument } from './editor-document';
+import { parseEditorMode } from './editor-mode';
 
 describe('editor model validation', () => {
   it('parses a valid editor document payload', () => {
@@ -20,8 +20,8 @@ describe('editor model validation', () => {
     ).toMatchObject({
       id: 'doc-1',
       status: 'draft',
-    })
-  })
+    });
+  });
 
   it('rejects an invalid editor document status', () => {
     expect(() =>
@@ -34,8 +34,8 @@ describe('editor model validation', () => {
         createdAt: '2026-07-06T00:00:00.000Z',
         updatedAt: '2026-07-06T00:00:00.000Z',
       }),
-    ).toThrow()
-  })
+    ).toThrow();
+  });
 
   it('parses a valid editor asset payload', () => {
     expect(
@@ -52,8 +52,8 @@ describe('editor model validation', () => {
     ).toMatchObject({
       id: 'asset-1',
       documentId: 'doc-1',
-    })
-  })
+    });
+  });
 
   it('rejects invalid asset size', () => {
     expect(() =>
@@ -66,11 +66,11 @@ describe('editor model validation', () => {
         url: '/assets/image.png',
         createdAt: '2026-07-06T00:00:00.000Z',
       }),
-    ).toThrow()
-  })
+    ).toThrow();
+  });
 
   it('parses editor config and mode values', () => {
-    expect(parseEditorMode('preview')).toBe('preview')
+    expect(parseEditorMode('preview')).toBe('preview');
     expect(
       parseEditorConfig({
         documentId: 'doc-1',
@@ -88,6 +88,6 @@ describe('editor model validation', () => {
     ).toMatchObject({
       documentId: 'doc-1',
       initialMode: 'wysiwyg',
-    })
-  })
-})
+    });
+  });
+});

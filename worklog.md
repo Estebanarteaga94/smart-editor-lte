@@ -907,3 +907,63 @@ Pendientes inmediatos:
 
 - Configurar Prettier.
 - Continuar con Fase 0.1 en orden.
+
+## 2026-07-06 - Finalizacion de Fase 0.1 calidad de codigo
+
+Objetivo:
+
+- Completar las tareas restantes de Fase 0.1: Prettier, `.editorconfig`, scripts `format` y `check`, criterios finales de calidad y validacion inicial.
+
+Acciones realizadas:
+
+- Se instalo `prettier` como dependencia de desarrollo.
+- Se agrego `.prettierrc` con reglas base de formato para el proyecto.
+- Se agrego `.prettierignore` para excluir salidas generadas, dependencias, fuentes y assets binarios.
+- Se agrego `.editorconfig` con UTF-8, LF, indentacion de 2 espacios, salto final y limpieza de espacios finales.
+- Se agrego script `format` para formatear TypeScript, CSS, HTML, JSON y Markdown.
+- Se agrego script `check` para ejecutar build, lint y tests en un solo comando.
+- Se actualizo `instructions.md` para incluir `npm run lint`, `npm run format` y `npm run check` en la verificacion operativa.
+- Se ejecuto `npm run format`; Prettier formateo documentos y modulos existentes sin cambiar contratos funcionales.
+- Se marco Fase 0.1 como completada en `tasks.md`.
+
+Archivos creados:
+
+- `.editorconfig`
+- `.prettierignore`
+- `.prettierrc`
+
+Archivos modificados:
+
+- `context.md`
+- `eslint.config.js`
+- `instructions.md`
+- `package.json`
+- `package-lock.json`
+- `plan_editor_wysiwyg_vite_ts.md`
+- `src/**/*.ts`
+- `src/style.css`
+- `tasks.md`
+- `vite.config.ts`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm test`.
+- Resultado: 4 archivos de prueba correctos, 11 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+
+Decision Git:
+
+- Se creo commit porque la Fase 0.1 quedo completa y verificada.
+
+Pendientes inmediatos:
+
+- Ajustar `EditorMode` como modo de contenido.
+- Continuar con Fase 1.3 en orden.

@@ -1,6 +1,6 @@
 export interface ImageDialogResult {
-  file: File
-  altText: string
+  file: File;
+  altText: string;
 }
 
-export type ImageDialogSubmitHandler = (result: ImageDialogResult) => void
+export type ImageDialogSubmitHandler = (result: ImageDialogResult) => void;

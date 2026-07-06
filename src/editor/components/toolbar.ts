@@ -1,9 +1,9 @@
 export interface ToolbarButtonConfig {
-  id: string
-  label: string
-  ariaLabel: string
-  disabled?: boolean
-  active?: boolean
+  id: string;
+  label: string;
+  ariaLabel: string;
+  disabled?: boolean;
+  active?: boolean;
 }
 
-export type ToolbarActionHandler = (buttonId: string) => void
+export type ToolbarActionHandler = (buttonId: string) => void;

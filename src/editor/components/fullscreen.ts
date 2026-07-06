@@ -1,5 +1,5 @@
 export interface FullscreenState {
-  enabled: boolean
+  enabled: boolean;
 }
 
-export type FullscreenChangeHandler = (state: FullscreenState) => void
+export type FullscreenChangeHandler = (state: FullscreenState) => void;

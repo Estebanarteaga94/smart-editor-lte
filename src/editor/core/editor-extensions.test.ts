@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 
-import { createEditorExtensions } from './editor-extensions'
+import { createEditorExtensions } from './editor-extensions';
 
 describe('createEditorExtensions', () => {
   it('registers the base editor extensions expected by the roadmap', () => {
     const extensionNames = createEditorExtensions({
       placeholder: 'Contenido...',
-    }).map((extension) => extension.name)
+    }).map((extension) => extension.name);
 
     expect(extensionNames).toEqual(
       expect.arrayContaining([
@@ -26,6 +26,6 @@ describe('createEditorExtensions', () => {
         'taskItem',
         'placeholder',
       ]),
-    )
-  })
-})
+    );
+  });
+});

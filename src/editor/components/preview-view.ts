@@ -1,3 +1,3 @@
 export interface PreviewViewOptions {
-  sanitizedHtml: string
+  sanitizedHtml: string;
 }

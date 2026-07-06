@@ -1,3 +1,3 @@
 export interface SanitizerService {
-  sanitizeHtml(html: string): string
+  sanitizeHtml(html: string): string;
 }

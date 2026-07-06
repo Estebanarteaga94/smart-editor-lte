@@ -1,16 +1,16 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
-import { editorModeSchema, type EditorMode } from './editor-mode'
+import { editorModeSchema, type EditorMode } from './editor-mode';
 
 export const editorAutosaveConfigSchema = z.object({
   enabled: z.boolean(),
   debounceMs: z.number().int().nonnegative(),
-})
+});
 
 export const editorImageLimitsSchema = z.object({
   maxSizeBytes: z.number().int().positive(),
   allowedMimeTypes: z.array(z.string().min(1)).nonempty(),
-})
+});
 
 export const editorConfigSchema = z.object({
   documentId: z.string().min(1),
@@ -18,11 +18,11 @@ export const editorConfigSchema = z.object({
   imageLimits: editorImageLimitsSchema,
   placeholder: z.string(),
   initialMode: editorModeSchema,
-})
+});
 
-export type EditorAutosaveConfig = z.infer<typeof editorAutosaveConfigSchema>
-export type EditorImageLimits = z.infer<typeof editorImageLimitsSchema>
-export type EditorConfig = z.infer<typeof editorConfigSchema>
+export type EditorAutosaveConfig = z.infer<typeof editorAutosaveConfigSchema>;
+export type EditorImageLimits = z.infer<typeof editorImageLimitsSchema>;
+export type EditorConfig = z.infer<typeof editorConfigSchema>;
 
 export const defaultEditorConfig: EditorConfig = {
   documentId: 'default-document',
@@ -36,8 +36,8 @@ export const defaultEditorConfig: EditorConfig = {
   },
   placeholder: 'Escribe el contenido del documento...',
   initialMode: 'wysiwyg' satisfies EditorMode,
-}
+};
 
 export function parseEditorConfig(input: unknown): EditorConfig {
-  return editorConfigSchema.parse(input)
+  return editorConfigSchema.parse(input);
 }

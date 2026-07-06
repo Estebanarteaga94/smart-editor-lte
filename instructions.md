@@ -74,7 +74,10 @@ No empezar a editar codigo sin revisar al menos `context.md`, `tasks.md` y `work
 Segun el tipo de cambio, ejecutar lo que aplique:
 
 - `npm run build`
+- `npm run lint`
+- `npm run format`
 - `npm test`
+- `npm run check`
 - `npm run test:e2e`
 - Prueba manual en navegador con `npm run dev`
 

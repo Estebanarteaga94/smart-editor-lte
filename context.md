@@ -90,12 +90,7 @@ export interface EditorAsset {
 Modos esperados:
 
 ```ts
-export type EditorMode =
-  | 'wysiwyg'
-  | 'source-html'
-  | 'source-json'
-  | 'preview'
-  | 'fullscreen';
+export type EditorMode = 'wysiwyg' | 'source-html' | 'source-json' | 'preview' | 'fullscreen';
 ```
 
 ## Arquitectura esperada

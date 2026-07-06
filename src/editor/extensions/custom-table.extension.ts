@@ -1,6 +1,6 @@
-export const customTableExtensionName = 'customTable'
+export const customTableExtensionName = 'customTable';
 
 export interface CustomTableOptions {
-  resizable: boolean
-  headerRows: number
+  resizable: boolean;
+  headerRows: number;
 }

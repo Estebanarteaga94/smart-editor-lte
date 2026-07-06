@@ -1,16 +1,16 @@
-import './style.css'
+import './style.css';
 
-import { createEditorShell } from '@/editor/components/editor-shell'
-import { createWysiwygEditor } from '@/editor/core/create-editor'
+import { createEditorShell } from '@/editor/components/editor-shell';
+import { createWysiwygEditor } from '@/editor/core/create-editor';
 
-const app = document.querySelector<HTMLDivElement>('#app')
+const app = document.querySelector<HTMLDivElement>('#app');
 
 if (!app) {
-  throw new Error('Root element #app was not found')
+  throw new Error('Root element #app was not found');
 }
 
-const shell = createEditorShell()
-app.replaceChildren(shell.root)
+const shell = createEditorShell();
+app.replaceChildren(shell.root);
 
 createWysiwygEditor({
   element: shell.editable,
@@ -20,6 +20,6 @@ createWysiwygEditor({
   `,
   placeholder: 'Escribe el contenido del documento...',
   onChange: ({ contentJson }) => {
-    shell.status.textContent = `Actualizado: ${contentJson.type ?? 'doc'}`
+    shell.status.textContent = `Actualizado: ${contentJson.type ?? 'doc'}`;
   },
-})
+});

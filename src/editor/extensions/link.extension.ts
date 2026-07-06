@@ -1,6 +1,6 @@
-export const secureLinkExtensionName = 'secureLink'
+export const secureLinkExtensionName = 'secureLink';
 
 export interface SecureLinkOptions {
-  allowedProtocols: readonly string[]
-  openOnClick: boolean
+  allowedProtocols: readonly string[];
+  openOnClick: boolean;
 }

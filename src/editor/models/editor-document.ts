@@ -1,12 +1,8 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
-export const editorDocumentStatusSchema = z.enum([
-  'draft',
-  'published',
-  'archived',
-])
+export const editorDocumentStatusSchema = z.enum(['draft', 'published', 'archived']);
 
-export type EditorDocumentStatus = z.infer<typeof editorDocumentStatusSchema>
+export type EditorDocumentStatus = z.infer<typeof editorDocumentStatusSchema>;
 
 export const editorDocumentSchema = z.object({
   id: z.string().min(1),
@@ -16,10 +12,10 @@ export const editorDocumentSchema = z.object({
   status: editorDocumentStatusSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
-})
+});
 
-export type EditorDocument = z.infer<typeof editorDocumentSchema>
+export type EditorDocument = z.infer<typeof editorDocumentSchema>;
 
 export function parseEditorDocument(input: unknown): EditorDocument {
-  return editorDocumentSchema.parse(input)
+  return editorDocumentSchema.parse(input);
 }

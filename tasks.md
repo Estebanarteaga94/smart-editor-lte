@@ -47,19 +47,19 @@ Objetivo medible: el proyecto tiene una base consistente de calidad, formato y c
 
 - [x] Configurar ESLint.
   - Criterio: existe configuracion ESLint compatible con Vite + TypeScript `vanilla-ts`, y `npm run lint` detecta errores TypeScript, imports sin uso y variables sin uso.
-- [ ] Configurar Prettier.
+- [x] Configurar Prettier.
   - Criterio: existe configuracion Prettier y `npm run format` aplica formato consistente sin alterar contratos funcionales.
-- [ ] Configurar `.editorconfig`.
+- [x] Configurar `.editorconfig`.
   - Criterio: el repositorio define indentacion, charset, saltos de linea y trim de espacios finales.
 - [x] Agregar script `lint`.
   - Criterio: `npm run lint` ejecuta ESLint sobre `src` y archivos de configuracion relevantes.
-- [ ] Agregar script `format`.
+- [x] Agregar script `format`.
   - Criterio: `npm run format` formatea archivos TypeScript, CSS, HTML, JSON y Markdown del proyecto.
-- [ ] Agregar script `check`.
+- [x] Agregar script `check`.
   - Criterio: `npm run check` ejecuta build, lint y tests en un solo comando.
-- [ ] Integrar calidad de codigo en criterios finales.
+- [x] Integrar calidad de codigo en criterios finales.
   - Criterio: `npm run lint`, `npm test`, `npm run build` y `npm run check` forman parte de la validacion final.
-- [ ] Validar calidad inicial del proyecto.
+- [x] Validar calidad inicial del proyecto.
   - Criterio: `npm run lint`, `npm test`, `npm run build` y `npm run check` terminan correctamente o queda documentada la razon tecnica de cualquier comando pendiente.
 
 ## Fase 1 - Base del proyecto y MVP guardable

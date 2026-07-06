@@ -1,6 +1,6 @@
 export interface FileValidationResult {
-  valid: boolean
-  error?: string
+  valid: boolean;
+  error?: string;
 }
 
-export type FileValidator = (file: File) => FileValidationResult
+export type FileValidator = (file: File) => FileValidationResult;

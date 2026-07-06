@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const editorModeSchema = z.enum([
   'wysiwyg',
@@ -6,10 +6,10 @@ export const editorModeSchema = z.enum([
   'source-json',
   'preview',
   'fullscreen',
-])
+]);
 
-export type EditorMode = z.infer<typeof editorModeSchema>
+export type EditorMode = z.infer<typeof editorModeSchema>;
 
 export function parseEditorMode(input: unknown): EditorMode {
-  return editorModeSchema.parse(input)
+  return editorModeSchema.parse(input);
 }

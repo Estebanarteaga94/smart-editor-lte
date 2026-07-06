@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const editorAssetSchema = z.object({
   id: z.string().min(1),
@@ -9,10 +9,10 @@ export const editorAssetSchema = z.object({
   url: z.string().min(1),
   altText: z.string().optional(),
   createdAt: z.string(),
-})
+});
 
-export type EditorAsset = z.infer<typeof editorAssetSchema>
+export type EditorAsset = z.infer<typeof editorAssetSchema>;
 
 export function parseEditorAsset(input: unknown): EditorAsset {
-  return editorAssetSchema.parse(input)
+  return editorAssetSchema.parse(input);
 }

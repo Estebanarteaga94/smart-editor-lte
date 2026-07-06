@@ -35,14 +35,14 @@ Vite + TypeScript
 
 ### Por qué esta combinación
 
-| Tecnología | Uso |
-|---|---|
-| **Vite** | Build tool rápido para frontend moderno. |
-| **TypeScript** | Tipado, mantenibilidad y seguridad en el desarrollo. |
-| **Tiptap** | Motor WYSIWYG extensible basado en ProseMirror. |
-| **ProseMirror JSON** | Modelo canónico del documento. |
-| **CodeMirror** | Editor para vista de código HTML/JSON. |
-| **DOMPurify** | Sanitización de HTML para prevenir XSS. |
+| Tecnología           | Uso                                                  |
+| -------------------- | ---------------------------------------------------- |
+| **Vite**             | Build tool rápido para frontend moderno.             |
+| **TypeScript**       | Tipado, mantenibilidad y seguridad en el desarrollo. |
+| **Tiptap**           | Motor WYSIWYG extensible basado en ProseMirror.      |
+| **ProseMirror JSON** | Modelo canónico del documento.                       |
+| **CodeMirror**       | Editor para vista de código HTML/JSON.               |
+| **DOMPurify**        | Sanitización de HTML para prevenir XSS.              |
 
 No se recomienda construir el editor directamente con `contenteditable` puro, porque un editor real necesita manejar selección, historial, comandos, nodos, marcas, tablas, imágenes, serialización y validaciones.
 
@@ -52,19 +52,19 @@ No se recomienda construir el editor directamente con `contenteditable` puro, po
 
 ### 3.1 Funciones principales
 
-| Módulo | Funciones |
-|---|---|
-| Formato | Negrita, cursiva, subrayado, tachado, color, resaltado. |
-| Títulos | Párrafo, H1, H2, H3, H4. |
-| Listas | Lista ordenada, lista no ordenada, checklist. |
-| Tablas | Insertar tabla, eliminar tabla, filas, columnas, encabezados, combinar celdas. |
-| Imágenes | Subir, pegar, arrastrar, alinear, redimensionar, texto alternativo. |
-| Enlaces | Crear, editar y eliminar enlaces. |
-| Código | Vista de código HTML y JSON. |
-| Vista completa | Modo pantalla completa del editor. |
-| Historial | Deshacer y rehacer. |
-| Persistencia | Guardar JSON canónico y HTML renderizable. |
-| Seguridad | Sanitización de HTML y validación de archivos. |
+| Módulo         | Funciones                                                                      |
+| -------------- | ------------------------------------------------------------------------------ |
+| Formato        | Negrita, cursiva, subrayado, tachado, color, resaltado.                        |
+| Títulos        | Párrafo, H1, H2, H3, H4.                                                       |
+| Listas         | Lista ordenada, lista no ordenada, checklist.                                  |
+| Tablas         | Insertar tabla, eliminar tabla, filas, columnas, encabezados, combinar celdas. |
+| Imágenes       | Subir, pegar, arrastrar, alinear, redimensionar, texto alternativo.            |
+| Enlaces        | Crear, editar y eliminar enlaces.                                              |
+| Código         | Vista de código HTML y JSON.                                                   |
+| Vista completa | Modo pantalla completa del editor.                                             |
+| Historial      | Deshacer y rehacer.                                                            |
+| Persistencia   | Guardar JSON canónico y HTML renderizable.                                     |
+| Seguridad      | Sanitización de HTML y validación de archivos.                                 |
 
 ---
 
@@ -255,12 +255,7 @@ export interface EditorAsset {
 ```ts
 // src/editor/models/editor-mode.ts
 
-export type EditorMode =
-  | 'wysiwyg'
-  | 'source-html'
-  | 'source-json'
-  | 'preview'
-  | 'fullscreen';
+export type EditorMode = 'wysiwyg' | 'source-html' | 'source-json' | 'preview' | 'fullscreen';
 ```
 
 ---
@@ -387,8 +382,8 @@ export const ResizableImage = Image.extend({
 
       width: {
         default: null,
-        parseHTML: element => element.getAttribute('width'),
-        renderHTML: attributes => {
+        parseHTML: (element) => element.getAttribute('width'),
+        renderHTML: (attributes) => {
           if (!attributes.width) return {};
           return { width: attributes.width };
         },
@@ -396,8 +391,8 @@ export const ResizableImage = Image.extend({
 
       height: {
         default: null,
-        parseHTML: element => element.getAttribute('height'),
-        renderHTML: attributes => {
+        parseHTML: (element) => element.getAttribute('height'),
+        renderHTML: (attributes) => {
           if (!attributes.height) return {};
           return { height: attributes.height };
         },
@@ -405,8 +400,8 @@ export const ResizableImage = Image.extend({
 
       align: {
         default: 'center',
-        parseHTML: element => element.getAttribute('data-align') ?? 'center',
-        renderHTML: attributes => {
+        parseHTML: (element) => element.getAttribute('data-align') ?? 'center',
+        renderHTML: (attributes) => {
           return { 'data-align': attributes.align ?? 'center' };
         },
       },
@@ -483,11 +478,7 @@ export function redo(editor: Editor) {
 import type { Editor } from '@tiptap/core';
 
 export function insertTable(editor: Editor) {
-  editor
-    .chain()
-    .focus()
-    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-    .run();
+  editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
 }
 
 export function addColumnBefore(editor: Editor) {
@@ -567,7 +558,7 @@ export function createSourceView(options: SourceViewOptions): EditorView {
     extensions: [
       basicSetup,
       languageExtension,
-      EditorView.updateListener.of(update => {
+      EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           options.onChange?.(update.state.doc.toString());
         }
@@ -606,8 +597,7 @@ export function sanitizeHtml(dirtyHtml: string): string {
     USE_PROFILES: {
       html: true,
     },
-    ALLOWED_URI_REGEXP:
-      /^(?:(?:(?:f|ht)tps?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
   });
 }
 ```
@@ -618,14 +608,14 @@ export function sanitizeHtml(dirtyHtml: string): string {
 
 ### 12.1 Reglas mínimas
 
-| Regla | Valor recomendado |
-|---|---|
-| Tamaño máximo | 5 MB por imagen. |
-| Formatos permitidos | PNG, JPG, JPEG, WEBP. |
-| Nombre del archivo | Generado por backend. |
-| Metadata | Remover metadata sensible si es posible. |
-| Almacenamiento | S3, MinIO, filesystem o blob storage. |
-| Inserción | Insertar URL retornada por backend. |
+| Regla               | Valor recomendado                        |
+| ------------------- | ---------------------------------------- |
+| Tamaño máximo       | 5 MB por imagen.                         |
+| Formatos permitidos | PNG, JPG, JPEG, WEBP.                    |
+| Nombre del archivo  | Generado por backend.                    |
+| Metadata            | Remover metadata sensible si es posible. |
+| Almacenamiento      | S3, MinIO, filesystem o blob storage.    |
+| Inserción           | Insertar URL retornada por backend.      |
 
 ### 12.2 Validador de archivo
 
@@ -659,10 +649,7 @@ export interface UploadImageResponse {
   altText?: string;
 }
 
-export async function uploadImage(
-  documentId: string,
-  file: File,
-): Promise<UploadImageResponse> {
+export async function uploadImage(documentId: string, file: File): Promise<UploadImageResponse> {
   validateImageFile(file);
 
   const formData = new FormData();
@@ -923,15 +910,15 @@ CREATE TABLE document_assets (
 
 ### 17.1 Riesgos principales
 
-| Riesgo | Mitigación |
-|---|---|
-| XSS | Sanitizar HTML en frontend y backend. |
-| HTML malicioso | Bloquear scripts, eventos inline e iframes no permitidos. |
-| Archivos peligrosos | Validar MIME real en backend. |
-| Imágenes demasiado pesadas | Limitar tamaño y comprimir. |
-| Links inseguros | Permitir solo protocolos seguros. |
-| Pérdida de información | Autosave y versionado. |
-| Corrupción del documento | Validar JSON contra esquema permitido. |
+| Riesgo                     | Mitigación                                                |
+| -------------------------- | --------------------------------------------------------- |
+| XSS                        | Sanitizar HTML en frontend y backend.                     |
+| HTML malicioso             | Bloquear scripts, eventos inline e iframes no permitidos. |
+| Archivos peligrosos        | Validar MIME real en backend.                             |
+| Imágenes demasiado pesadas | Limitar tamaño y comprimir.                               |
+| Links inseguros            | Permitir solo protocolos seguros.                         |
+| Pérdida de información     | Autosave y versionado.                                    |
+| Corrupción del documento   | Validar JSON contra esquema permitido.                    |
 
 ### 17.2 Regla importante
 
