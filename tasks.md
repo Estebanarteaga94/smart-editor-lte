@@ -66,7 +66,7 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
   - Criterio: incluye `id`, `title`, `contentJson`, `contentHtml`, `status`, `createdAt` y `updatedAt`.
 - [x] Implementar `EditorAsset`.
   - Criterio: incluye `id`, `documentId`, `fileName`, `mimeType`, `size`, `url`, `altText` opcional y `createdAt`.
-- [ ] Implementar `EditorMode`.
+- [x] Implementar `EditorMode`.
   - Criterio: soporta `wysiwyg`, `source-html`, `source-json`, `preview` y `fullscreen`.
 - [ ] Implementar `EditorConfig`.
   - Criterio: define opciones configurables como `documentId`, `autosave`, limites de imagen, placeholder y modo inicial.

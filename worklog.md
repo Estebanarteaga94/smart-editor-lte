@@ -564,3 +564,37 @@ Pendientes inmediatos:
 
 - Implementar `EditorMode`.
 - Continuar con Fase 1.3 en orden.
+
+## 2026-07-06 - Implementacion de EditorMode
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.3: implementar `EditorMode`.
+
+Acciones realizadas:
+
+- Se reemplazo el marcador `EditorModeModel = unknown` por el tipo union `EditorMode`.
+- Se agregaron los modos `wysiwyg`, `source-html`, `source-json`, `preview` y `fullscreen`.
+
+Archivos modificados:
+
+- `src/editor/models/editor-mode.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto un chequeo Node sobre `src/editor/models/editor-mode.ts` para confirmar los cinco valores requeridos.
+- Resultado: `EditorMode values present`.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio es pequeno, coherente y ya fue verificado.
+
+Pendientes inmediatos:
+
+- Implementar `EditorConfig`.
+- Continuar con Fase 1.3 en orden.
