@@ -859,3 +859,51 @@ Pendientes inmediatos:
 
 - Agregar estado visual de guardado.
 - Continuar con Fase 1.5 en orden.
+
+## 2026-07-06 - Configuracion de ESLint
+
+Objetivo:
+
+- Cerrar la primera tarea pendiente de Fase 0.1: configurar ESLint.
+- Agregar el script `lint` porque el criterio de configuracion exige validar con `npm run lint`.
+
+Acciones realizadas:
+
+- Se instalaron `eslint`, `@eslint/js`, `typescript-eslint` y `globals` como dependencias de desarrollo.
+- Se creo `eslint.config.js` con configuracion flat compatible con Vite + TypeScript `vanilla-ts`.
+- Se activo lint type-aware con `projectService` contra `tsconfig.json`.
+- Se configuraron globals de navegador para `src` y globals de Node para archivos de configuracion.
+- Se configuraron reglas para fallar ante imports, variables y parametros sin uso, permitiendo nombres intencionalmente ignorados con prefijo `_`.
+- Se agrego el script `lint` para ejecutar ESLint sobre `src`, `vite.config.ts` y `eslint.config.js`.
+
+Archivos creados:
+
+- `eslint.config.js`
+
+Archivos modificados:
+
+- `package.json`
+- `package-lock.json`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npx eslint src vite.config.ts eslint.config.js`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente usando el script del proyecto.
+- Se ejecuto `npm test`.
+- Resultado: 4 archivos de prueba correctos, 11 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar tareas verificadas.
+- Se creo commit porque el cambio cierra configuracion y script de lint con validacion correcta.
+
+Pendientes inmediatos:
+
+- Configurar Prettier.
+- Continuar con Fase 0.1 en orden.

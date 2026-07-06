@@ -45,13 +45,13 @@ Objetivo medible: el proyecto tiene una base consistente de calidad, formato y c
 
 > Dependencia: esta fase debe quedar completa antes de declarar estable el MVP.
 
-- [ ] Configurar ESLint.
+- [x] Configurar ESLint.
   - Criterio: existe configuracion ESLint compatible con Vite + TypeScript `vanilla-ts`, y `npm run lint` detecta errores TypeScript, imports sin uso y variables sin uso.
 - [ ] Configurar Prettier.
   - Criterio: existe configuracion Prettier y `npm run format` aplica formato consistente sin alterar contratos funcionales.
 - [ ] Configurar `.editorconfig`.
   - Criterio: el repositorio define indentacion, charset, saltos de linea y trim de espacios finales.
-- [ ] Agregar script `lint`.
+- [x] Agregar script `lint`.
   - Criterio: `npm run lint` ejecuta ESLint sobre `src` y archivos de configuracion relevantes.
 - [ ] Agregar script `format`.
   - Criterio: `npm run format` formatea archivos TypeScript, CSS, HTML, JSON y Markdown del proyecto.
