@@ -1067,3 +1067,57 @@ Pendientes inmediatos:
 
 - Agregar estado visual de guardado.
 - Continuar con Fase 1.5 en orden.
+
+## 2026-07-06 - Finalizacion de shell visual Fase 1.5
+
+Objetivo:
+
+- Completar las tareas pendientes de Fase 1.5: estado visual de guardado y validacion responsive inicial.
+
+Acciones realizadas:
+
+- Se agrego `EditorSaveStatus` con estados `unchanged`, `saving`, `saved` y `error`.
+- `createEditorShell` ahora expone `statusBar`, `status` y `setSaveStatus`.
+- La barra de estado renderiza los textos `Sin cambios`, `Guardando`, `Guardado` y `Error`.
+- Se agrego `data-save-status` para estilos y pruebas estables.
+- `main.ts` inicializa el estado en `Sin cambios` y cambia a `Guardando`/`Guardado` cuando Tiptap emite contenido JSON/HTML.
+- Se agregaron estilos por estado de guardado y ajustes responsive para toolbar, status, header y area editable.
+- Se agrego `white-space: pre-wrap` al area ProseMirror para resolver la advertencia de Vite/ProseMirror detectada durante la prueba manual.
+- Se actualizaron pruebas unitarias del shell para cubrir los cuatro estados de guardado.
+- Se valido responsive con Playwright en escritorio `1280x800` y movil `375x667`, confirmando editor, toolbar y status visibles, sin overflow horizontal evidente y sin solapamiento toolbar/body/status.
+- Se marco Fase 1.5 como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/editor-shell.ts`
+- `src/editor/components/editor-shell.test.ts`
+- `src/main.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 5 archivos de prueba correctos, 20 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5173/`.
+- Se ejecuto una prueba manual automatizada con Playwright sobre escritorio y movil.
+- Resultado: estado inicial `Sin cambios`, estado tras editar `Guardado`, toolbar/editor/status visibles, sin overflow horizontal, sin solapamientos evidentes y `white-space: pre-wrap` aplicado en `.tiptap`.
+
+Decision Git:
+
+- Se creo commit porque la Fase 1.5 quedo completa y verificada.
+
+Pendientes inmediatos:
+
+- Implementar ciclo de vida del editor.
+- Continuar con Fase 1.5.1 en orden.

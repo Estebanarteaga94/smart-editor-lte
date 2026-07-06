@@ -1,16 +1,27 @@
+export type EditorSaveStatus = 'unchanged' | 'saving' | 'saved' | 'error';
+
 export interface EditorShellElements {
   root: HTMLElement;
   toolbar: HTMLElement;
   editable: HTMLElement;
+  statusBar: HTMLElement;
   status: HTMLElement;
+  setSaveStatus: (status: EditorSaveStatus) => void;
 }
 
 export interface EditorShellOptions {
   title?: string;
   description?: string;
   statusLabel?: string;
-  statusText?: string;
+  saveStatus?: EditorSaveStatus;
 }
+
+const saveStatusLabels: Record<EditorSaveStatus, string> = {
+  unchanged: 'Sin cambios',
+  saving: 'Guardando',
+  saved: 'Guardado',
+  error: 'Error',
+};
 
 export function createEditorShell(options: EditorShellOptions = {}): EditorShellElements {
   const root = document.createElement('main');
@@ -38,10 +49,19 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
   const description = root.querySelector<HTMLParagraphElement>('p');
   const toolbarSlot = root.querySelector<HTMLElement>('.editor-shell__toolbar');
   const editableSlot = root.querySelector<HTMLElement>('.editor-shell__editable');
+  const statusBar = root.querySelector<HTMLElement>('.editor-shell__status');
   const statusLabel = root.querySelector<HTMLElement>('.editor-shell__status strong');
   const statusSlot = root.querySelector<HTMLElement>('.editor-shell__status span');
 
-  if (!title || !description || !toolbarSlot || !editableSlot || !statusLabel || !statusSlot) {
+  if (
+    !title ||
+    !description ||
+    !toolbarSlot ||
+    !editableSlot ||
+    !statusBar ||
+    !statusLabel ||
+    !statusSlot
+  ) {
     throw new Error('Editor shell template is missing required elements');
   }
 
@@ -49,7 +69,13 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
   description.textContent =
     options.description ?? 'Editor WYSIWYG base con Tiptap y JSON canonico de ProseMirror.';
   statusLabel.textContent = options.statusLabel ?? 'Estado';
-  statusSlot.textContent = options.statusText ?? 'Sin cambios';
+
+  const setSaveStatus = (status: EditorSaveStatus): void => {
+    statusBar.dataset.saveStatus = status;
+    statusSlot.textContent = saveStatusLabels[status];
+  };
+
+  setSaveStatus(options.saveStatus ?? 'unchanged');
 
   toolbarSlot.append(
     createToolbarPlaceholderButton('Parrafo'),
@@ -65,7 +91,9 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
     root,
     toolbar: toolbarSlot,
     editable: editableSlot,
+    statusBar,
     status: statusSlot,
+    setSaveStatus,
   };
 }
 

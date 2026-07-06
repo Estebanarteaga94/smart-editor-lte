@@ -160,9 +160,9 @@ Objetivo medible: el frontend valida que `contentJson` use solo nodos, marcas y 
   - Criterio: renderiza contenedor principal, toolbar, area editable y barra de estado.
 - [x] Implementar estilos base en `src/style.css`.
   - Criterio: el editor tiene borde, toolbar fija/sticky, area editable con scroll y estados visuales basicos.
-- [ ] Agregar estado visual de guardado.
+- [x] Agregar estado visual de guardado.
   - Criterio: se muestran estados `Sin cambios`, `Guardando`, `Guardado` y `Error`.
-- [ ] Validar comportamiento responsive inicial.
+- [x] Validar comportamiento responsive inicial.
   - Criterio: el editor es usable en escritorio y en viewport movil sin solapamientos evidentes.
 
 ### 1.5.1 Ciclo de vida y cleanup

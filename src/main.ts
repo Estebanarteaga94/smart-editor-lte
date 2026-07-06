@@ -9,7 +9,9 @@ if (!app) {
   throw new Error('Root element #app was not found');
 }
 
-const shell = createEditorShell();
+const shell = createEditorShell({
+  saveStatus: 'unchanged',
+});
 app.replaceChildren(shell.root);
 
 createWysiwygEditor({
@@ -19,7 +21,14 @@ createWysiwygEditor({
     <p>Este contenido se renderiza desde Tiptap y ya emite JSON/HTML al editar.</p>
   `,
   placeholder: 'Escribe el contenido del documento...',
-  onChange: ({ contentJson }) => {
-    shell.status.textContent = `Actualizado: ${contentJson.type ?? 'doc'}`;
+  onChange: ({ contentJson, contentHtml }) => {
+    shell.setSaveStatus('saving');
+
+    if (contentJson.type && contentHtml.length > 0) {
+      shell.setSaveStatus('saved');
+      return;
+    }
+
+    shell.setSaveStatus('error');
   },
 });
