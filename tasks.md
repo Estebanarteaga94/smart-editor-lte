@@ -169,19 +169,19 @@ Objetivo medible: el frontend valida que `contentJson` use solo nodos, marcas y 
 
 Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias duplicadas, listeners repetidos ni timers activos.
 
-- [ ] Implementar ciclo de vida del editor.
+- [x] Implementar ciclo de vida del editor.
   - Criterio: existe una estrategia clara para montar, actualizar y desmontar shell, Tiptap, vistas de codigo, dialogs y servicios asociados.
-- [ ] Destruir instancia de Tiptap al desmontar.
+- [x] Destruir instancia de Tiptap al desmontar.
   - Criterio: se llama `editor.destroy()` cuando el editor deja de usarse, cambia de documento de forma destructiva o se desmonta el shell.
-- [ ] Destruir instancia de CodeMirror al desmontar o cambiar de vista.
+- [x] Destruir instancia de CodeMirror al desmontar o cambiar de vista.
   - Criterio: se llama `EditorView.destroy()` al salir de `source-html` o `source-json` y antes de crear una nueva instancia.
-- [ ] Limpiar event listeners manuales.
+- [x] Limpiar event listeners manuales.
   - Criterio: toolbar, fullscreen, dialogs, drag and drop, paste y shortcuts registran funciones de cleanup y las ejecutan al desmontar.
-- [ ] Cancelar timers y debounce activos.
+- [x] Cancelar timers y debounce activos.
   - Criterio: autosave, timers pendientes y debounces se cancelan al desmontar o cambiar de documento.
-- [ ] Evitar instancias duplicadas.
+- [x] Evitar instancias duplicadas.
   - Criterio: cambiar de documento o alternar vistas no crea editores duplicados ni listeners repetidos.
-- [ ] Verificar cleanup manual o automaticamente.
+- [x] Verificar cleanup manual o automaticamente.
   - Criterio: montar y desmontar varias veces no duplica eventos, no produce errores y queda cubierto por prueba automatizada o prueba manual documentada.
 
 ### 1.6 Toolbar minima del MVP

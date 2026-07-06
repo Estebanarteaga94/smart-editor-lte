@@ -1121,3 +1121,54 @@ Pendientes inmediatos:
 
 - Implementar ciclo de vida del editor.
 - Continuar con Fase 1.5.1 en orden.
+
+## 2026-07-06 - Finalizacion de ciclo de vida y cleanup Fase 1.5.1
+
+Objetivo:
+
+- Completar Fase 1.5.1 para que montar, cambiar vista y desmontar el editor no deje instancias duplicadas, listeners repetidos ni timers activos.
+
+Acciones realizadas:
+
+- Se agrego `EditorLifecycle` en `src/editor/core/editor-lifecycle.ts`.
+- El lifecycle monta el root del shell con `mountRoot` y reemplaza el root anterior sin duplicar nodos.
+- Se agrego `registerTiptapEditor` para destruir la instancia anterior al cambiar de documento o al desmontar.
+- Se agrego `registerSourceView` y `destroySourceView` para destruir vistas tipo CodeMirror al salir de `source-html` o `source-json` y antes de crear una nueva.
+- Se agrego `addEventListener` con cleanup automatico para listeners manuales de toolbar, fullscreen, dialogs, drag and drop, paste y shortcuts futuros.
+- Se agregaron `registerTimer`, `registerInterval` y `registerDebounce` para cancelar timeouts, intervalos y debounces activos.
+- `dispose()` quedo idempotente para evitar dobles destrucciones.
+- `main.ts` ahora monta el shell mediante `EditorLifecycle`, registra la instancia Tiptap y limpia recursos en `beforeunload`.
+- Se agregaron pruebas automatizadas para montar/desmontar varias veces, destruir Tiptap, destruir vistas tipo CodeMirror, limpiar listeners, cancelar timers/debounce y bloquear registros despues de `dispose`.
+- Se marco Fase 1.5.1 como completada en `tasks.md`.
+
+Archivos creados:
+
+- `src/editor/core/editor-lifecycle.ts`
+- `src/editor/core/editor-lifecycle.test.ts`
+
+Archivos modificados:
+
+- `src/main.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Resultado de pruebas: 6 archivos de prueba correctos, 26 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5174/` porque `5173` estaba ocupado.
+- Se ejecuto una prueba manual automatizada con Playwright.
+- Resultado: existe una sola instancia `.tiptap`, estado inicial `Sin cambios` y estado tras editar `Guardado`.
+
+Decision Git:
+
+- Se creo commit porque la Fase 1.5.1 quedo completa y verificada.
+
+Pendientes inmediatos:
+
+- Implementar comandos de parrafo y encabezados H1, H2, H3.
+- Continuar con Fase 1.6 en orden.

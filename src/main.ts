@@ -2,6 +2,7 @@ import './style.css';
 
 import { createEditorShell } from '@/editor/components/editor-shell';
 import { createWysiwygEditor } from '@/editor/core/create-editor';
+import { createEditorLifecycle } from '@/editor/core/editor-lifecycle';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -12,9 +13,11 @@ if (!app) {
 const shell = createEditorShell({
   saveStatus: 'unchanged',
 });
-app.replaceChildren(shell.root);
+const lifecycle = createEditorLifecycle();
 
-createWysiwygEditor({
+lifecycle.mountRoot(app, shell.root);
+
+const editor = createWysiwygEditor({
   element: shell.editable,
   initialContent: `
     <h1>Documento de ejemplo</h1>
@@ -31,4 +34,9 @@ createWysiwygEditor({
 
     shell.setSaveStatus('error');
   },
+});
+
+lifecycle.registerTiptapEditor(editor);
+lifecycle.addEventListener(window, 'beforeunload', () => {
+  lifecycle.dispose();
 });
