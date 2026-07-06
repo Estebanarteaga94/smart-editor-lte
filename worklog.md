@@ -732,3 +732,46 @@ Pendientes inmediatos:
 
 - Crear montaje inicial en `src/main.ts`.
 - Continuar con Fase 1.4 en orden.
+
+## 2026-07-06 - Montaje inicial en src/main.ts
+
+Objetivo:
+
+- Cerrar la ultima tarea pendiente de Fase 1.4: crear montaje inicial en `src/main.ts`.
+
+Acciones realizadas:
+
+- Se reemplazo la pantalla demo de Vite por una pantalla inicial del editor.
+- Se monto `createWysiwygEditor` sobre `#wysiwyg-editor`.
+- Se agrego contenido inicial editable para confirmar que Tiptap se renderiza.
+- Se agrego estado visual minimo que se actualiza cuando cambia el JSON canonico.
+- Se reemplazaron los estilos demo de Vite por estilos minimos para que el editor sea visible.
+- Se actualizo el titulo HTML a `Smart Editor LTE`.
+
+Archivos modificados:
+
+- `index.html`
+- `src/main.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 3 archivos de prueba correctos, 9 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5173/`.
+- Se verifico con Playwright que la pagina muestra `Smart Editor LTE`, existe un elemento `.tiptap` y el editor contiene el texto inicial.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio completa Fase 1.4 y deja un resultado visible verificado.
+
+Pendientes inmediatos:
+
+- Implementar `editor-shell.ts`.
+- Continuar con Fase 1.5 en orden.

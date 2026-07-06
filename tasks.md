@@ -83,7 +83,7 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
   - Criterio: el callback devuelve `editor.getJSON()` y `editor.getHTML()`.
 - [x] Desactivar CSS inyectado cuando el proyecto use estilos propios.
   - Criterio: `injectCSS: false` queda configurado o se documenta la decision contraria.
-- [ ] Crear montaje inicial en `src/main.ts`.
+- [x] Crear montaje inicial en `src/main.ts`.
   - Criterio: al ejecutar `npm run dev` se visualiza el editor en navegador.
 
 ### 1.5 Shell visual del editor
