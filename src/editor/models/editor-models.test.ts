@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { parseEditorAsset } from './editor-asset';
 import { parseEditorConfig } from './editor-config';
 import { parseEditorDocument } from './editor-document';
-import { parseEditorMode } from './editor-mode';
+import { parseEditorMode, parseEditorViewState } from './editor-mode';
 
 describe('editor model validation', () => {
   it('parses a valid editor document payload', () => {
@@ -71,6 +71,12 @@ describe('editor model validation', () => {
 
   it('parses editor config and mode values', () => {
     expect(parseEditorMode('preview')).toBe('preview');
+    expect(() => parseEditorMode('fullscreen')).toThrow();
+    expect(parseEditorViewState({ mode: 'preview', fullscreen: true })).toEqual({
+      mode: 'preview',
+      fullscreen: true,
+    });
+    expect(() => parseEditorViewState({ mode: 'fullscreen', fullscreen: false })).toThrow();
     expect(
       parseEditorConfig({
         documentId: 'doc-1',

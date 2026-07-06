@@ -106,12 +106,12 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
   - Criterio: incluye `id`, `title`, `contentJson`, `contentHtml`, `status`, `createdAt` y `updatedAt`.
 - [x] Implementar `EditorAsset`.
   - Criterio: incluye `id`, `documentId`, `fileName`, `mimeType`, `size`, `url`, `altText` opcional y `createdAt`.
-- [ ] Ajustar `EditorMode` como modo de contenido.
+- [x] Ajustar `EditorMode` como modo de contenido.
   - Criterio: `EditorMode` solo contiene `wysiwyg`, `source-html`, `source-json` y `preview`; `fullscreen` no aparece en este tipo.
   - Nota: la implementacion previa quedo marcada como completada con `fullscreen` dentro de `EditorMode`; se reabre por decision tecnica para separar contenido y estado visual.
-- [ ] Implementar `EditorViewState`.
+- [x] Implementar `EditorViewState`.
   - Criterio: existe un tipo o interfaz con forma `{ mode: EditorMode; fullscreen: boolean }`.
-- [ ] Separar `fullscreen` de `EditorMode`.
+- [x] Separar `fullscreen` de `EditorMode`.
   - Criterio: `fullscreen` queda representado como estado visual independiente y puede aplicarse sobre `wysiwyg`, `source-html`, `source-json` o `preview`.
 - [x] Implementar `EditorConfig`.
   - Criterio: define opciones configurables como `documentId`, `autosave`, limites de imagen, placeholder y modo inicial de contenido; cualquier opcion fullscreen usa `EditorViewState` o estado visual equivalente.

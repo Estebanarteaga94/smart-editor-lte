@@ -967,3 +967,47 @@ Pendientes inmediatos:
 
 - Ajustar `EditorMode` como modo de contenido.
 - Continuar con Fase 1.3 en orden.
+
+## 2026-07-06 - Finalizacion de modelos y tipos base reabiertos
+
+Objetivo:
+
+- Cerrar las tareas pendientes de Fase 1.3 relacionadas con `EditorMode`, `EditorViewState` y separacion del estado fullscreen.
+
+Acciones realizadas:
+
+- Se elimino `fullscreen` de `editorModeSchema`.
+- `EditorMode` quedo limitado a los modos de contenido `wysiwyg`, `source-html`, `source-json` y `preview`.
+- Se agrego `editorViewStateSchema` con forma `{ mode: EditorMode; fullscreen: boolean }`.
+- Se agregaron `EditorViewState`, `defaultEditorViewState` y `parseEditorViewState`.
+- Se actualizaron pruebas de modelos para confirmar que `fullscreen` se rechaza como modo y se acepta como estado visual independiente.
+- Se marco Fase 1.3 como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/models/editor-mode.ts`
+- `src/editor/models/editor-models.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 4 archivos de prueba correctos, 11 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+
+Decision Git:
+
+- Se creo commit porque la Fase 1.3 quedo completa y verificada.
+
+Pendientes inmediatos:
+
+- Implementar definicion de schema para JSON canonico.
+- Continuar con Fase 1.3.1 en orden.
