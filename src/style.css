@@ -30,6 +30,16 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@font-face {
+  font-family: 'fontello';
+  src:
+    url('/font/fontello.woff2') format('woff2'),
+    url('/font/fontello.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -111,6 +121,9 @@ textarea {
 }
 
 .editor-shell__tool {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
   min-width: 38px;
   min-height: 34px;
   padding: 0 10px;
@@ -118,6 +131,26 @@ textarea {
   border-radius: 6px;
   color: var(--muted);
   background: var(--surface);
+}
+
+.editor-shell__tool-icon {
+  display: block;
+  font-family: 'fontello';
+  font-size: 16px;
+  font-style: normal;
+  line-height: 1;
+  speak: never;
+}
+
+.editor-shell__tool-icon-modifier {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  min-width: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: currentcolor;
 }
 
 .editor-shell__tool:disabled {

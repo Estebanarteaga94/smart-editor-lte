@@ -46,8 +46,14 @@ describe('createToolbar', () => {
     expect(buttons).toHaveLength(12);
     expect(buttons.every((button) => button.type === 'button')).toBe(true);
     expect(buttons.every((button) => button.hasAttribute('aria-label'))).toBe(true);
+    expect(buttons.every((button) => button.querySelector('.editor-shell__tool-icon'))).toBe(true);
     expect(toolbar.element.querySelector('[data-toolbar-action="paragraph"]')).not.toBeNull();
     expect(toolbar.element.querySelector('[data-toolbar-action="save"]')).not.toBeNull();
+    expect(
+      toolbar.element.querySelector(
+        '[data-toolbar-action="heading-1"] .editor-shell__tool-icon-modifier',
+      )?.textContent,
+    ).toBe('1');
 
     lifecycle.dispose();
   });

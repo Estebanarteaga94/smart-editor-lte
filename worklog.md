@@ -1238,3 +1238,54 @@ Pendientes inmediatos:
 
 - Implementar `serializer.service.ts` como tarea formal de Fase 1.7.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-06 - Iconos Fontello en toolbar
+
+Objetivo:
+
+- Reemplazar texto visible de la toolbar por iconos usando la carpeta `font` existente en la raiz.
+
+Acciones realizadas:
+
+- Se movio `font/` a `public/font/` para que Vite sirva los assets en runtime.
+- Se agrego `@font-face` para `fontello` usando `woff2` y `woff`.
+- Los botones de toolbar ahora renderizan glifos Fontello en spans `aria-hidden`.
+- Se conservaron `aria-label`, `aria-pressed`, `title`, `disabled` y `data-active` para accesibilidad y estado visual.
+- Los botones H1, H2 y H3 usan el icono de encabezado con modificador numerico.
+- Se ajustaron estilos para iconos, modificadores y estados activos.
+- Se actualizaron pruebas de toolbar para verificar que cada boton tiene icono y accesibilidad.
+- Se agrego nota en `tasks.md` bajo la accesibilidad de Fase 1.6.
+
+Archivos movidos:
+
+- `font/*` a `public/font/*`
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 9 archivos de prueba correctos, 35 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto. Se mantiene la advertencia no bloqueante de Vite por chunk mayor a 500 kB.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5174/` porque `5173` estaba ocupado.
+- Se ejecuto una prueba manual automatizada con Playwright.
+- Resultado: 12 botones, 12 iconos, fuente `fontello` aplicada, sin botones sin `aria-label`, sin overflow horizontal y boton de negrita activo al usarlo.
+
+Decision Git:
+
+- Se creo commit porque el cambio queda acotado a los iconos de toolbar y esta verificado.
+
+Pendientes inmediatos:
+
+- Implementar `serializer.service.ts` como tarea formal de Fase 1.7.
+- Continuar con Fase 1.7 en orden.

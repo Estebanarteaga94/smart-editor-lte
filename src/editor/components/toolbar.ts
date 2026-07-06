@@ -20,6 +20,8 @@ export type ToolbarButtonId =
 export interface ToolbarButtonConfig {
   id: ToolbarButtonId;
   label: string;
+  icon: string;
+  iconModifier?: string;
   ariaLabel: string;
   command?: EditorCommand;
   isActive?: (editor: Editor) => boolean;
@@ -42,6 +44,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'paragraph',
     label: 'P',
+    icon: '\uf1dd',
     ariaLabel: 'Convertir a parrafo',
     command: editorCommands.setParagraph,
     isActive: (editor) => editor.isActive('paragraph'),
@@ -50,6 +53,8 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'heading-1',
     label: 'H1',
+    icon: '\uf1dc',
+    iconModifier: '1',
     ariaLabel: 'Convertir a encabezado H1',
     command: editorCommands.setHeading1,
     isActive: (editor) => editor.isActive('heading', { level: 1 }),
@@ -58,6 +63,8 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'heading-2',
     label: 'H2',
+    icon: '\uf1dc',
+    iconModifier: '2',
     ariaLabel: 'Convertir a encabezado H2',
     command: editorCommands.setHeading2,
     isActive: (editor) => editor.isActive('heading', { level: 2 }),
@@ -66,6 +73,8 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'heading-3',
     label: 'H3',
+    icon: '\uf1dc',
+    iconModifier: '3',
     ariaLabel: 'Convertir a encabezado H3',
     command: editorCommands.setHeading3,
     isActive: (editor) => editor.isActive('heading', { level: 3 }),
@@ -74,6 +83,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'bold',
     label: 'B',
+    icon: '\ue87f',
     ariaLabel: 'Activar o desactivar negrita',
     command: editorCommands.toggleBold,
     isActive: (editor) => editor.isActive('bold'),
@@ -82,6 +92,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'italic',
     label: 'I',
+    icon: '\ue880',
     ariaLabel: 'Activar o desactivar cursiva',
     command: editorCommands.toggleItalic,
     isActive: (editor) => editor.isActive('italic'),
@@ -90,6 +101,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'underline',
     label: 'U',
+    icon: '\uf0cd',
     ariaLabel: 'Activar o desactivar subrayado',
     command: editorCommands.toggleUnderline,
     isActive: (editor) => editor.isActive('underline'),
@@ -98,6 +110,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'bullet-list',
     label: 'Lista',
+    icon: '\uf0ca',
     ariaLabel: 'Activar o desactivar lista no ordenada',
     command: editorCommands.toggleBulletList,
     isActive: (editor) => editor.isActive('bulletList'),
@@ -106,6 +119,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'ordered-list',
     label: '1.',
+    icon: '\uf0cb',
     ariaLabel: 'Activar o desactivar lista ordenada',
     command: editorCommands.toggleOrderedList,
     isActive: (editor) => editor.isActive('orderedList'),
@@ -114,6 +128,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'undo',
     label: 'Undo',
+    icon: '\ue866',
     ariaLabel: 'Deshacer ultimo cambio',
     command: editorCommands.undo,
     isDisabled: (editor) => !editor.can().chain().focus().undo().run(),
@@ -121,6 +136,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'redo',
     label: 'Redo',
+    icon: '\ue865',
     ariaLabel: 'Rehacer ultimo cambio',
     command: editorCommands.redo,
     isDisabled: (editor) => !editor.can().chain().focus().redo().run(),
@@ -128,6 +144,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'save',
     label: 'Guardar',
+    icon: '\ue89b',
     ariaLabel: 'Guardar documento',
   },
 ];
@@ -205,8 +222,22 @@ function createToolbarButton(config: ToolbarButtonConfig): HTMLButtonElement {
   button.type = 'button';
   button.className = 'editor-shell__tool';
   button.dataset.toolbarAction = config.id;
-  button.textContent = config.label;
+  button.title = config.ariaLabel;
   button.setAttribute('aria-label', config.ariaLabel);
+
+  const icon = document.createElement('span');
+  icon.className = 'editor-shell__tool-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = config.icon;
+  button.append(icon);
+
+  if (config.iconModifier) {
+    const modifier = document.createElement('span');
+    modifier.className = 'editor-shell__tool-icon-modifier';
+    modifier.setAttribute('aria-hidden', 'true');
+    modifier.textContent = config.iconModifier;
+    button.append(modifier);
+  }
 
   if (config.pressed) {
     button.setAttribute('aria-pressed', 'false');

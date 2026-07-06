@@ -198,6 +198,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
   - Criterio: ejecuta el servicio de persistencia, envia `title`, `contentJson` y `contentHtml`, y muestra estado correcto.
 - [x] Agregar accesibilidad basica a controles.
   - Criterio: cada boton tiene `aria-label`, estado disabled cuando aplique y foco visible.
+  - Nota: la toolbar usa iconos Fontello servidos desde `public/font`, conservando `aria-label` para lectores de pantalla.
 
 ### 1.7 Persistencia MVP
 
