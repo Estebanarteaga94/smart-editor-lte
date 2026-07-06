@@ -77,16 +77,6 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
 
   setSaveStatus(options.saveStatus ?? 'unchanged');
 
-  toolbarSlot.append(
-    createToolbarPlaceholderButton('Parrafo'),
-    createToolbarPlaceholderButton('H1'),
-    createToolbarPlaceholderButton('H2'),
-    createToolbarPlaceholderButton('H3'),
-    createToolbarPlaceholderButton('B'),
-    createToolbarPlaceholderButton('I'),
-    createToolbarPlaceholderButton('U'),
-  );
-
   return {
     root,
     toolbar: toolbarSlot,
@@ -95,16 +85,4 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
     status: statusSlot,
     setSaveStatus,
   };
-}
-
-function createToolbarPlaceholderButton(label: string): HTMLButtonElement {
-  const button = document.createElement('button');
-
-  button.type = 'button';
-  button.className = 'editor-shell__tool';
-  button.textContent = label;
-  button.disabled = true;
-  button.setAttribute('aria-label', `${label} no disponible todavia`);
-
-  return button;
 }

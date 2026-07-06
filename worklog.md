@@ -1172,3 +1172,69 @@ Pendientes inmediatos:
 
 - Implementar comandos de parrafo y encabezados H1, H2, H3.
 - Continuar con Fase 1.6 en orden.
+
+## 2026-07-06 - Finalizacion de toolbar minima del MVP Fase 1.6
+
+Objetivo:
+
+- Completar Fase 1.6 con comandos basicos de toolbar, historial, guardado manual y accesibilidad.
+
+Acciones realizadas:
+
+- Se implementaron comandos reales en `editor-commands.ts` para parrafo, H1, H2, H3, negrita, cursiva, subrayado, lista no ordenada, lista ordenada, deshacer y rehacer.
+- Se reemplazaron los placeholders del shell por una toolbar funcional en `toolbar.ts`.
+- La toolbar crea botones accesibles con `aria-label`, `aria-pressed` en controles conmutables, estado `disabled` cuando aplica y `data-active` para estado visual.
+- La toolbar escucha `selectionUpdate`, `transaction` y `update` de Tiptap, y registra cleanup en `EditorLifecycle`.
+- `main.ts` monta la toolbar real y conecta el boton `Guardar`.
+- Se agrego `serializeEditorContent(editor)` para extraer JSON canonico validado y HTML renderizable.
+- Se agrego `createLocalDocumentStorageService` como persistencia local temporal para el guardado manual mientras no existe backend.
+- El guardado manual persiste `title`, `contentJson` y `contentHtml`, y actualiza estado `Guardando`, `Guardado` o `Error`.
+- Se agregaron estilos para toolbar funcional y boton activo.
+- Se agregaron pruebas unitarias para comandos de bloques, marcas, listas, undo/redo, toolbar, accesibilidad y guardado local.
+- Se agrego prueba de guardado/carga de listas para verificar que la estructura se conserva.
+- Se marco Fase 1.6 como completada en `tasks.md`.
+
+Archivos creados:
+
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/core/editor-commands.test.ts`
+- `src/editor/services/document-storage.service.test.ts`
+
+Archivos modificados:
+
+- `src/editor/components/editor-shell.ts`
+- `src/editor/components/editor-shell.test.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/core/editor-commands.ts`
+- `src/editor/services/document-storage.service.ts`
+- `src/editor/services/serializer.service.ts`
+- `src/main.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 9 archivos de prueba correctos, 35 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto. Vite emitio advertencia de chunk mayor a 500 kB.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente. Se mantiene la advertencia no bloqueante de Vite por chunk mayor a 500 kB.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5174/` porque `5173` estaba ocupado.
+- Se ejecuto una prueba manual automatizada con Playwright.
+- Resultado: 12 botones de toolbar, una sola instancia `.tiptap`, sin overflow horizontal, botones con `aria-label`, H1/negrita/lista/undo/redo operativos y guardado local con `title`, `contentJson` y `contentHtml`.
+
+Decision Git:
+
+- Se creo commit porque la Fase 1.6 quedo completa y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `serializer.service.ts` como tarea formal de Fase 1.7.
+- Continuar con Fase 1.7 en orden.

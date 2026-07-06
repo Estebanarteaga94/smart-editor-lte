@@ -102,6 +102,14 @@ textarea {
   overflow-x: clip;
 }
 
+.editor-toolbar {
+  display: flex;
+  gap: 6px;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
 .editor-shell__tool {
   min-width: 38px;
   min-height: 34px;
@@ -115,6 +123,12 @@ textarea {
 .editor-shell__tool:disabled {
   cursor: not-allowed;
   opacity: 0.58;
+}
+
+.editor-shell__tool[data-active='true'] {
+  border-color: var(--focus);
+  color: var(--focus);
+  background: rgb(37 99 235 / 0.1);
 }
 
 .editor-shell__tool:focus-visible {
@@ -261,6 +275,10 @@ textarea {
   .editor-shell__toolbar {
     gap: 4px;
     padding: 8px;
+  }
+
+  .editor-toolbar {
+    gap: 4px;
   }
 
   .editor-shell__tool {

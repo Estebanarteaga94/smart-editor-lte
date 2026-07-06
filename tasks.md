@@ -186,17 +186,17 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 
 ### 1.6 Toolbar minima del MVP
 
-- [ ] Implementar comandos de parrafo y encabezados H1, H2, H3.
+- [x] Implementar comandos de parrafo y encabezados H1, H2, H3.
   - Criterio: existen funciones en `editor-commands.ts`; al ejecutar cada accion, el JSON contiene el bloque esperado, el HTML renderiza correctamente y el boton refleja estado activo.
-- [ ] Implementar comandos de negrita, cursiva y subrayado.
+- [x] Implementar comandos de negrita, cursiva y subrayado.
   - Criterio: los botones aplican y remueven formato sobre seleccion y texto nuevo; JSON, HTML y estado activo quedan cubiertos por prueba o verificacion manual.
-- [ ] Implementar lista no ordenada y lista ordenada.
+- [x] Implementar lista no ordenada y lista ordenada.
   - Criterio: se pueden crear, anidar y desactivar listas; guardar y recargar conserva la estructura.
-- [ ] Implementar deshacer y rehacer.
+- [x] Implementar deshacer y rehacer.
   - Criterio: los botones ejecutan historial de Tiptap; una prueba o verificacion manual confirma que contenido previo se restaura y se rehace.
-- [ ] Implementar boton de guardado manual.
+- [x] Implementar boton de guardado manual.
   - Criterio: ejecuta el servicio de persistencia, envia `title`, `contentJson` y `contentHtml`, y muestra estado correcto.
-- [ ] Agregar accesibilidad basica a controles.
+- [x] Agregar accesibilidad basica a controles.
   - Criterio: cada boton tiene `aria-label`, estado disabled cuando aplique y foco visible.
 
 ### 1.7 Persistencia MVP

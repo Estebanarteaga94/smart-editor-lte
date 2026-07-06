@@ -25,13 +25,10 @@ describe('createEditorShell', () => {
     expect(shell.statusBar.dataset.saveStatus).toBe('unchanged');
   });
 
-  it('renders disabled placeholder toolbar controls', () => {
+  it('renders an empty toolbar slot for the functional toolbar', () => {
     const shell = createEditorShell();
-    const buttons = [...shell.toolbar.querySelectorAll('button')];
 
-    expect(buttons.length).toBeGreaterThan(0);
-    expect(buttons.every((button) => button.disabled)).toBe(true);
-    expect(buttons.every((button) => button.hasAttribute('aria-label'))).toBe(true);
+    expect(shell.toolbar.querySelectorAll('button')).toHaveLength(0);
   });
 
   it('renders all supported save status states', () => {
