@@ -77,11 +77,11 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
 
 - [x] Implementar `createEditorExtensions`.
   - Criterio: registra StarterKit, Underline, TextStyle, Color, Highlight, TextAlign, Link, Table, TaskList, TaskItem, Placeholder e imagen personalizada segun la fase disponible.
-- [ ] Implementar `createWysiwygEditor`.
+- [x] Implementar `createWysiwygEditor`.
   - Criterio: recibe elemento HTML, contenido inicial y callback `onChange`.
-- [ ] Garantizar que el editor emite JSON y HTML en cada actualizacion.
+- [x] Garantizar que el editor emite JSON y HTML en cada actualizacion.
   - Criterio: el callback devuelve `editor.getJSON()` y `editor.getHTML()`.
-- [ ] Desactivar CSS inyectado cuando el proyecto use estilos propios.
+- [x] Desactivar CSS inyectado cuando el proyecto use estilos propios.
   - Criterio: `injectCSS: false` queda configurado o se documenta la decision contraria.
 - [ ] Crear montaje inicial en `src/main.ts`.
   - Criterio: al ejecutar `npm run dev` se visualiza el editor en navegador.

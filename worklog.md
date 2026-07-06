@@ -690,3 +690,45 @@ Pendientes inmediatos:
 
 - Implementar `createWysiwygEditor`.
 - Continuar con Fase 1.4 en orden.
+
+## 2026-07-06 - Implementacion de createWysiwygEditor
+
+Objetivo:
+
+- Cerrar las siguientes tareas pendientes de Fase 1.4 relacionadas con la instancia base de Tiptap.
+
+Acciones realizadas:
+
+- Se implemento `createWysiwygEditor` en `src/editor/core/create-editor.ts`.
+- La factory recibe `element`, `initialContent`, `placeholder` y `onChange`.
+- La factory crea una instancia real de `Editor` de Tiptap con las extensiones de `createEditorExtensions`.
+- Se configuro `onUpdate` para emitir `contentJson` con `editor.getJSON()` y `contentHtml` con `editor.getHTML()`.
+- Se configuro `injectCSS: false` para que los estilos sean responsabilidad del proyecto.
+- Se agregaron pruebas con ambiente `jsdom` para validar montaje, emision JSON/HTML e `injectCSS: false`.
+
+Archivos modificados:
+
+- `src/editor/core/create-editor.ts`
+- `tasks.md`
+- `worklog.md`
+
+Archivos creados:
+
+- `src/editor/core/create-editor.test.ts`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 3 archivos de prueba correctos, 9 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar estas tareas.
+- Se creo commit porque el cambio es coherente, verificable y cierra tres criterios contiguos de Fase 1.4.
+
+Pendientes inmediatos:
+
+- Crear montaje inicial en `src/main.ts`.
+- Continuar con Fase 1.4 en orden.
