@@ -1,6 +1,10 @@
-# Tasks - Editor WYSIWYG Vite + TypeScript
+# Tasks - Editor WYSIWYG Vite + TypeScript vanilla-ts
 
-Este archivo convierte el plan de `plan_editor_wysiwyg_vite_ts.md` en tareas cumplibles, medibles y verificables. Cada tarea debe cerrarse solo cuando su criterio de verificacion este cumplido y registrado en `worklog.md`.
+Este archivo convierte el plan de `plan_editor_wysiwyg_vite_ts.md` en tareas cumplibles, medibles y verificables. El proyecto base es Vite + TypeScript con plantilla `vanilla-ts`: no se usa React, Vue, Angular, Svelte ni otro framework frontend en la primera version.
+
+En este documento, "componente" significa modulo TypeScript que crea, monta, actualiza y destruye nodos DOM manualmente.
+
+Cada tarea debe cerrarse solo cuando su criterio de verificacion este cumplido y registrado en `worklog.md`.
 
 Convencion:
 
@@ -8,6 +12,19 @@ Convencion:
 - `[x]` completada.
 - Una tarea completada debe tener evidencia: archivo creado/modificado, comando ejecutado, prueba manual o prueba automatizada.
 - Si una tarea se divide durante la implementacion, agregar subtareas antes de marcarla como terminada.
+- Si una tarea completada cambia de criterio por una decision tecnica posterior, agregar una nota bajo la tarea y crear una tarea pendiente de ajuste cuando aplique.
+
+## Definicion de hecho
+
+Una tarea puede marcarse como completada solo si:
+
+- cumple su criterio de verificacion;
+- tiene evidencia registrada en `worklog.md`;
+- no rompe `npm run build` cuando afecta codigo o configuracion;
+- no rompe `npm run lint` si ya esta configurado;
+- incluye o actualiza pruebas cuando aplica, o registra una justificacion si no aplica;
+- actualiza documentacion operativa cuando cambia arquitectura, contratos o decisiones tecnicas;
+- si completa una o varias tareas verificadas, evalua si corresponde crear commit y registra la decision.
 
 ## Fase 0 - Preparacion y documentacion operativa
 
@@ -21,6 +38,29 @@ Convencion:
   - Verificacion: el archivo existe y resume objetivo, stack, arquitectura, modelo canonico y alcance por fases.
 - [x] Crear `worklog.md` como bitacora de avances.
   - Verificacion: el archivo existe y contiene la entrada inicial de preparacion.
+
+## Fase 0.1 - Calidad de codigo, linting y formato
+
+Objetivo medible: el proyecto tiene una base consistente de calidad, formato y comandos de verificacion antes de crecer en funcionalidades.
+
+> Dependencia: esta fase debe quedar completa antes de declarar estable el MVP.
+
+- [ ] Configurar ESLint.
+  - Criterio: existe configuracion ESLint compatible con Vite + TypeScript `vanilla-ts`, y `npm run lint` detecta errores TypeScript, imports sin uso y variables sin uso.
+- [ ] Configurar Prettier.
+  - Criterio: existe configuracion Prettier y `npm run format` aplica formato consistente sin alterar contratos funcionales.
+- [ ] Configurar `.editorconfig`.
+  - Criterio: el repositorio define indentacion, charset, saltos de linea y trim de espacios finales.
+- [ ] Agregar script `lint`.
+  - Criterio: `npm run lint` ejecuta ESLint sobre `src` y archivos de configuracion relevantes.
+- [ ] Agregar script `format`.
+  - Criterio: `npm run format` formatea archivos TypeScript, CSS, HTML, JSON y Markdown del proyecto.
+- [ ] Agregar script `check`.
+  - Criterio: `npm run check` ejecuta build, lint y tests en un solo comando.
+- [ ] Integrar calidad de codigo en criterios finales.
+  - Criterio: `npm run lint`, `npm test`, `npm run build` y `npm run check` forman parte de la validacion final.
+- [ ] Validar calidad inicial del proyecto.
+  - Criterio: `npm run lint`, `npm test`, `npm run build` y `npm run check` terminan correctamente o queda documentada la razon tecnica de cualquier comando pendiente.
 
 ## Fase 1 - Base del proyecto y MVP guardable
 
@@ -48,7 +88,7 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
 - [x] Crear `src/editor/core`.
   - Criterio: contiene archivos para editor, extensiones, comandos y tipos.
 - [x] Crear `src/editor/components`.
-  - Criterio: contiene archivos base para shell, toolbar, source view, preview, fullscreen, dialogos y menus.
+  - Criterio: contiene modulos TypeScript vanilla para shell, toolbar, source view, preview, fullscreen, dialogos y menus; no son componentes de framework.
 - [x] Crear `src/editor/extensions`.
   - Criterio: contiene extensiones personalizadas de imagen, tabla y link cuando existan.
 - [x] Crear `src/editor/services`.
@@ -66,12 +106,40 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
   - Criterio: incluye `id`, `title`, `contentJson`, `contentHtml`, `status`, `createdAt` y `updatedAt`.
 - [x] Implementar `EditorAsset`.
   - Criterio: incluye `id`, `documentId`, `fileName`, `mimeType`, `size`, `url`, `altText` opcional y `createdAt`.
-- [x] Implementar `EditorMode`.
-  - Criterio: soporta `wysiwyg`, `source-html`, `source-json`, `preview` y `fullscreen`.
+- [ ] Ajustar `EditorMode` como modo de contenido.
+  - Criterio: `EditorMode` solo contiene `wysiwyg`, `source-html`, `source-json` y `preview`; `fullscreen` no aparece en este tipo.
+  - Nota: la implementacion previa quedo marcada como completada con `fullscreen` dentro de `EditorMode`; se reabre por decision tecnica para separar contenido y estado visual.
+- [ ] Implementar `EditorViewState`.
+  - Criterio: existe un tipo o interfaz con forma `{ mode: EditorMode; fullscreen: boolean }`.
+- [ ] Separar `fullscreen` de `EditorMode`.
+  - Criterio: `fullscreen` queda representado como estado visual independiente y puede aplicarse sobre `wysiwyg`, `source-html`, `source-json` o `preview`.
 - [x] Implementar `EditorConfig`.
-  - Criterio: define opciones configurables como `documentId`, `autosave`, limites de imagen, placeholder y modo inicial.
+  - Criterio: define opciones configurables como `documentId`, `autosave`, limites de imagen, placeholder y modo inicial de contenido; cualquier opcion fullscreen usa `EditorViewState` o estado visual equivalente.
 - [x] Agregar validaciones basicas de tipos donde se consuman datos externos.
   - Criterio: los payloads de persistencia y assets tienen validacion o parsing controlado.
+
+### 1.3.1 Schema del JSON canonico
+
+Objetivo medible: el frontend valida que `contentJson` use solo nodos, marcas y atributos permitidos antes de cargar o persistir contenido.
+
+> Dependencia: requiere que los modelos base de Fase 1.3 existan y que las extensiones registradas en Fase 1.4 esten alineadas con el schema permitido.
+
+- [ ] Implementar definicion de schema para JSON canonico.
+  - Criterio: existe una especificacion versionada de nodos, marcas y atributos permitidos para ProseMirror/Tiptap JSON.
+- [ ] Definir nodos permitidos del documento.
+  - Criterio: solo se aceptan nodos documentados como `doc`, `paragraph`, `text`, `heading`, `bulletList`, `orderedList`, `listItem`, `taskList`, `taskItem`, `table`, `tableRow`, `tableCell`, `tableHeader`, `image`, `blockquote`, `codeBlock` y `horizontalRule`.
+- [ ] Definir marcas permitidas.
+  - Criterio: solo se aceptan marcas documentadas como `bold`, `italic`, `underline`, `strike`, `link`, `textStyle` y `highlight`.
+- [ ] Validar atributos permitidos.
+  - Criterio: atributos como `href`, `src`, `alt`, `level`, `width`, `height`, `align`, `color`, `textAlign`, `colspan`, `rowspan` y similares tienen reglas explicitas.
+- [ ] Rechazar JSON con nodos, marcas o atributos no permitidos.
+  - Criterio: el contenido invalido no se carga directamente en Tiptap, se conserva el documento anterior y se muestra error controlado.
+- [ ] Validar JSON recibido desde la API.
+  - Criterio: el frontend no confia ciegamente en `contentJson`; todo payload externo pasa por parser o schema antes de montarse.
+- [ ] Validar JSON editado desde la vista `source-json`.
+  - Criterio: JSON invalido o fuera de schema no reemplaza el documento actual y muestra mensaje accionable.
+- [ ] Agregar pruebas del schema.
+  - Criterio: existen casos validos, invalidos, nodos desconocidos, marcas desconocidas y atributos inseguros.
 
 ### 1.4 Instancia base de Tiptap
 
@@ -97,18 +165,37 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
 - [ ] Validar comportamiento responsive inicial.
   - Criterio: el editor es usable en escritorio y en viewport movil sin solapamientos evidentes.
 
+### 1.5.1 Ciclo de vida y cleanup
+
+Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias duplicadas, listeners repetidos ni timers activos.
+
+- [ ] Implementar ciclo de vida del editor.
+  - Criterio: existe una estrategia clara para montar, actualizar y desmontar shell, Tiptap, vistas de codigo, dialogs y servicios asociados.
+- [ ] Destruir instancia de Tiptap al desmontar.
+  - Criterio: se llama `editor.destroy()` cuando el editor deja de usarse, cambia de documento de forma destructiva o se desmonta el shell.
+- [ ] Destruir instancia de CodeMirror al desmontar o cambiar de vista.
+  - Criterio: se llama `EditorView.destroy()` al salir de `source-html` o `source-json` y antes de crear una nueva instancia.
+- [ ] Limpiar event listeners manuales.
+  - Criterio: toolbar, fullscreen, dialogs, drag and drop, paste y shortcuts registran funciones de cleanup y las ejecutan al desmontar.
+- [ ] Cancelar timers y debounce activos.
+  - Criterio: autosave, timers pendientes y debounces se cancelan al desmontar o cambiar de documento.
+- [ ] Evitar instancias duplicadas.
+  - Criterio: cambiar de documento o alternar vistas no crea editores duplicados ni listeners repetidos.
+- [ ] Verificar cleanup manual o automaticamente.
+  - Criterio: montar y desmontar varias veces no duplica eventos, no produce errores y queda cubierto por prueba automatizada o prueba manual documentada.
+
 ### 1.6 Toolbar minima del MVP
 
 - [ ] Implementar comandos de parrafo y encabezados H1, H2, H3.
-  - Criterio: los botones cambian el bloque seleccionado y reflejan estado activo.
+  - Criterio: existen funciones en `editor-commands.ts`; al ejecutar cada accion, el JSON contiene el bloque esperado, el HTML renderiza correctamente y el boton refleja estado activo.
 - [ ] Implementar comandos de negrita, cursiva y subrayado.
-  - Criterio: los botones aplican y remueven formato sobre seleccion y texto nuevo.
+  - Criterio: los botones aplican y remueven formato sobre seleccion y texto nuevo; JSON, HTML y estado activo quedan cubiertos por prueba o verificacion manual.
 - [ ] Implementar lista no ordenada y lista ordenada.
-  - Criterio: se pueden crear, anidar y desactivar listas.
+  - Criterio: se pueden crear, anidar y desactivar listas; guardar y recargar conserva la estructura.
 - [ ] Implementar deshacer y rehacer.
-  - Criterio: los botones ejecutan historial de Tiptap correctamente.
+  - Criterio: los botones ejecutan historial de Tiptap; una prueba o verificacion manual confirma que contenido previo se restaura y se rehace.
 - [ ] Implementar boton de guardado manual.
-  - Criterio: ejecuta el servicio de persistencia y muestra estado correcto.
+  - Criterio: ejecuta el servicio de persistencia, envia `title`, `contentJson` y `contentHtml`, y muestra estado correcto.
 - [ ] Agregar accesibilidad basica a controles.
   - Criterio: cada boton tiene `aria-label`, estado disabled cuando aplique y foco visible.
 
@@ -140,6 +227,8 @@ Objetivo medible: el usuario puede escribir contenido, aplicar formato basico, g
 
 Objetivo medible: el editor soporta marcas y bloques frecuentes sin romper serializacion ni recuperacion.
 
+> Dependencia: requiere Fase 1.4 completa y toolbar base de Fase 1.6 disponible.
+
 - [ ] Agregar tachado.
   - Criterio: toolbar permite activar/desactivar tachado y el estado se persiste.
 - [ ] Agregar color de texto.
@@ -167,10 +256,12 @@ Objetivo medible: el editor soporta marcas y bloques frecuentes sin romper seria
 
 Objetivo medible: el usuario puede crear y modificar tablas completas desde la UI.
 
+> Dependencia: requiere Fase 1.4, Fase 1.6 y Fase 1.7 completas para validar comandos, UI y persistencia.
+
 - [ ] Implementar `table-commands.ts`.
-  - Criterio: expone insertar tabla, filas, columnas, encabezados, combinar, separar y eliminar.
+  - Criterio: expone funciones tipadas para insertar tabla, filas, columnas, encabezados, combinar, separar y eliminar.
 - [ ] Agregar boton para insertar tabla 3x3 con encabezado.
-  - Criterio: se inserta tabla funcional en la posicion del cursor.
+  - Criterio: se inserta tabla funcional en la posicion del cursor; JSON contiene `table`, `tableRow`, `tableHeader` y `tableCell`, y HTML renderiza una tabla.
 - [ ] Agregar controles para agregar fila antes y despues.
   - Criterio: funcionan dentro de una tabla y se deshabilitan fuera de tabla.
 - [ ] Agregar controles para eliminar fila.
@@ -198,6 +289,8 @@ Objetivo medible: el usuario puede crear y modificar tablas completas desde la U
 
 Objetivo medible: el editor inserta imagenes validas, con metadata util y sin aceptar archivos peligrosos.
 
+> Dependencia: requiere Fase 1.7 para persistencia, Fase 8 para contrato de assets y Fase 9 para reglas de seguridad.
+
 - [ ] Implementar `resizable-image.extension.ts`.
   - Criterio: soporta `src`, `alt`, `width`, `height` y `align`.
 - [ ] Implementar `file-validator.ts`.
@@ -217,7 +310,7 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [ ] Agregar ancho y alto editables.
   - Criterio: el usuario puede cambiar dimensiones y estas se persisten.
 - [ ] Evaluar caption opcional.
-  - Criterio: se implementa o queda una decision documentada con tarea futura.
+  - Criterio: decision documentada en `tasks.md` o documento tecnico; si se implementa, se crea tarea separada de implementacion.
 - [ ] Manejar errores de subida.
   - Criterio: fallo de validacion o red muestra mensaje y no inserta nodo roto.
 - [ ] Preparar cliente para eliminar assets.
@@ -227,16 +320,18 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 
 Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el documento.
 
+> Dependencia: requiere Fase 1.4, Fase 1.5.1 y schema de JSON canonico de Fase 1.3.1.
+
 - [ ] Instalar y configurar CodeMirror.
   - Criterio: HTML y JSON tienen resaltado de sintaxis.
 - [ ] Implementar `source-view.ts`.
-  - Criterio: crea `EditorView`, recibe valor inicial, lenguaje y callback `onChange`.
+  - Criterio: crea `EditorView`, recibe valor inicial, lenguaje, callback `onChange` y funcion de cleanup que destruye la instancia.
 - [ ] Agregar modo `source-html`.
   - Criterio: muestra HTML generado actual y permite editarlo.
 - [ ] Agregar modo `source-json`.
   - Criterio: muestra JSON formateado actual y permite editarlo.
 - [ ] Implementar validacion de JSON.
-  - Criterio: JSON invalido muestra error y no reemplaza el documento.
+  - Criterio: JSON invalido o fuera del schema permitido muestra error y no reemplaza el documento.
 - [ ] Implementar sanitizacion de HTML.
   - Criterio: HTML editado pasa por DOMPurify antes de volver a Tiptap.
 - [ ] Implementar validacion de HTML permitido.
@@ -244,7 +339,7 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [ ] Sincronizar HTML editado hacia WYSIWYG.
   - Criterio: aplicar cambios HTML actualiza el editor visual sin perder historial critico.
 - [ ] Sincronizar JSON editado hacia WYSIWYG.
-  - Criterio: aplicar JSON valido actualiza el editor visual.
+  - Criterio: aplicar JSON valido y permitido por schema actualiza el editor visual; JSON invalido conserva el contenido anterior.
 - [ ] Agregar mensajes de error amigables.
   - Criterio: errores indican que corregir sin exponer trazas tecnicas innecesarias.
 - [ ] Probar roundtrip WYSIWYG -> HTML -> WYSIWYG.
@@ -252,30 +347,38 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [ ] Probar roundtrip WYSIWYG -> JSON -> WYSIWYG.
   - Criterio: JSON valido conserva estructura permitida.
 
-## Fase 6 - Vista previa y pantalla completa
+## Fase 6 - Vista previa y estado fullscreen
 
-Objetivo medible: el editor ofrece preview y fullscreen usable en escritorio y movil.
+Objetivo medible: el editor ofrece preview y un estado fullscreen usable en escritorio y movil.
+
+> Dependencia: requiere Fase 1.5, Fase 1.5.1, Fase 1.7 y sanitizacion de Fase 9 para renderizar preview seguro.
 
 - [ ] Implementar `preview-view.ts`.
   - Criterio: renderiza HTML sanitizado del documento actual.
 - [ ] Agregar modo `preview`.
   - Criterio: se puede alternar desde toolbar y volver al editor.
+- [ ] Implementar `EditorViewState` en la navegacion de vistas.
+  - Criterio: `mode` controla `wysiwyg`, `source-html`, `source-json` o `preview`, y `fullscreen` se aplica como boolean independiente.
 - [ ] Implementar `fullscreen.ts`.
-  - Criterio: alterna clase `editor-shell--fullscreen` sobre el root.
+  - Criterio: alterna clase `editor-shell--fullscreen` sobre el root sin cambiar `EditorMode`.
 - [ ] Agregar boton de pantalla completa.
-  - Criterio: entra y sale del modo fullscreen sin perder foco ni contenido.
+  - Criterio: entra y sale del estado fullscreen sin perder foco ni contenido.
 - [ ] Agregar atajo `Esc` para salir de fullscreen.
-  - Criterio: presionar Escape revierte el modo fullscreen.
+  - Criterio: presionar Escape revierte el estado fullscreen sin cambiar el modo de contenido activo.
 - [ ] Mantener toolbar fija en fullscreen.
   - Criterio: la toolbar permanece disponible mientras se edita contenido largo.
 - [ ] Centrar area de edicion cuando aplique.
   - Criterio: documentos largos son legibles en pantallas grandes.
+- [ ] Verificar fullscreen sobre cada vista.
+  - Criterio: fullscreen funciona sobre WYSIWYG, HTML, JSON y preview sin recrear instancias ni perder contenido.
 - [ ] Validar responsive.
-  - Criterio: toolbar, editor, preview y fullscreen funcionan en viewport movil.
+  - Criterio: toolbar, editor, preview y estado fullscreen funcionan en viewport movil.
 
 ## Fase 7 - Autosave y versionado
 
 Objetivo medible: el editor guarda cambios de forma automatica, informa estado y permite recuperar versiones.
+
+> Dependencia: requiere Fase 1.7 para persistencia manual y Fase 1.5.1 para cleanup de debounce/timers.
 
 - [ ] Implementar `debounce.ts`.
   - Criterio: recibe funcion y delay, devuelve funcion debounced tipada.
@@ -302,6 +405,8 @@ Objetivo medible: el editor guarda cambios de forma automatica, informa estado y
 
 Objetivo medible: el frontend consume contratos claros y el backend esperado queda documentado o implementado.
 
+> Dependencia: requiere modelos de Fase 1.3, persistencia de Fase 1.7 y assets de Fase 4 para validar contratos reales.
+
 - [ ] Definir contratos TypeScript para documentos.
   - Criterio: payloads de crear, actualizar, obtener y eliminar documento estan tipados.
 - [ ] Definir contratos TypeScript para versiones.
@@ -323,6 +428,8 @@ Objetivo medible: el frontend consume contratos claros y el backend esperado que
 
 Objetivo medible: el editor no renderiza ni persiste contenido peligroso conocido.
 
+> Dependencia: requiere Fase 1.3.1 para JSON canonico, Fase 5 para source views, Fase 6 para preview y Fase 8 para contratos de API.
+
 - [ ] Implementar `sanitizer.service.ts`.
   - Criterio: usa DOMPurify y una politica explicita de HTML permitido.
 - [ ] Sanitizar antes de renderizar.
@@ -339,12 +446,16 @@ Objetivo medible: el editor no renderiza ni persiste contenido peligroso conocid
   - Criterio: autosave, guardado manual y versionado cubren flujos criticos.
 - [ ] Validar JSON contra esquema permitido.
   - Criterio: JSON de source view o API no carga nodos no soportados sin validacion.
+- [ ] Agregar pruebas de schema JSON seguro.
+  - Criterio: nodos desconocidos, marcas desconocidas, atributos inseguros y URLs peligrosas son rechazados por tests.
 - [ ] Agregar pruebas de sanitizacion.
   - Criterio: casos XSS conocidos quedan cubiertos por tests unitarios.
 
 ## Fase 10 - Pruebas automatizadas y QA
 
 Objetivo medible: flujos criticos quedan cubiertos por unitarias, integracion y E2E.
+
+> Dependencia: las pruebas E2E requieren que Fase 1.7, Fase 3, Fase 4, Fase 5, Fase 6 y Fase 9 esten implementadas o mockeadas de forma explicita.
 
 ### 10.1 Unitarias
 
@@ -380,6 +491,8 @@ Objetivo medible: flujos criticos quedan cubiertos por unitarias, integracion y 
 
 ### 10.3 End-to-end
 
+> Dependencia: Playwright debe ejecutarse contra `npm run dev` o contra preview de build; los datos de prueba deben poder limpiarse entre ejecuciones.
+
 - [ ] Configurar Playwright.
   - Criterio: existe configuracion y script `test:e2e`.
 - [ ] E2E: crear documento nuevo.
@@ -407,44 +520,54 @@ Objetivo medible: flujos criticos quedan cubiertos por unitarias, integracion y 
 
 Estas tareas no bloquean la primera version, pero deben quedar visibles para no perder alcance futuro.
 
-- [ ] Definir si se implementaran plantillas.
+- [ ] Decidir si se implementaran plantillas.
   - Criterio: decision documentada con alcance minimo o descartado.
-- [ ] Definir bloques reutilizables.
+- [ ] Decidir bloques reutilizables.
   - Criterio: decision documentada con modelo de datos preliminar.
-- [ ] Definir comentarios.
+- [ ] Decidir comentarios.
   - Criterio: decision documentada con UX y persistencia esperada.
-- [ ] Definir revision/aprobacion.
+- [ ] Decidir revision/aprobacion.
   - Criterio: decision documentada con estados y permisos.
-- [ ] Definir control de cambios.
+- [ ] Decidir control de cambios.
   - Criterio: decision documentada con impacto tecnico.
-- [ ] Definir permisos por documento.
+- [ ] Decidir permisos por documento.
   - Criterio: decision documentada con roles y acciones.
-- [ ] Definir exportacion PDF.
+- [ ] Decidir exportacion PDF.
   - Criterio: decision documentada con estrategia frontend/backend.
-- [ ] Definir exportacion Markdown.
+- [ ] Decidir exportacion Markdown.
   - Criterio: decision documentada con estrategia de conversion desde JSON canonico.
-- [ ] Definir firma o aprobacion documental.
+- [ ] Decidir firma o aprobacion documental.
   - Criterio: decision documentada con requisitos legales o funcionales.
 
 ## Criterios de aceptacion de primera version
 
+- [ ] El proyecto queda documentado y ejecutado como Vite + TypeScript `vanilla-ts`, sin framework frontend.
+- [ ] Los modulos visuales vanilla TypeScript tienen ciclo de vida de montaje y desmontaje.
+- [ ] Tiptap, CodeMirror, listeners manuales y timers se limpian correctamente.
 - [ ] Permite crear contenido enriquecido.
 - [ ] Permite editar contenido existente.
 - [ ] Guarda correctamente JSON canonico.
 - [ ] Guarda correctamente HTML renderizable.
+- [ ] El JSON canonico se valida contra un schema permitido.
+- [ ] El editor rechaza nodos, marcas y atributos no permitidos.
 - [ ] Recupera documentos sin perdida de contenido.
 - [ ] Soporta titulos, listas, formato basico y enlaces.
 - [ ] Soporta tablas.
 - [ ] Soporta imagenes.
 - [ ] Tiene vista de codigo HTML/JSON funcional.
 - [ ] Tiene vista previa.
-- [ ] Tiene modo pantalla completa.
+- [ ] `EditorMode` solo contiene modos de contenido.
+- [ ] `fullscreen` funciona como estado visual independiente.
+- [ ] El estado fullscreen funciona sobre WYSIWYG, HTML, JSON y preview.
 - [ ] Sanitiza HTML antes de renderizar.
 - [ ] Sanitiza HTML antes de guardar.
 - [ ] Maneja errores de guardado.
 - [ ] Funciona en escritorio.
 - [ ] Funciona en movil.
 - [ ] Tiene pruebas minimas de flujos criticos.
+- [ ] `npm run lint` finaliza correctamente.
+- [ ] `npm run format` puede ejecutarse sin romper el proyecto.
+- [ ] `npm run check` finaliza correctamente.
 - [ ] `npm run build` finaliza correctamente.
 - [ ] `npm test` finaliza correctamente.
 - [ ] `npm run test:e2e` finaliza correctamente o queda justificado si el entorno no permite ejecutarlo.
