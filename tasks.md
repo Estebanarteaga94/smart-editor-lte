@@ -211,7 +211,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
   - Criterio: contiene `saveDocument(documentId, payload)` con `PUT /api/documents/{id}`.
 - [x] Implementar persistencia local temporal si no existe backend.
   - Criterio: el documento se guarda y recupera desde `localStorage` o mock documentado.
-- [ ] Guardar siempre JSON canonico y HTML renderizable.
+- [x] Guardar siempre JSON canonico y HTML renderizable.
   - Criterio: ningun guardado persiste solo HTML.
 - [ ] Implementar carga de documento existente.
   - Criterio: al recargar la pagina se restaura contenido guardado.

@@ -1581,3 +1581,47 @@ Pendientes inmediatos:
 
 - Guardar siempre JSON canonico y HTML renderizable.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-07 - Validacion de payload completo en guardado
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.7: guardar siempre JSON canonico y HTML renderizable.
+
+Acciones realizadas:
+
+- Se hizo estricto `documentStoragePayloadSchema`.
+- `contentHtml` ahora debe ser un string no vacio para considerarse salida renderizable.
+- Se conservaron `contentJson` y `contentHtml` como campos obligatorios en `DocumentStoragePayload`.
+- El storage local ahora devuelve promesas que rechazan cuando el payload no cumple el schema, igual que el storage HTTP.
+- Se agregaron pruebas para confirmar que un payload solo HTML no se escribe en localStorage.
+- Se agregaron pruebas para confirmar que un payload solo JSON no se escribe en localStorage.
+- Se agrego prueba para confirmar que payloads incompletos no se envian al API HTTP.
+- Se marco la tarea como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/document-storage.service.ts`
+- `src/editor/services/document-storage.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 10 archivos de prueba correctos, 52 pruebas correctas.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio cierra una tarea formal de Fase 1.7 y esta cubierto por pruebas y check.
+
+Pendientes inmediatos:
+
+- Implementar carga de documento existente.
+- Continuar con Fase 1.7 en orden.

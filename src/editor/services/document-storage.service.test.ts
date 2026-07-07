@@ -131,6 +131,40 @@ describe('document storage service', () => {
     await expect(storage.loadDocument('doc-missing')).resolves.toBeNull();
   });
 
+  it('does not persist HTML-only payloads to local storage', async () => {
+    const memoryStorage = createMemoryStorage();
+    const storage = createLocalDocumentStorageService({
+      storage: memoryStorage,
+      keyPrefix: 'html-only-document',
+    });
+
+    await expect(
+      storage.saveDocument('doc-html-only', {
+        title: 'Documento solo HTML',
+        contentHtml: '<p>Solo HTML</p>',
+      } as unknown as DocumentStoragePayload),
+    ).rejects.toThrow();
+
+    expect(memoryStorage.length).toBe(0);
+  });
+
+  it('does not persist JSON-only payloads to local storage', async () => {
+    const memoryStorage = createMemoryStorage();
+    const storage = createLocalDocumentStorageService({
+      storage: memoryStorage,
+      keyPrefix: 'json-only-document',
+    });
+
+    await expect(
+      storage.saveDocument('doc-json-only', {
+        title: 'Documento solo JSON',
+        contentJson: { type: 'doc', content: [] },
+      } as unknown as DocumentStoragePayload),
+    ).rejects.toThrow();
+
+    expect(memoryStorage.length).toBe(0);
+  });
+
   it('saves documents through PUT /api/documents/{id}', async () => {
     const payload: DocumentStoragePayload = {
       title: 'Documento remoto',
@@ -193,6 +227,31 @@ describe('document storage service', () => {
           content: [{ type: 'script', text: 'alert(1)' }],
         },
         contentHtml: '<script>alert(1)</script>',
+      } as unknown as DocumentStoragePayload),
+    ).rejects.toThrow();
+
+    expect(fetchDocument).not.toHaveBeenCalled();
+  });
+
+  it('rejects incomplete storage payloads before sending them to the API', async () => {
+    const fetchDocument = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response(null, { status: 204 })),
+    );
+    const storage = createHttpDocumentStorageService({
+      fetch: fetchDocument,
+    });
+
+    await expect(
+      storage.saveDocument('doc-html-only', {
+        title: 'Documento solo HTML',
+        contentHtml: '<p>Solo HTML</p>',
+      } as unknown as DocumentStoragePayload),
+    ).rejects.toThrow();
+
+    await expect(
+      storage.saveDocument('doc-json-only', {
+        title: 'Documento solo JSON',
+        contentJson: { type: 'doc', content: [] },
       } as unknown as DocumentStoragePayload),
     ).rejects.toThrow();
 

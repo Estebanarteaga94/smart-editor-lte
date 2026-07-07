@@ -12,11 +12,13 @@ export interface DocumentStoragePayload {
   contentHtml: string;
 }
 
-export const documentStoragePayloadSchema = z.object({
-  title: z.string(),
-  contentJson: canonicalEditorContentSchema,
-  contentHtml: z.string(),
-});
+export const documentStoragePayloadSchema = z
+  .object({
+    title: z.string(),
+    contentJson: canonicalEditorContentSchema,
+    contentHtml: z.string().min(1),
+  })
+  .strict();
 
 export function parseDocumentStoragePayload(input: unknown): DocumentStoragePayload {
   return documentStoragePayloadSchema.parse(input);
@@ -99,18 +101,21 @@ export function createLocalDocumentStorageService(
 
   return {
     saveDocument(documentId, payload) {
-      const parsedPayload = parseDocumentStoragePayload(payload);
-      storage.setItem(createStorageKey(keyPrefix, documentId), JSON.stringify(parsedPayload));
-      return Promise.resolve();
+      return Promise.resolve().then(() => {
+        const parsedPayload = parseDocumentStoragePayload(payload);
+        storage.setItem(createStorageKey(keyPrefix, documentId), JSON.stringify(parsedPayload));
+      });
     },
     loadDocument(documentId) {
-      const rawPayload = storage.getItem(createStorageKey(keyPrefix, documentId));
+      return Promise.resolve().then(() => {
+        const rawPayload = storage.getItem(createStorageKey(keyPrefix, documentId));
 
-      if (!rawPayload) {
-        return Promise.resolve(null);
-      }
+        if (!rawPayload) {
+          return null;
+        }
 
-      return Promise.resolve(parseDocumentStoragePayload(JSON.parse(rawPayload)));
+        return parseDocumentStoragePayload(JSON.parse(rawPayload));
+      });
     },
   };
 }
