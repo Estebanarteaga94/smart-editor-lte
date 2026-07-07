@@ -3912,7 +3912,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque la tarea quedo completada y verificada.
-- Commit creado: pendiente de registrar tras crear el commit.
+- Commit creado: `a4dd767` Preparar cliente para eliminar assets.
 
 Pendientes inmediatos:
 
