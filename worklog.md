@@ -3961,7 +3961,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque la correccion de bug reportado quedo verificada.
-- Commit creado: pendiente de registrar tras crear el commit.
+- Commit creado: `a3ace5a` Mostrar controles de resize en imagen seleccionada.
 
 Pendientes inmediatos:
 
