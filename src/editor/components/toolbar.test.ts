@@ -311,11 +311,13 @@ describe('createToolbar', () => {
     expect(clearHighlightButton).not.toBeNull();
     expect(horizontalRuleButton).not.toBeNull();
     expect(codeBlockButton).not.toBeNull();
+    expect(codeBlockButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf1c9');
     expect(insertTableButton).not.toBeNull();
     expect(insertImageButton).not.toBeNull();
     expect(insertImageButton?.disabled).toBe(false);
     expect(sourceHtmlButton).not.toBeNull();
     expect(sourceHtmlButton?.disabled).toBe(false);
+    expect(sourceHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('</>');
 
     if (blockFormatSelect) {
       blockFormatSelect.value = 'heading-6';

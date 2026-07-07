@@ -162,7 +162,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'code-block',
     label: 'Codigo',
-    icon: '</>',
+    icon: '\uf1c9',
     ariaLabel: 'Activar o desactivar bloque de codigo',
     command: editorCommands.toggleCodeBlock,
     isActive: (editor) => editor.isActive('codeBlock'),

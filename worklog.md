@@ -4532,3 +4532,47 @@ Pendientes inmediatos:
 
 - Agregar modo `source-json`.
 - Continuar con Fase 5 en orden.
+
+## 2026-07-07 - Icono distinto para bloque de codigo
+
+Objetivo:
+
+- Corregir el boton de insertar bloque de codigo porque usaba el mismo glifo visible que el boton de vista HTML.
+
+Acciones realizadas:
+
+- Se cambio el icono del boton `code-block` de `</>` al glifo Fontello `file-code` (`\uf1c9`).
+- Se mantuvo `</>` para el boton `source-html`.
+- Se agregaron aserciones de toolbar para proteger ambos iconos y evitar que vuelvan a coincidir.
+- Se agrego nota correctiva en `tasks.md` bajo `Agregar bloques de codigo`.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 9 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 22 archivos de prueba correctos, 166 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB.
+
+Decision Git:
+
+- Se crea commit porque la correccion de UI fue solicitada, quedo verificada y esta acotada.
+
+Pendientes inmediatos:
+
+- Agregar modo `source-json`.
+- Continuar con Fase 5 en orden.

@@ -250,6 +250,7 @@ Objetivo medible: el editor soporta marcas y bloques frecuentes sin romper seria
   - Criterio: toolbar inserta separador y se persiste en JSON/HTML.
 - [x] Agregar bloques de codigo.
   - Criterio: se puede insertar y editar bloque de codigo sin perder formato.
+  - Correccion UI: el boton de bloque de codigo usa el icono Fontello `file-code` para no confundirse con el boton de vista HTML.
 - [x] Configurar placeholder.
   - Criterio: el editor vacio muestra texto de ayuda configurable.
 - [x] Implementar links configurables.
