@@ -3550,3 +3550,52 @@ Pendientes inmediatos:
 
 - Crear dialogo de insercion de imagen.
 - Continuar con Fase 4 en orden.
+
+## 2026-07-07 - Dialogo de insercion de imagen
+
+Objetivo:
+
+- Cerrar la tarea de Fase 4: crear dialogo de insercion de imagen.
+
+Acciones realizadas:
+
+- Se implemento `createImageDialog` en `src/editor/components/image-dialog.ts`.
+- El componente renderiza un dialogo accesible con `role="dialog"`, `aria-modal`, titulo y mensaje de error asociado.
+- El dialogo permite seleccionar archivo con `accept="image/png,image/jpeg,image/webp"`.
+- El dialogo permite escribir texto alternativo y lo normaliza con `trim()` al confirmar.
+- La confirmacion queda deshabilitada hasta que exista un archivo seleccionado.
+- La confirmacion valida el archivo con `validateImageFile` antes de emitir el resultado.
+- Cancelar, hacer click en el overlay o presionar Escape cierra el dialogo y resetea archivo, texto alternativo y errores.
+- Se agrego `setDisabled` para bloquear los controles desde integraciones futuras.
+- Se agregaron estilos base para overlay, panel, campos, acciones y errores.
+- Se agregaron pruebas unitarias de render accesible, submit con archivo y alt, cancelacion/reset, errores de validacion, Escape y estado disabled.
+- Se marco la tarea `Crear dialogo de insercion de imagen` como completada en `tasks.md`.
+
+Archivos creados:
+
+- `src/editor/components/image-dialog.test.ts`
+
+Archivos modificados:
+
+- `src/editor/components/image-dialog.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/image-dialog.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 5 pruebas correctas.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 18 archivos de prueba correctos, 130 pruebas correctas.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se crea commit porque el cambio cierra una tarea formal de Fase 4, esta acotado al dialogo de imagen y ya fue verificado con pruebas, formato, build y lint.
+
+Pendientes inmediatos:
+
+- Insertar imagen subida en el editor.
+- Continuar con Fase 4 en orden.

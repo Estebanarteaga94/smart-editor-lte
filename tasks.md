@@ -323,8 +323,9 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Implementar `media-upload.service.ts`.
   - Criterio: valida archivo, hace `POST /api/documents/{documentId}/assets/images` y devuelve `id`, `url`, `altText`.
   - Nota: `createHttpMediaUploadService` valida imagenes con `validateImageFile`, envia `FormData` por `POST`, conserva `altText` opcional, parsea la respuesta como `EditorAsset` y permite `baseUrl`/`fetch` inyectables.
-- [ ] Crear dialogo de insercion de imagen.
+- [x] Crear dialogo de insercion de imagen.
   - Criterio: permite seleccionar archivo, escribir texto alternativo y confirmar/cancelar.
+  - Nota: `createImageDialog` crea un dialogo accesible con selector de archivo PNG/JPEG/WEBP, texto alternativo, confirmacion, cancelacion, cierre con Escape, validacion de archivo y API publica para abrir/cerrar.
 - [ ] Insertar imagen subida en el editor.
   - Criterio: usa la URL retornada por el servicio y conserva `alt`.
 - [ ] Soportar drag and drop de imagenes.
