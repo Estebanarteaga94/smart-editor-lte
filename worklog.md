@@ -3815,6 +3815,7 @@ Decision Git:
 
 - Se crea commit porque el ajuste de UI queda verificado y documentado.
 - Commit creado: `aae4383` Recalcular posicion del dialogo de imagen.
+- Commit de correccion posterior: `bdd9c65` Anclar dialogo de imagen al img interno.
 
 Pendientes inmediatos:
 
