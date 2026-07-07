@@ -27,6 +27,7 @@ const dialogGap = 8;
 const viewportMargin = 8;
 const fallbackDialogWidth = 312;
 const fallbackDialogHeight = 44;
+const maxPositionRetries = 12;
 
 const imageAlignments: readonly { alignment: ImageAlignment; icon: string; ariaLabel: string }[] = [
   { alignment: 'left', icon: '\ue883', ariaLabel: 'Alinear imagen a la izquierda' },
@@ -54,6 +55,9 @@ export function createImageOptionsDialog({
   });
   const alignmentButtons = new Map<ImageAlignment, HTMLButtonElement>();
   let selectedImagePosition: number | null = null;
+  let pendingPositionFrame: number | null = null;
+  let pendingLayoutFrame: number | null = null;
+  let positionRetryCount = 0;
 
   element.className = 'editor-image-options';
   element.dataset.imageOptions = 'dialog';
@@ -86,6 +90,7 @@ export function createImageOptionsDialog({
       restoreSelectedImage();
       setImageAlign(editor, config.alignment);
       updateState();
+      scheduleLayoutPositionUpdate();
     });
   }
 
@@ -114,12 +119,17 @@ export function createImageOptionsDialog({
     restoreSelectedImage();
     editorCommands.setImageDimensions(editor, { width: null, height: null });
     updateState();
+    scheduleLayoutPositionUpdate();
   });
 
   element.append(title, alignmentGroup, dimensionGroup);
 
   const refresh = (): void => {
     updateState();
+
+    if (!element.hidden) {
+      scheduleLayoutPositionUpdate();
+    }
   };
 
   editor.on('selectionUpdate', refresh);
@@ -129,6 +139,10 @@ export function createImageOptionsDialog({
     editor.off('selectionUpdate', refresh);
     editor.off('transaction', refresh);
     editor.off('update', refresh);
+  });
+  lifecycle.registerCleanup(() => {
+    cancelScheduledPositionUpdate();
+    cancelScheduledLayoutUpdate();
   });
 
   updateState();
@@ -142,6 +156,9 @@ export function createImageOptionsDialog({
     if (editor.isDestroyed || !editor.isEditable || !editor.isActive('image')) {
       element.hidden = true;
       selectedImagePosition = null;
+      positionRetryCount = 0;
+      cancelScheduledPositionUpdate();
+      cancelScheduledLayoutUpdate();
       return;
     }
 
@@ -149,7 +166,15 @@ export function createImageOptionsDialog({
     element.hidden = false;
     updateAlignmentState();
     updateDimensionState();
-    updatePosition();
+
+    if (updatePosition()) {
+      positionRetryCount = 0;
+      cancelScheduledPositionUpdate();
+      return;
+    }
+
+    element.hidden = true;
+    schedulePositionUpdate();
   }
 
   function updateAlignmentState(): void {
@@ -170,16 +195,16 @@ export function createImageOptionsDialog({
     heightInput.removeAttribute('aria-invalid');
   }
 
-  function updatePosition(): void {
+  function updatePosition(): boolean {
     if (selectedImagePosition === null) {
-      return;
+      return false;
     }
 
     try {
       const imageRect = getSelectedImageRect();
 
-      if (!imageRect) {
-        return;
+      if (!imageRect || !isUsableImageRect(imageRect)) {
+        return false;
       }
 
       const dialogRect = element.getBoundingClientRect();
@@ -189,10 +214,54 @@ export function createImageOptionsDialog({
 
       element.style.top = `${position.top}px`;
       element.style.left = `${position.left}px`;
+      return true;
     } catch {
       element.style.top = '';
       element.style.left = '';
+      return false;
     }
+  }
+
+  function schedulePositionUpdate(): void {
+    if (pendingPositionFrame !== null || positionRetryCount >= maxPositionRetries) {
+      return;
+    }
+
+    pendingPositionFrame = window.requestAnimationFrame(() => {
+      pendingPositionFrame = null;
+      positionRetryCount += 1;
+      updateState();
+    });
+  }
+
+  function cancelScheduledPositionUpdate(): void {
+    if (pendingPositionFrame === null) {
+      return;
+    }
+
+    window.cancelAnimationFrame(pendingPositionFrame);
+    pendingPositionFrame = null;
+  }
+
+  function scheduleLayoutPositionUpdate(): void {
+    if (editor.isDestroyed || !editor.isActive('image')) {
+      return;
+    }
+
+    cancelScheduledLayoutUpdate();
+    pendingLayoutFrame = window.requestAnimationFrame(() => {
+      pendingLayoutFrame = null;
+      updateState();
+    });
+  }
+
+  function cancelScheduledLayoutUpdate(): void {
+    if (pendingLayoutFrame === null) {
+      return;
+    }
+
+    window.cancelAnimationFrame(pendingLayoutFrame);
+    pendingLayoutFrame = null;
   }
 
   function getSelectedImageRect(): DOMRect | null {
@@ -264,7 +333,12 @@ export function createImageOptionsDialog({
     restoreSelectedImage();
     editorCommands.setImageDimensions(editor, { width, height });
     updateState();
+    scheduleLayoutPositionUpdate();
   }
+}
+
+function isUsableImageRect(rect: DOMRect): boolean {
+  return rect.width > 1 && rect.height > 1 && rect.right > rect.left && rect.bottom > rect.top;
 }
 
 function calculateDialogPosition(

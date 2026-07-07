@@ -3767,6 +3767,56 @@ Pendientes inmediatos:
 - Manejar errores de subida.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Recalculo diferido del dialogo de imagen
+
+Objetivo:
+
+- Corregir el caso donde, justo despues de insertar o pegar una imagen, el dialogo contextual podia aparecer solapado hasta que otra interaccion forzaba el reposicionamiento.
+- Corregir que el dialogo no siguiera la nueva ubicacion de la imagen al alinearla o cambiar sus dimensiones.
+
+Acciones realizadas:
+
+- Se ajusto `image-options-dialog.ts` para no mostrar el dialogo cuando el rectangulo medido de la imagen aun es cero o inestable.
+- Se agrego un reintento con `requestAnimationFrame` para recalcular la posicion cuando el navegador termine de pintar la imagen.
+- Se reprogramo el calculo de posicion despues de acciones del dialogo como alineacion, restablecer dimensiones y editar ancho/alto.
+- Se cancela cualquier reintento pendiente cuando el dialogo ya queda correctamente posicionado o cuando la seleccion deja de ser una imagen.
+- Se agrego prueba para validar que el dialogo espera un rectangulo estable antes de mostrarse.
+- Se agrego prueba para validar que el dialogo se mueve cuando la alineacion cambia el rectangulo de la imagen.
+- Se ajusto la prueba de integracion de la app para simular rectangulos DOM estables en jsdom y cubrir el dialogo contextual real.
+
+Archivos modificados:
+
+- `src/editor/components/image-options-dialog.ts`
+- `src/editor/components/image-options-dialog.test.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/image-options-dialog.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 4 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts src/editor/components/image-options-dialog.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 28 pruebas correctas.
+- Se ejecuto `npx prettier --write` sobre los archivos modificados.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 20 archivos de prueba correctos, 152 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+
+Decision Git:
+
+- Se crea commit porque el ajuste de UI queda verificado y documentado.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Manejar errores de subida.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Posicion externa del dialogo de imagen
 
 Objetivo:

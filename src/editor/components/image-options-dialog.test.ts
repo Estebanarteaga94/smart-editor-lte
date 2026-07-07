@@ -38,12 +38,21 @@ describe('createImageOptionsDialog', () => {
   it('shows when an image is selected and applies image actions outside the toolbar', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
+    const imageElement = document.createElement('span');
     const dialog = createImageOptionsDialog({
       editor,
       lifecycle,
     });
 
+    imageElement.dataset.node = 'image';
     document.body.append(dialog.element);
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
+    );
+    vi.spyOn(imageElement, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 100, left: 120, right: 420, bottom: 300, width: 300, height: 200 }),
+    );
 
     const alignCenterButton = dialog.element.querySelector<HTMLButtonElement>(
       '[data-image-options="image-options-align-center"]',
@@ -207,6 +216,140 @@ describe('createImageOptionsDialog', () => {
     dialog.updateState();
 
     expect(dialog.element.style.top).toBe('48px');
+    expect(dialog.element.style.left).toBe('120px');
+
+    lifecycle.dispose();
+  });
+
+  it('repositions after image alignment changes its rectangle', () => {
+    const editor = mountEditor();
+    const lifecycle = createEditorLifecycle();
+    const imageElement = document.createElement('span');
+    let animationCallback: FrameRequestCallback = () => undefined;
+    const requestAnimationFrameSpy = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        animationCallback = callback;
+        return 1;
+      });
+    const cancelAnimationFrameSpy = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => undefined);
+    const dialog = createImageOptionsDialog({
+      editor,
+      lifecycle,
+    });
+
+    imageElement.dataset.node = 'image';
+    document.body.append(dialog.element);
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 800,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 600,
+    });
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
+    );
+    const imageRectSpy = vi
+      .spyOn(imageElement, 'getBoundingClientRect')
+      .mockReturnValue(
+        createRect({ top: 100, left: 120, right: 420, bottom: 300, width: 300, height: 200 }),
+      );
+
+    editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen',
+          },
+        },
+      ],
+    });
+    editor.commands.setNodeSelection(0);
+    dialog.updateState();
+    expect(dialog.element.style.top).toBe('308px');
+    expect(dialog.element.style.left).toBe('120px');
+
+    const alignRightButton = dialog.element.querySelector<HTMLButtonElement>(
+      '[data-image-options="image-options-align-right"]',
+    );
+
+    alignRightButton?.click();
+    imageRectSpy.mockReturnValue(
+      createRect({ top: 120, left: 430, right: 730, bottom: 320, width: 300, height: 200 }),
+    );
+    animationCallback(performance.now());
+
+    expect(requestAnimationFrameSpy).toHaveBeenCalled();
+    expect(cancelAnimationFrameSpy).toHaveBeenCalled();
+    expect(dialog.element.style.top).toBe('328px');
+    expect(dialog.element.style.left).toBe('430px');
+
+    lifecycle.dispose();
+  });
+
+  it('waits for a stable image rectangle before showing the dialog', () => {
+    const editor = mountEditor();
+    const lifecycle = createEditorLifecycle();
+    const imageElement = document.createElement('span');
+    const requestAnimationFrameSpy = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation(() => 1);
+    const dialog = createImageOptionsDialog({
+      editor,
+      lifecycle,
+    });
+
+    imageElement.dataset.node = 'image';
+    document.body.append(dialog.element);
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 800,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 600,
+    });
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
+    );
+    const imageRectSpy = vi
+      .spyOn(imageElement, 'getBoundingClientRect')
+      .mockReturnValue(createRect({ top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0 }));
+
+    editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen',
+          },
+        },
+      ],
+    });
+    editor.commands.setNodeSelection(0);
+    dialog.updateState();
+
+    expect(dialog.element.hidden).toBe(true);
+    expect(requestAnimationFrameSpy).toHaveBeenCalled();
+
+    imageRectSpy.mockReturnValue(
+      createRect({ top: 100, left: 120, right: 420, bottom: 300, width: 300, height: 200 }),
+    );
+    dialog.updateState();
+
+    expect(dialog.element.hidden).toBe(false);
+    expect(dialog.element.style.top).toBe('308px');
     expect(dialog.element.style.left).toBe('120px');
 
     lifecycle.dispose();

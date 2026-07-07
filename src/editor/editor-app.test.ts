@@ -462,9 +462,26 @@ describe('mountEditorApp', () => {
         },
       ],
     });
+    const editableImageContainer = appRoot.querySelector<HTMLElement>(
+      '.editor-shell__editable [data-node="image"]',
+    );
+
+    expect(editableImageContainer).not.toBeNull();
+    if (editableImageContainer) {
+      vi.spyOn(mountedApp.editor.view, 'nodeDOM').mockReturnValue(editableImageContainer);
+      vi.spyOn(editableImageContainer, 'getBoundingClientRect').mockReturnValue(
+        createRect({ top: 100, left: 120, right: 420, bottom: 300, width: 300, height: 200 }),
+      );
+    }
     mountedApp.editor.commands.setNodeSelection(0);
 
     const imageOptionsDialog = appRoot.querySelector<HTMLElement>('[data-image-options="dialog"]');
+    if (imageOptionsDialog) {
+      vi.spyOn(imageOptionsDialog, 'getBoundingClientRect').mockReturnValue(
+        createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
+      );
+      mountedApp.editor.commands.setNodeSelection(0);
+    }
     const alignCenterButton = appRoot.querySelector<HTMLButtonElement>(
       '[data-image-options="image-options-align-center"]',
     );
@@ -492,9 +509,6 @@ describe('mountEditorApp', () => {
 
     alignCenterButton?.click();
     await flushPromises();
-    const editableImageContainer = appRoot.querySelector<HTMLElement>(
-      '.editor-shell__editable [data-node="image"]',
-    );
 
     expect(mountedApp.editor.getJSON().content?.[0]).toMatchObject({
       type: 'image',
@@ -1452,6 +1466,17 @@ function flushPromises(): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, 0);
   });
+}
+
+function createRect(rect: {
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}): DOMRect {
+  return new DOMRect(rect.left, rect.top, rect.width, rect.height);
 }
 
 function createImageFile(name: string, type: string): File {
