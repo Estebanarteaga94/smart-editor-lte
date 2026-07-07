@@ -6,7 +6,7 @@ export interface EditorShellElements {
   editable: HTMLElement;
   statusBar: HTMLElement;
   status: HTMLElement;
-  setSaveStatus: (status: EditorSaveStatus) => void;
+  setSaveStatus: (status: EditorSaveStatus, message?: string) => void;
 }
 
 export interface EditorShellOptions {
@@ -70,9 +70,9 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
     options.description ?? 'Editor WYSIWYG base con Tiptap y JSON canonico de ProseMirror.';
   statusLabel.textContent = options.statusLabel ?? 'Estado';
 
-  const setSaveStatus = (status: EditorSaveStatus): void => {
+  const setSaveStatus = (status: EditorSaveStatus, message?: string): void => {
     statusBar.dataset.saveStatus = status;
-    statusSlot.textContent = saveStatusLabels[status];
+    statusSlot.textContent = message ?? saveStatusLabels[status];
   };
 
   setSaveStatus(options.saveStatus ?? 'unchanged');

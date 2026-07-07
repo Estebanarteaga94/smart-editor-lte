@@ -142,9 +142,12 @@ export async function mountEditorApp({
         alt: asset.altText ?? altText,
       });
 
-      shell.setSaveStatus(inserted ? 'saved' : 'error');
-    } catch {
-      shell.setSaveStatus('error');
+      shell.setSaveStatus(
+        inserted ? 'saved' : 'error',
+        inserted ? undefined : 'No se pudo insertar la imagen en el documento.',
+      );
+    } catch (error) {
+      shell.setSaveStatus('error', formatImageUploadError(error));
     } finally {
       imageDialog.setDisabled(false);
       preservedImageSelection = null;
@@ -337,4 +340,24 @@ function createDefaultDocumentContent(title: string): JSONContent {
       },
     ],
   };
+}
+
+function formatImageUploadError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return 'No se pudo subir la imagen. Intenta de nuevo.';
+  }
+
+  if (isImageValidationError(error.message)) {
+    return error.message;
+  }
+
+  return 'No se pudo subir la imagen. Revisa la conexion e intenta de nuevo.';
+}
+
+function isImageValidationError(message: string): boolean {
+  return (
+    message.startsWith('Formato de imagen no permitido:') ||
+    message.startsWith('La imagen supera el limite') ||
+    message === 'Archivo de imagen invalido'
+  );
 }

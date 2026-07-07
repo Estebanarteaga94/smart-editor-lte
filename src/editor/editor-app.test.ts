@@ -939,6 +939,63 @@ describe('mountEditorApp', () => {
     }
   });
 
+  it('shows an upload error message and keeps content when dialog image upload fails', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble(
+      {
+        url: 'https://cdn.example.com/assets/unreachable.png',
+      },
+      {
+        uploadError: new Error('Image upload failed with status 500'),
+      },
+    );
+    const file = createImageFile('network.png', 'image/png');
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-image-upload-failure',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Contenido intacto</p>');
+
+    const insertImageButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="insert-image"]',
+    );
+    const fileInput = appRoot.querySelector<HTMLInputElement>('[data-image-dialog="file"]');
+    const dialogPanel = appRoot.querySelector<HTMLFormElement>('[data-image-dialog="panel"]');
+
+    insertImageButton?.click();
+    setSelectedFiles(fileInput, [file]);
+    fileInput?.dispatchEvent(new Event('change'));
+    dialogPanel?.dispatchEvent(new SubmitEvent('submit', { cancelable: true }));
+    await flushPromises();
+
+    expect(mediaUploadDouble.uploadImage).toHaveBeenCalledWith(
+      'doc-image-upload-failure',
+      file,
+      '',
+    );
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'No se pudo subir la imagen. Revisa la conexion e intenta de nuevo.',
+    );
+    expect(appRoot.querySelector('.editor-shell__status')?.getAttribute('data-save-status')).toBe(
+      'error',
+    );
+    expect(mountedApp.editor.getHTML()).toBe('<p>Contenido intacto</p>');
+    expect(mountedApp.editor.getJSON().content).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'image',
+        }),
+      ]),
+    );
+  });
+
   it('uploads an image dropped on the editor and inserts the returned URL', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
@@ -1011,7 +1068,9 @@ describe('mountEditorApp', () => {
     await flushPromises();
 
     expect(dropEvent.defaultPrevented).toBe(true);
-    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Error');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'Formato de imagen no permitido: text/plain.',
+    );
     expect(mountedApp.editor.getHTML()).toBe('<p>Sin imagen rota</p>');
     expect(mountedApp.editor.getJSON().content).not.toEqual(
       expect.arrayContaining([
@@ -1113,7 +1172,9 @@ describe('mountEditorApp', () => {
     await flushPromises();
 
     expect(pasteEvent.defaultPrevented).toBe(true);
-    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Error');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'Formato de imagen no permitido: image/gif.',
+    );
     expect(mountedApp.editor.getHTML()).toBe('<p>Sin imagen pegada</p>');
     expect(mountedApp.editor.getJSON().content).not.toEqual(
       expect.arrayContaining([
@@ -1442,12 +1503,19 @@ function createStorageDouble(
   };
 }
 
-function createMediaUploadDouble(asset: { url: string; altText?: string }): {
+function createMediaUploadDouble(
+  asset: { url: string; altText?: string },
+  options: { uploadError?: Error } = {},
+): {
   service: MediaUploadService;
   uploadImage: ReturnType<typeof vi.fn<MediaUploadService['uploadImage']>>;
 } {
-  const uploadImage = vi.fn<MediaUploadService['uploadImage']>((documentId, file, altText) =>
-    Promise.resolve({
+  const uploadImage = vi.fn<MediaUploadService['uploadImage']>((documentId, file, altText) => {
+    if (options.uploadError) {
+      return Promise.reject(options.uploadError);
+    }
+
+    return Promise.resolve({
       id: 'asset-uploaded',
       documentId,
       fileName: file.name,
@@ -1456,8 +1524,8 @@ function createMediaUploadDouble(asset: { url: string; altText?: string }): {
       url: asset.url,
       altText: asset.altText ?? altText,
       createdAt: '2026-07-07T00:00:00.000Z',
-    }),
-  );
+    });
+  });
 
   return {
     service: {

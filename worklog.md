@@ -3822,6 +3822,57 @@ Pendientes inmediatos:
 - Manejar errores de subida.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Manejo de errores de subida de imagen
+
+Objetivo:
+
+- Cerrar la tarea de Fase 4: manejar errores de subida.
+- Garantizar que fallos de validacion o red muestren un mensaje visible y no inserten nodos de imagen rotos.
+
+Acciones realizadas:
+
+- Se amplio `createEditorShell` para permitir mensajes personalizados en la barra de estado sin romper los estados existentes.
+- Se ajusto `insertUploadedImage` para mostrar mensajes accionables cuando falla la subida de imagen.
+- Los errores de validacion conservan el mensaje especifico del validador de archivos.
+- Los errores de red o servicio muestran un mensaje generico orientado a reintentar.
+- Si la subida falla o la insercion no se puede aplicar, el documento conserva su JSON/HTML previo y no agrega un nodo `image`.
+- Se agrego prueba de shell para mensajes personalizados de error.
+- Se agrego prueba de integracion para fallo de red al subir desde el dialogo.
+- Se ajustaron pruebas de drop y paste invalido para validar el mensaje especifico mostrado al usuario.
+- Se marco `Manejar errores de subida` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/editor-shell.ts`
+- `src/editor/components/editor-shell.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/editor-shell.test.ts src/editor/editor-app.test.ts src/editor/services/media-upload.service.test.ts`.
+- Resultado: 3 archivos de prueba correctos, 36 pruebas correctas.
+- Se ejecuto `npx prettier --write` sobre los archivos TypeScript modificados.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 20 archivos de prueba correctos, 154 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Preparar cliente para eliminar assets.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Posicion externa del dialogo de imagen
 
 Objetivo:

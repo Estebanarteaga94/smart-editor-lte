@@ -51,4 +51,16 @@ describe('createEditorShell', () => {
     expect(shell.status.textContent).toBe('Sin cambios');
     expect(shell.statusBar.dataset.saveStatus).toBe('unchanged');
   });
+
+  it('can render a custom status message for controlled errors', () => {
+    const shell = createEditorShell();
+
+    shell.setSaveStatus('error', 'No se pudo subir la imagen.');
+
+    expect(shell.status.textContent).toBe('No se pudo subir la imagen.');
+    expect(shell.statusBar.dataset.saveStatus).toBe('error');
+
+    shell.setSaveStatus('saved');
+    expect(shell.status.textContent).toBe('Guardado');
+  });
 });
