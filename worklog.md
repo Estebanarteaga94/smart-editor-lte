@@ -3919,6 +3919,55 @@ Pendientes inmediatos:
 - Instalar y configurar CodeMirror.
 - Continuar con Fase 5 en orden.
 
+## 2026-07-07 - Resaltado y handles de imagen seleccionada
+
+Objetivo:
+
+- Corregir el bug reportado donde una imagen seleccionada no mostraba borde ni controles visibles para redimensionarla.
+
+Acciones realizadas:
+
+- Se agregaron clases propias al `ResizableNodeView` de imagen para contenedor, wrapper, handles y estado de resize.
+- Se elimino el ocultamiento del NodeView hasta `onload` para evitar que la seleccion o los handles queden invisibles si la carga de imagen ya ocurrio o no dispara el evento esperado.
+- Se agregaron estilos para mostrar borde azul, sombra y cuatro handles de resize solo cuando la imagen esta seleccionada o en proceso de redimensionamiento.
+- Se agregaron cursores diagonales adecuados para cada handle.
+- Se agrego prueba automatizada para confirmar que el DOM de imagen expone contenedor, wrapper y cuatro handles de resize.
+- Se agrego nota correctiva en `tasks.md` bajo `Implementar resizable-image.extension.ts`.
+
+Archivos modificados:
+
+- `src/editor/extensions/resizable-image.extension.ts`
+- `src/editor/core/create-editor.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/core/create-editor.test.ts src/editor/core/editor-extensions.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 11 pruebas correctas.
+- Se ejecuto `npx prettier --write src/editor/extensions/resizable-image.extension.ts src/editor/core/create-editor.test.ts src/style.css`.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 21 archivos de prueba correctos, 160 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se levanto `npm run dev -- --host 127.0.0.1 --port 4174` y se ejecuto una prueba Playwright manual automatizada insertando `src/assets/hero.png`, seleccionando la imagen y leyendo estilos computados.
+- Resultado Playwright manual: el contenedor quedo con `ProseMirror-selectednode`, el wrapper mostro borde azul y sombra, y los cuatro handles quedaron visibles con `opacity: 1`, `pointer-events: auto`, tamano `12px` y cursor de resize diagonal.
+- Se detuvo el servidor Vite usado para la prueba manual.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+
+Decision Git:
+
+- Se crea commit porque la correccion de bug reportado quedo verificada.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Instalar y configurar CodeMirror.
+- Continuar con Fase 5 en orden.
+
 ## 2026-07-07 - Posicion externa del dialogo de imagen
 
 Objetivo:

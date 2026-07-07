@@ -114,6 +114,12 @@ export const ResizableImage = Image.extend<ImageOptions>({
         },
         options: {
           directions,
+          className: {
+            container: 'editor-image-resize',
+            wrapper: 'editor-image-resize__wrapper',
+            handle: 'editor-image-resize__handle',
+            resizing: 'editor-image-resize--resizing',
+          },
           min: {
             width: minWidth,
             height: minHeight,
@@ -125,13 +131,6 @@ export const ResizableImage = Image.extend<ImageOptions>({
       const dom = nodeView.dom;
 
       applyImageNodeViewAlignment(dom, node.attrs.align);
-
-      dom.style.visibility = 'hidden';
-      dom.style.pointerEvents = 'none';
-      imageElement.onload = () => {
-        dom.style.visibility = '';
-        dom.style.pointerEvents = '';
-      };
 
       return nodeView;
     };

@@ -881,6 +881,75 @@ textarea {
   max-width: 100%;
 }
 
+.editor-shell__editable .editor-image-resize {
+  align-items: flex-start;
+  padding: 4px 0;
+}
+
+.editor-shell__editable .editor-image-resize__wrapper {
+  border: 2px solid transparent;
+  border-radius: 6px;
+  line-height: 0;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.editor-shell__editable .editor-image-resize.ProseMirror-selectednode .editor-image-resize__wrapper,
+.editor-shell__editable
+  .editor-image-resize.editor-image-resize--resizing
+  .editor-image-resize__wrapper {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.18);
+}
+
+.editor-shell__editable .editor-image-resize__handle {
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--surface);
+  border-radius: 999px;
+  background: var(--focus);
+  box-shadow: 0 1px 4px rgb(15 23 42 / 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--resize-handle-x, 0), var(--resize-handle-y, 0));
+}
+
+.editor-shell__editable .editor-image-resize.ProseMirror-selectednode .editor-image-resize__handle,
+.editor-shell__editable
+  .editor-image-resize.editor-image-resize--resizing
+  .editor-image-resize__handle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle*='top'] {
+  --resize-handle-y: -50%;
+}
+
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle*='bottom'] {
+  --resize-handle-y: 50%;
+}
+
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle*='left'] {
+  --resize-handle-x: -50%;
+}
+
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle*='right'] {
+  --resize-handle-x: 50%;
+}
+
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle='top-left'],
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle='bottom-right'] {
+  cursor: nwse-resize;
+}
+
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle='top-right'],
+.editor-shell__editable .editor-image-resize__handle[data-resize-handle='bottom-left'] {
+  cursor: nesw-resize;
+}
+
 .editor-shell__editable table {
   width: 100%;
   border-collapse: collapse;

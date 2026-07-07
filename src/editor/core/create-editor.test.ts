@@ -178,6 +178,46 @@ describe('createWysiwygEditor', () => {
     expect(html).toContain('align="center"');
   });
 
+  it('renders selected images with resize affordance elements', () => {
+    const element = document.createElement('div');
+    const imageContent: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen redimensionable',
+            width: 320,
+            height: 180,
+          },
+        },
+      ],
+    };
+    document.body.append(element);
+
+    const editor = mountEditor({
+      element,
+      initialContent: imageContent,
+    });
+    editor.commands.setNodeSelection(0);
+
+    const resizeContainer = element.querySelector<HTMLElement>('.editor-image-resize');
+    const resizeWrapper = element.querySelector<HTMLElement>('.editor-image-resize__wrapper');
+    const resizeHandles = element.querySelectorAll<HTMLElement>('.editor-image-resize__handle');
+
+    expect(resizeContainer).not.toBeNull();
+    expect(resizeContainer?.dataset.resizeContainer).toBe('');
+    expect(resizeContainer?.dataset.node).toBe('image');
+    expect(resizeContainer?.style.visibility).not.toBe('hidden');
+    expect(resizeWrapper).not.toBeNull();
+    expect(resizeWrapper?.dataset.resizeWrapper).toBe('');
+    expect(resizeHandles).toHaveLength(4);
+    expect(Array.from(resizeHandles).map((handle) => handle.dataset.resizeHandle)).toEqual(
+      expect.arrayContaining(['top-left', 'top-right', 'bottom-left', 'bottom-right']),
+    );
+  });
+
   it('renders configurable placeholder text when the editor is empty', () => {
     const element = document.createElement('div');
     document.body.append(element);

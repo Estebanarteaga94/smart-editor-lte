@@ -317,6 +317,7 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Implementar `resizable-image.extension.ts`.
   - Criterio: soporta `src`, `alt`, `width`, `height` y `align`.
   - Nota: implementado extendiendo la extension `Image` de Tiptap sin cambiar el tipo canonico `image`; activa resize y conserva `src`, `alt`, `title`, `width`, `height` y `align`.
+  - Correccion: el NodeView de imagen ahora expone clases propias para contenedor, wrapper y handles; al seleccionar una imagen se muestra borde visible y cuatro controles de redimensionamiento.
 - [x] Implementar `file-validator.ts`.
   - Criterio: acepta PNG, JPG/JPEG y WEBP, rechaza otros MIME y limita a 5 MB por defecto.
   - Nota: `validateImageFile` valida PNG, JPEG y WEBP por MIME, rechaza formatos no permitidos, aplica limite por defecto de 5 MB y permite opciones configurables para servicios futuros.
