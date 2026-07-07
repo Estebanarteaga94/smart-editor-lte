@@ -3732,7 +3732,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque la tarea queda completada, verificada y marcada como `[x]`.
-- Commit creado: pendiente de registrar tras crear el commit.
+- Commit creado: `c1341fb` Documentar decision de captions de imagen.
 
 Pendientes inmediatos:
 
