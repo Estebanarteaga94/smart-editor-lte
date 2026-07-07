@@ -3760,7 +3760,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque el ajuste de UI queda completado, verificado y documentado.
-- Commit creado: pendiente de registrar tras crear el commit.
+- Commit creado: `44d4b0e` Mover acciones de imagen a dialogo contextual.
 
 Pendientes inmediatos:
 
