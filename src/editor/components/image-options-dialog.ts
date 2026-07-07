@@ -275,10 +275,7 @@ export function createImageOptionsDialog({
       return null;
     }
 
-    const imageElement =
-      node.matches('img, [data-node="image"]') || node.querySelector('img, [data-node="image"]')
-        ? node
-        : null;
+    const imageElement = getImageElementFromNodeView(node);
 
     return imageElement?.getBoundingClientRect() ?? null;
   }
@@ -339,6 +336,20 @@ export function createImageOptionsDialog({
 
 function isUsableImageRect(rect: DOMRect): boolean {
   return rect.width > 1 && rect.height > 1 && rect.right > rect.left && rect.bottom > rect.top;
+}
+
+function getImageElementFromNodeView(node: HTMLElement): HTMLElement | null {
+  if (node instanceof HTMLImageElement) {
+    return node;
+  }
+
+  const imageElement = node.querySelector('img');
+
+  if (imageElement instanceof HTMLElement) {
+    return imageElement;
+  }
+
+  return node.matches('[data-node="image"]') ? node : null;
 }
 
 function calculateDialogPosition(

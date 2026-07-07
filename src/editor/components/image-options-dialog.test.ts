@@ -38,15 +38,14 @@ describe('createImageOptionsDialog', () => {
   it('shows when an image is selected and applies image actions outside the toolbar', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
-    const imageElement = document.createElement('span');
+    const { container: imageContainer, image: imageElement } = createImageNodeView();
     const dialog = createImageOptionsDialog({
       editor,
       lifecycle,
     });
 
-    imageElement.dataset.node = 'image';
     document.body.append(dialog.element);
-    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageContainer);
     vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
       createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
     );
@@ -167,13 +166,12 @@ describe('createImageOptionsDialog', () => {
   it('positions the dialog outside the selected image rectangle', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
-    const imageElement = document.createElement('span');
+    const { container: imageContainer, image: imageElement } = createImageNodeView();
     const dialog = createImageOptionsDialog({
       editor,
       lifecycle,
     });
 
-    imageElement.dataset.node = 'image';
     document.body.append(dialog.element);
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
@@ -183,7 +181,7 @@ describe('createImageOptionsDialog', () => {
       configurable: true,
       value: 600,
     });
-    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageContainer);
     vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
       createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
     );
@@ -224,7 +222,7 @@ describe('createImageOptionsDialog', () => {
   it('repositions after image alignment changes its rectangle', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
-    const imageElement = document.createElement('span');
+    const { container: imageContainer, image: imageElement } = createImageNodeView();
     let animationCallback: FrameRequestCallback = () => undefined;
     const requestAnimationFrameSpy = vi
       .spyOn(window, 'requestAnimationFrame')
@@ -240,7 +238,6 @@ describe('createImageOptionsDialog', () => {
       lifecycle,
     });
 
-    imageElement.dataset.node = 'image';
     document.body.append(dialog.element);
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
@@ -250,7 +247,10 @@ describe('createImageOptionsDialog', () => {
       configurable: true,
       value: 600,
     });
-    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageContainer);
+    vi.spyOn(imageContainer, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 100, left: 20, right: 780, bottom: 300, width: 760, height: 200 }),
+    );
     vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
       createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
     );
@@ -277,9 +277,24 @@ describe('createImageOptionsDialog', () => {
     expect(dialog.element.style.top).toBe('308px');
     expect(dialog.element.style.left).toBe('120px');
 
+    const alignCenterButton = dialog.element.querySelector<HTMLButtonElement>(
+      '[data-image-options="image-options-align-center"]',
+    );
     const alignRightButton = dialog.element.querySelector<HTMLButtonElement>(
       '[data-image-options="image-options-align-right"]',
     );
+    const alignLeftButton = dialog.element.querySelector<HTMLButtonElement>(
+      '[data-image-options="image-options-align-left"]',
+    );
+
+    alignCenterButton?.click();
+    imageRectSpy.mockReturnValue(
+      createRect({ top: 120, left: 250, right: 550, bottom: 320, width: 300, height: 200 }),
+    );
+    animationCallback(performance.now());
+
+    expect(dialog.element.style.top).toBe('328px');
+    expect(dialog.element.style.left).toBe('250px');
 
     alignRightButton?.click();
     imageRectSpy.mockReturnValue(
@@ -292,13 +307,22 @@ describe('createImageOptionsDialog', () => {
     expect(dialog.element.style.top).toBe('328px');
     expect(dialog.element.style.left).toBe('430px');
 
+    alignLeftButton?.click();
+    imageRectSpy.mockReturnValue(
+      createRect({ top: 120, left: 40, right: 340, bottom: 320, width: 300, height: 200 }),
+    );
+    animationCallback(performance.now());
+
+    expect(dialog.element.style.top).toBe('328px');
+    expect(dialog.element.style.left).toBe('40px');
+
     lifecycle.dispose();
   });
 
   it('waits for a stable image rectangle before showing the dialog', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
-    const imageElement = document.createElement('span');
+    const { container: imageContainer, image: imageElement } = createImageNodeView();
     const requestAnimationFrameSpy = vi
       .spyOn(window, 'requestAnimationFrame')
       .mockImplementation(() => 1);
@@ -307,7 +331,6 @@ describe('createImageOptionsDialog', () => {
       lifecycle,
     });
 
-    imageElement.dataset.node = 'image';
     document.body.append(dialog.element);
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
@@ -317,7 +340,7 @@ describe('createImageOptionsDialog', () => {
       configurable: true,
       value: 600,
     });
-    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageContainer);
     vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
       createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
     );
@@ -365,4 +388,14 @@ function createRect(rect: {
   height: number;
 }): DOMRect {
   return new DOMRect(rect.left, rect.top, rect.width, rect.height);
+}
+
+function createImageNodeView(): { container: HTMLElement; image: HTMLImageElement } {
+  const container = document.createElement('span');
+  const image = document.createElement('img');
+
+  container.dataset.node = 'image';
+  container.append(image);
+
+  return { container, image };
 }

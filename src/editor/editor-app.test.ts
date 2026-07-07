@@ -465,11 +465,16 @@ describe('mountEditorApp', () => {
     const editableImageContainer = appRoot.querySelector<HTMLElement>(
       '.editor-shell__editable [data-node="image"]',
     );
+    const editableImage = editableImageContainer?.querySelector<HTMLImageElement>('img') ?? null;
 
     expect(editableImageContainer).not.toBeNull();
-    if (editableImageContainer) {
+    expect(editableImage).not.toBeNull();
+    if (editableImageContainer && editableImage) {
       vi.spyOn(mountedApp.editor.view, 'nodeDOM').mockReturnValue(editableImageContainer);
       vi.spyOn(editableImageContainer, 'getBoundingClientRect').mockReturnValue(
+        createRect({ top: 100, left: 20, right: 780, bottom: 300, width: 760, height: 200 }),
+      );
+      vi.spyOn(editableImage, 'getBoundingClientRect').mockReturnValue(
         createRect({ top: 100, left: 120, right: 420, bottom: 300, width: 300, height: 200 }),
       );
     }

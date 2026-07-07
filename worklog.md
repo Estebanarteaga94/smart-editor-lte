@@ -3783,6 +3783,8 @@ Acciones realizadas:
 - Se agrego prueba para validar que el dialogo espera un rectangulo estable antes de mostrarse.
 - Se agrego prueba para validar que el dialogo se mueve cuando la alineacion cambia el rectangulo de la imagen.
 - Se ajusto la prueba de integracion de la app para simular rectangulos DOM estables en jsdom y cubrir el dialogo contextual real.
+- Correccion posterior: el calculo de posicion ahora prefiere el rectangulo del `img` interno del NodeView, no el wrapper `[data-node="image"]`, para que el dialogo siga la imagen cuando cambia entre izquierda, centro y derecha.
+- Se amplio la prueba de realineacion para cubrir izquierda, centro y derecha con un wrapper fijo y una imagen interna que se desplaza.
 
 Archivos modificados:
 
@@ -3798,6 +3800,8 @@ Verificacion:
 - Resultado: 1 archivo de prueba correcto, 4 pruebas correctas.
 - Se ejecuto `npm test -- src/editor/editor-app.test.ts src/editor/components/image-options-dialog.test.ts`.
 - Resultado: 2 archivos de prueba correctos, 28 pruebas correctas.
+- Tras corregir el anclaje al `img` interno, se repitio `npm test -- src/editor/components/image-options-dialog.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 28 pruebas correctas.
 - Se ejecuto `npx prettier --write` sobre los archivos modificados.
 - Se ejecuto `npm run check`.
 - Resultado: build, lint y tests terminaron correctamente; 20 archivos de prueba correctos, 152 pruebas correctas.
@@ -3810,7 +3814,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque el ajuste de UI queda verificado y documentado.
-- Commit creado: pendiente de registrar tras crear el commit.
+- Commit creado: `aae4383` Recalcular posicion del dialogo de imagen.
 
 Pendientes inmediatos:
 
