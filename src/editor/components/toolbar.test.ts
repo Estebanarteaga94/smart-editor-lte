@@ -42,6 +42,7 @@ describe('createToolbar', () => {
       onSave: vi.fn(),
     });
     const buttons = [...toolbar.element.querySelectorAll('button')];
+    const separators = [...toolbar.element.querySelectorAll('.editor-toolbar__separator')];
     const blockFormatSelect = toolbar.element.querySelector<HTMLSelectElement>(
       '[data-toolbar-action="block-format"]',
     );
@@ -58,6 +59,10 @@ describe('createToolbar', () => {
       'heading-6',
     ]);
     expect(buttons).toHaveLength(8);
+    expect(separators).toHaveLength(4);
+    expect(separators.every((separator) => separator.getAttribute('aria-hidden') === 'true')).toBe(
+      true,
+    );
     expect(buttons.every((button) => button.type === 'button')).toBe(true);
     expect(buttons.every((button) => button.hasAttribute('aria-label'))).toBe(true);
     expect(buttons.every((button) => button.querySelector('.editor-shell__tool-icon'))).toBe(true);

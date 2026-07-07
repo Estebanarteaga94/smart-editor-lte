@@ -1385,6 +1385,58 @@ Pendientes inmediatos:
 - Implementar persistencia local temporal si no existe backend.
 - Continuar con Fase 1.7 en orden.
 
+## 2026-07-06 - Refinamiento visual compacto de toolbar
+
+Objetivo:
+
+- Tomar como referencia una toolbar clasica de editor, sin copiarla exactamente, para compactar la UI actual.
+
+Acciones realizadas:
+
+- Se mantuvieron solo controles funcionales ya disponibles: selector de formato de bloque, negrita, cursiva, subrayado, listas, undo, redo y guardado.
+- Se agregaron separadores visuales entre grupos de controles.
+- Se redujeron los botones a 30x30 px con estilo de icono plano.
+- Se ajusto el fondo y espaciado de la toolbar para acercarla a una barra compacta de editor.
+- Se conservaron `aria-label`, `aria-pressed`, estados disabled y foco visible.
+- Se agrego prueba para confirmar que existen cuatro separadores decorativos `aria-hidden`.
+- Se agrego nota en `tasks.md` bajo la accesibilidad de toolbar.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 10 archivos de prueba correctos, 47 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5174/` porque `5173` estaba ocupado.
+- Se ejecuto verificacion manual automatizada con Playwright en `1280x800` y `375x667`.
+- Resultado: selector visible, 8 botones, 4 separadores, botones de 30x30 px y sin overflow horizontal evidente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Decision Git:
+
+- Se evaluo crear commit por ser un refinamiento visual solicitado sobre toolbar.
+- Se creo commit porque el cambio esta acotado, verificado y documentado.
+
+Pendientes inmediatos:
+
+- Implementar persistencia local temporal si no existe backend.
+- Continuar con Fase 1.7 en orden.
+
 ## 2026-07-06 - Selector de titulos H1 a H6 en toolbar
 
 Objetivo:

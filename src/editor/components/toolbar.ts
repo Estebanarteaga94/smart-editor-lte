@@ -16,6 +16,7 @@ export interface ToolbarButtonConfig {
   label: string;
   icon: string;
   iconModifier?: string;
+  separatorAfter?: boolean;
   ariaLabel: string;
   command?: EditorCommand;
   isActive?: (editor: Editor) => boolean;
@@ -73,6 +74,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     command: editorCommands.toggleUnderline,
     isActive: (editor) => editor.isActive('underline'),
     pressed: true,
+    separatorAfter: true,
   },
   {
     id: 'bullet-list',
@@ -91,6 +93,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     command: editorCommands.toggleOrderedList,
     isActive: (editor) => editor.isActive('orderedList'),
     pressed: true,
+    separatorAfter: true,
   },
   {
     id: 'undo',
@@ -107,6 +110,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     ariaLabel: 'Rehacer ultimo cambio',
     command: editorCommands.redo,
     isDisabled: (editor) => !editor.can().chain().focus().redo().run(),
+    separatorAfter: true,
   },
   {
     id: 'save',
@@ -123,6 +127,7 @@ export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOption
 
   element.className = 'editor-toolbar';
   element.append(blockFormatSelect);
+  element.append(createToolbarSeparator());
 
   lifecycle.addEventListener(blockFormatSelect, 'change', () => {
     applyBlockFormat(editor, blockFormatSelect.value as BlockFormatValue);
@@ -133,6 +138,10 @@ export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOption
     const button = createToolbarButton(config);
     buttons.set(config.id, button);
     element.append(button);
+
+    if (config.separatorAfter) {
+      element.append(createToolbarSeparator());
+    }
 
     lifecycle.addEventListener(button, 'click', () => {
       if (button.disabled) {
@@ -191,6 +200,15 @@ export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOption
     element,
     updateState,
   };
+}
+
+function createToolbarSeparator(): HTMLSpanElement {
+  const separator = document.createElement('span');
+
+  separator.className = 'editor-toolbar__separator';
+  separator.setAttribute('aria-hidden', 'true');
+
+  return separator;
 }
 
 function createToolbarButton(config: ToolbarButtonConfig): HTMLButtonElement {

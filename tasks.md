@@ -200,6 +200,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 - [x] Agregar accesibilidad basica a controles.
   - Criterio: cada boton tiene `aria-label`, estado disabled cuando aplique y foco visible.
   - Nota: la toolbar usa iconos Fontello servidos desde `public/font`, conservando `aria-label` para lectores de pantalla; el selector de formato de bloque tambien expone `aria-label`.
+  - Nota: la toolbar se ajusto visualmente a una barra compacta con selector, botones de icono y separadores, tomando como referencia una toolbar clasica sin copiarla exactamente.
 
 ### 1.7 Persistencia MVP
 
