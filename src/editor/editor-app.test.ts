@@ -1478,6 +1478,68 @@ describe('mountEditorApp', () => {
     expect(previewContent?.innerHTML).toContain('<h3>Vista basica</h3>');
     expect(previewContent?.innerHTML).toContain('<p>Render actualizado</p>');
   });
+
+  it('shows generated HTML in source-html mode and allows editing it', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-source-html',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<h2>HTML fuente</h2><p>Contenido actual</p>');
+
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const editableSlot = appRoot.querySelector<HTMLElement>('.editor-shell__editable');
+    const sourceSlot = appRoot.querySelector<HTMLElement>('.editor-shell__source');
+
+    expect(sourceHtmlButton).not.toBeNull();
+    expect(sourceHtmlButton?.disabled).toBe(false);
+    expect(mountedApp.getActiveMode()).toBe('wysiwyg');
+    expect(editableSlot?.hidden).toBe(false);
+    expect(sourceSlot?.hidden).toBe(true);
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+    const codeMirrorContent = sourceSlot?.querySelector<HTMLElement>(
+      '.cm-content[data-language="html"]',
+    );
+
+    expect(mountedApp.getActiveMode()).toBe('source-html');
+    expect(editableSlot?.hidden).toBe(true);
+    expect(sourceSlot?.hidden).toBe(false);
+    expect(mountedApp.editor.isEditable).toBe(false);
+    expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(sourceHtmlButton?.dataset.active).toBe('true');
+    expect(sourceView).not.toBeNull();
+    expect(sourceView?.getValue()).toContain('<h2>HTML fuente</h2>');
+    expect(sourceView?.getValue()).toContain('<p>Contenido actual</p>');
+    expect(codeMirrorContent).toBeInstanceOf(HTMLElement);
+    expect(codeMirrorContent?.getAttribute('contenteditable')).toBe('true');
+
+    sourceView?.setValue('<p>Editado desde HTML</p>');
+
+    expect(mountedApp.getSourceHtmlValue()).toBe('<p>Editado desde HTML</p>');
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getActiveMode()).toBe('wysiwyg');
+    expect(mountedApp.getSourceView()).toBeNull();
+    expect(sourceSlot?.hidden).toBe(true);
+    expect(sourceSlot?.querySelector('.cm-editor')).toBeNull();
+    expect(editableSlot?.hidden).toBe(false);
+    expect(mountedApp.editor.isEditable).toBe(true);
+    expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
+  });
 });
 
 function createStorageDouble(

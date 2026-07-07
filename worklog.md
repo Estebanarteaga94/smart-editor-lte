@@ -4478,3 +4478,57 @@ Pendientes inmediatos:
 
 - Agregar modo `source-html`.
 - Continuar con Fase 5 en orden.
+
+## 2026-07-07 - Modo source-html
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: agregar modo `source-html` para mostrar el HTML generado actual y permitir editarlo.
+
+Acciones realizadas:
+
+- Se agrego un slot `editor-shell__source` al shell del editor para alojar vistas fuente sin reemplazar el contenedor WYSIWYG.
+- La toolbar ahora incluye el boton `source-html` con `aria-pressed`, estado activo y callback de alternancia.
+- `mountEditorApp` mantiene `activeMode` como `EditorMode` y alterna entre `wysiwyg` y `source-html`.
+- Al entrar a `source-html`, la app monta `createSourceView` con `editor.getHTML()`, oculta el WYSIWYG, desactiva la edicion de Tiptap y registra la instancia CodeMirror en el lifecycle.
+- Al volver a `wysiwyg`, se destruye la vista CodeMirror, se limpia el slot fuente, se muestra el editor visual y se reactiva Tiptap.
+- La edicion del HTML fuente queda almacenada en el estado de la vista fuente; la sincronizacion hacia Tiptap queda pendiente para la tarea especifica posterior.
+- Se agregaron estilos para CodeMirror dentro del shell.
+- Se actualizaron pruebas de shell, toolbar e integracion para validar entrada/salida del modo HTML, HTML generado, edicion en CodeMirror y cleanup.
+- Se marco `Agregar modo source-html` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/editor-shell.ts`
+- `src/editor/components/editor-shell.test.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/editor-shell.test.ts src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 3 archivos de prueba correctos, 39 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 22 archivos de prueba correctos, 166 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; al integrar CodeMirror en la app el bundle reportado subio a 1,049.49 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar modo `source-json`.
+- Continuar con Fase 5 en orden.

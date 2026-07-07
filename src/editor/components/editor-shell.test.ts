@@ -21,6 +21,8 @@ describe('createEditorShell', () => {
     expect(shell.toolbar.getAttribute('role')).toBe('toolbar');
     expect(shell.root.querySelector('.editor-shell__table-menu-slot')).toBeNull();
     expect(shell.editable.id).toBe('wysiwyg-editor');
+    expect(shell.source.className).toBe('editor-shell__source');
+    expect(shell.source.hidden).toBe(true);
     expect(shell.status.id).toBe('editor-status');
     expect(shell.status.textContent).toBe('Sin cambios');
     expect(shell.statusBar.dataset.saveStatus).toBe('unchanged');

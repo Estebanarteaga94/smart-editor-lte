@@ -782,6 +782,42 @@ textarea {
   min-width: 0;
 }
 
+.editor-shell__source {
+  min-width: 0;
+  min-height: 480px;
+}
+
+.editor-shell__source[hidden] {
+  display: none;
+}
+
+.editor-source-view {
+  min-height: inherit;
+}
+
+.editor-source-view .cm-editor {
+  min-height: 480px;
+  border: 0;
+  background: #fbfcfe;
+}
+
+.editor-source-view .cm-scroller {
+  min-height: 480px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.editor-source-view .cm-content {
+  padding: 20px 24px;
+}
+
+.editor-source-view .cm-gutters {
+  border-right: 1px solid var(--border);
+  background: #f1f5f9;
+  color: var(--muted);
+}
+
 .editor-shell__editable--drop-target {
   background: rgb(37 99 235 / 0.06);
   box-shadow: inset 0 0 0 2px var(--focus);
@@ -1111,6 +1147,17 @@ textarea {
   .editor-shell__editable .tiptap {
     min-height: 440px;
     padding: 18px;
+  }
+
+  .editor-shell__source,
+  .editor-source-view,
+  .editor-source-view .cm-editor,
+  .editor-source-view .cm-scroller {
+    min-height: 440px;
+  }
+
+  .editor-source-view .cm-content {
+    padding: 16px;
   }
 
   .editor-preview__content {

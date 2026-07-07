@@ -4,12 +4,14 @@ import { createEditorShell } from './components/editor-shell';
 import { createImageDialog } from './components/image-dialog';
 import { createImageOptionsDialog } from './components/image-options-dialog';
 import { createPreviewView } from './components/preview-view';
+import { createSourceView, type SourceView } from './components/source-view';
 import { createTableMenu } from './components/table-menu';
 import { createToolbar } from './components/toolbar';
 import { createWysiwygEditor } from './core/create-editor';
 import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
 import { defaultEditorConfig } from './models/editor-config';
+import type { EditorMode } from './models/editor-mode';
 import {
   createLocalDocumentStorageService,
   type DocumentStorageService,
@@ -32,6 +34,9 @@ export interface MountEditorAppOptions {
 export interface MountedEditorApp {
   lifecycle: ReturnType<typeof createEditorLifecycle>;
   editor: ReturnType<typeof createWysiwygEditor>;
+  getActiveMode: () => EditorMode;
+  getSourceView: () => SourceView | null;
+  getSourceHtmlValue: () => string | null;
 }
 
 const defaultDocumentTitle = 'Documento de ejemplo';
@@ -54,6 +59,9 @@ export async function mountEditorApp({
     html: loadedDocument?.contentHtml ?? '',
   });
   let preservedImageSelection: { from: number; to: number } | null = null;
+  let activeMode: EditorMode = 'wysiwyg';
+  let sourceView: SourceView | null = null;
+  let sourceHtmlValue: string | null = null;
 
   lifecycle.mountRoot(app, shell.root);
   shell.root.append(preview.element);
@@ -104,6 +112,15 @@ export async function mountEditorApp({
         shell.setSaveStatus('error');
       }
     },
+    onToggleSourceHtml: () => {
+      if (activeMode === 'source-html') {
+        showWysiwygMode();
+        return;
+      }
+
+      showSourceHtmlMode();
+    },
+    isSourceHtmlActive: () => activeMode === 'source-html',
   });
   const tableMenu = createTableMenu({
     editor,
@@ -127,7 +144,40 @@ export async function mountEditorApp({
   return {
     lifecycle,
     editor,
+    getActiveMode: () => activeMode,
+    getSourceView: () => sourceView,
+    getSourceHtmlValue: () => sourceHtmlValue,
   };
+
+  function showSourceHtmlMode(): void {
+    activeMode = 'source-html';
+    sourceHtmlValue = editor.getHTML();
+    lifecycle.destroySourceView();
+    sourceView = createSourceView({
+      value: sourceHtmlValue,
+      language: 'html',
+      onChange: (value) => {
+        sourceHtmlValue = value;
+      },
+    });
+    lifecycle.registerSourceView(sourceView);
+    shell.source.replaceChildren(sourceView.element);
+    shell.source.hidden = false;
+    shell.editable.hidden = true;
+    editor.setEditable(false);
+    toolbar.updateState();
+  }
+
+  function showWysiwygMode(): void {
+    activeMode = 'wysiwyg';
+    lifecycle.destroySourceView();
+    sourceView = null;
+    shell.source.replaceChildren();
+    shell.source.hidden = true;
+    shell.editable.hidden = false;
+    editor.setEditable(true);
+    toolbar.updateState();
+  }
 
   async function insertUploadedImage(file: File, altText: string): Promise<void> {
     try {

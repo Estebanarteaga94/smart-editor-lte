@@ -4,6 +4,7 @@ export interface EditorShellElements {
   root: HTMLElement;
   toolbar: HTMLElement;
   editable: HTMLElement;
+  source: HTMLElement;
   statusBar: HTMLElement;
   status: HTMLElement;
   setSaveStatus: (status: EditorSaveStatus, message?: string) => void;
@@ -37,6 +38,7 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
       <div class="editor-shell__toolbar" role="toolbar" aria-label="Herramientas del editor"></div>
       <div class="editor-shell__body">
         <div class="editor-shell__editable" id="wysiwyg-editor"></div>
+        <div class="editor-shell__source" hidden></div>
       </div>
       <footer class="editor-shell__status" aria-live="polite">
         <strong></strong>
@@ -49,6 +51,7 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
   const description = root.querySelector<HTMLParagraphElement>('p');
   const toolbarSlot = root.querySelector<HTMLElement>('.editor-shell__toolbar');
   const editableSlot = root.querySelector<HTMLElement>('.editor-shell__editable');
+  const sourceSlot = root.querySelector<HTMLElement>('.editor-shell__source');
   const statusBar = root.querySelector<HTMLElement>('.editor-shell__status');
   const statusLabel = root.querySelector<HTMLElement>('.editor-shell__status strong');
   const statusSlot = root.querySelector<HTMLElement>('.editor-shell__status span');
@@ -58,6 +61,7 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
     !description ||
     !toolbarSlot ||
     !editableSlot ||
+    !sourceSlot ||
     !statusBar ||
     !statusLabel ||
     !statusSlot
@@ -81,6 +85,7 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
     root,
     toolbar: toolbarSlot,
     editable: editableSlot,
+    source: sourceSlot,
     statusBar,
     status: statusSlot,
     setSaveStatus,

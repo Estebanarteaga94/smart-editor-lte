@@ -25,6 +25,7 @@ export type ToolbarButtonId =
   | 'horizontal-rule'
   | 'insert-table'
   | 'insert-image'
+  | 'source-html'
   | 'bullet-list'
   | 'ordered-list'
   | 'undo'
@@ -49,6 +50,8 @@ export interface EditorToolbarOptions {
   lifecycle: EditorLifecycle;
   onSave: () => Promise<void> | void;
   onInsertImage?: () => void;
+  onToggleSourceHtml?: () => void;
+  isSourceHtmlActive?: () => boolean;
 }
 
 export interface EditorToolbar {
@@ -223,6 +226,13 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     separatorAfter: true,
   },
   {
+    id: 'source-html',
+    label: 'HTML',
+    icon: '</>',
+    ariaLabel: 'Alternar vista HTML',
+    pressed: true,
+  },
+  {
     id: 'save',
     label: 'Guardar',
     icon: '\ue89b',
@@ -235,6 +245,8 @@ export function createToolbar({
   lifecycle,
   onSave,
   onInsertImage,
+  onToggleSourceHtml,
+  isSourceHtmlActive,
 }: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
   const blockFormatSelect = createBlockFormatSelect();
@@ -330,6 +342,12 @@ export function createToolbar({
         return;
       }
 
+      if (config.id === 'source-html') {
+        onToggleSourceHtml?.();
+        updateState();
+        return;
+      }
+
       config.command?.(editor);
       updateState();
     });
@@ -358,11 +376,14 @@ export function createToolbar({
         continue;
       }
 
-      const isDisabled =
-        editor.isDestroyed ||
-        (config.id === 'insert-image' && !onInsertImage) ||
-        (config.isDisabled?.(editor) ?? !editor.isEditable);
-      const isActive = config.isActive?.(editor) ?? false;
+      const isDisabled = isToolbarButtonDisabled(config, editor, {
+        hasInsertImageAction: Boolean(onInsertImage),
+        hasToggleSourceHtmlAction: Boolean(onToggleSourceHtml),
+      });
+      const isActive =
+        config.id === 'source-html'
+          ? (isSourceHtmlActive?.() ?? false)
+          : (config.isActive?.(editor) ?? false);
 
       button.disabled = isDisabled;
       button.dataset.active = String(isActive);
@@ -400,6 +421,29 @@ export function createToolbar({
 
     editor.commands.setTextSelection(preservedLinkSelection);
   }
+}
+
+function isToolbarButtonDisabled(
+  config: ToolbarButtonConfig,
+  editor: Editor,
+  actions: {
+    hasInsertImageAction: boolean;
+    hasToggleSourceHtmlAction: boolean;
+  },
+): boolean {
+  if (editor.isDestroyed) {
+    return true;
+  }
+
+  if (config.id === 'source-html') {
+    return !actions.hasToggleSourceHtmlAction;
+  }
+
+  if (config.id === 'insert-image' && !actions.hasInsertImageAction) {
+    return true;
+  }
+
+  return config.isDisabled?.(editor) ?? !editor.isEditable;
 }
 
 function createToolbarSeparator(): HTMLSpanElement {

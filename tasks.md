@@ -373,8 +373,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Implementar `source-view.ts`.
   - Criterio: crea `EditorView`, recibe valor inicial, lenguaje, callback `onChange` y funcion de cleanup que destruye la instancia.
   - Nota: `createSourceView` crea un componente vanilla con contenedor DOM, `EditorView`, acceso a valor actual, actualizacion programatica y cleanup/destroy idempotente.
-- [ ] Agregar modo `source-html`.
+- [x] Agregar modo `source-html`.
   - Criterio: muestra HTML generado actual y permite editarlo.
+  - Nota: la toolbar incluye `source-html`; al activarlo se oculta WYSIWYG, se monta `SourceView` con el HTML actual y se permite editarlo en CodeMirror sin sincronizar todavia hacia Tiptap.
 - [ ] Agregar modo `source-json`.
   - Criterio: muestra JSON formateado actual y permite editarlo.
 - [ ] Implementar validacion de JSON.
