@@ -107,10 +107,14 @@ La bitacora debe permitir que otro agente continue sin preguntar que paso.
 
 ## Reglas de Git
 
-- Cada vez que se complete una o varias tareas verificadas, evaluar si corresponde crear un commit.
-- Realizar un commit cuando el conjunto de cambios tenga un cierre claro, verificable y coherente.
+- Cada vez que se complete una o varias tareas verificadas, se debe crear commit automaticamente antes de cerrar la sesion.
+- Si una tarea se marca como `[x]` en `tasks.md`, el commit es obligatorio salvo que el usuario haya indicado explicitamente `no hagas commit`.
+- Si se corrige un bug reportado y la correccion queda verificada, el commit es obligatorio salvo instruccion explicita en contra.
+- No usar `el usuario no lo solicito` como razon para omitir un commit cuando hay cambios completados, verificados y coherentes.
+- Solo se puede omitir el commit por una razon tecnica concreta: verificacion fallida, arbol con cambios ajenos que no pueden separarse con seguridad, tarea incompleta, o instruccion explicita del usuario de no commitear.
 - No mezclar en el mismo commit tareas no relacionadas si pueden separarse de forma limpia.
-- Registrar en `worklog.md` si se crea el commit o si se decide no hacerlo, indicando brevemente la razon.
+- Antes de commitear, revisar `git status --short` y staged diff para confirmar que el commit contiene solo el alcance trabajado.
+- Registrar en `worklog.md` el hash del commit creado. Si se omite el commit, registrar la razon tecnica concreta y el estado de verificacion.
 
 ## Que puede hacer el agente por si solo
 
@@ -155,6 +159,7 @@ Responder al usuario con:
 - Que se completo.
 - Que archivos se modificaron.
 - Que validacion se ejecuto.
+- Commit creado: `<hash> <mensaje>`.
 - Cual es la siguiente tarea pendiente.
 
 Mantener la respuesta breve y concreta.

@@ -3760,3 +3760,36 @@ Pendientes inmediatos:
 
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
+
+## 2026-07-07 - Endurecimiento de reglas de commit
+
+Objetivo:
+
+- Ajustar `instructions.md` para evitar que los agentes omitan commits despues de cerrar tareas verificadas.
+
+Acciones realizadas:
+
+- Se cambio la regla de Git para que el commit sea automatico y obligatorio cuando una tarea queda completada y verificada.
+- Se aclaro que marcar una tarea como `[x]` exige commit salvo instruccion explicita del usuario de no commitear.
+- Se prohibio usar `el usuario no lo solicito` como razon para omitir commits cuando el cambio ya esta cerrado y verificado.
+- Se definieron excepciones tecnicas concretas: verificacion fallida, cambios ajenos inseparables, tarea incompleta o instruccion explicita de no commitear.
+- Se agrego al formato de cierre la linea `Commit creado: <hash> <mensaje>`.
+
+Archivos modificados:
+
+- `instructions.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npx prettier --write instructions.md worklog.md`.
+- Resultado: documentos formateados correctamente.
+
+Decision Git:
+
+- Se crea commit porque el usuario pidio ajustar instrucciones y la propia regla actualizada exige commit para cambios cerrados y verificados.
+
+Pendientes inmediatos:
+
+- Soportar pegado desde portapapeles.
+- Continuar con Fase 4 en orden.
