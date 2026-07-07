@@ -256,6 +256,12 @@ Incluye insertar tabla, filas, columnas, encabezados, combinar, separar, redimen
 
 Incluye subida manual, drag and drop, pegado, alt, alineacion, ancho, alto, caption opcional, validacion de tamano/MIME y servicio de assets.
 
+Decision sobre captions:
+
+- No se implementan en la Fase 4 actual.
+- Un caption editable debe modelarse como contenido estructural, no como atributo simple de `image`.
+- Si se retoma, debe definirse un contenedor canonico como `figure`/`figcaption` o alternativa equivalente, ampliar el schema permitido, ajustar sanitizacion/serializacion y agregar pruebas de persistencia.
+
 ### Fase 5 - Vista de codigo
 
 Incluye HTML, JSON, CodeMirror, validacion JSON, sanitizacion HTML, sincronizacion con WYSIWYG y errores amigables.

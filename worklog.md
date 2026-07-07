@@ -3701,6 +3701,44 @@ Pendientes inmediatos:
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Evaluacion de caption opcional
+
+Objetivo:
+
+- Cerrar la tarea de Fase 4: evaluar caption opcional.
+
+Acciones realizadas:
+
+- Se reviso el alcance de imagenes en `context.md`, `tasks.md` y `plan_editor_wysiwyg_vite_ts.md`.
+- Se decidio no implementar captions en la Fase 4 actual.
+- Se documento que un caption editable debe modelarse como contenido estructural, no como atributo simple del nodo `image`.
+- Se dejo la razon tecnica en `context.md`: implementar caption requiere definir un contenedor canonico como `figure`/`figcaption` o alternativa equivalente, ampliar schema, ajustar sanitizacion/serializacion y agregar pruebas.
+- Se marco `Evaluar caption opcional` como completada en `tasks.md`.
+- Se agrego una tarea opcional de seguimiento en Fase 11 para revaluar captions de imagen.
+
+Archivos modificados:
+
+- `context.md`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npx prettier --write context.md tasks.md worklog.md`.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 19 archivos de prueba correctos, 147 pruebas correctas.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit porque la tarea queda completada, verificada y marcada como `[x]`.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Manejar errores de subida.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Ancho y alto editables para imagenes
 
 Objetivo:
