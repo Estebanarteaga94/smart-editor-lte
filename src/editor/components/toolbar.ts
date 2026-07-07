@@ -26,6 +26,7 @@ export type ToolbarButtonId =
   | 'insert-table'
   | 'insert-image'
   | 'source-html'
+  | 'format-html'
   | 'bullet-list'
   | 'ordered-list'
   | 'undo'
@@ -51,6 +52,7 @@ export interface EditorToolbarOptions {
   onSave: () => Promise<void> | void;
   onInsertImage?: () => void;
   onToggleSourceHtml?: () => void;
+  onFormatHtml?: () => Promise<void> | void;
   isSourceHtmlActive?: () => boolean;
 }
 
@@ -233,6 +235,12 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     pressed: true,
   },
   {
+    id: 'format-html',
+    label: 'Formatear',
+    icon: '{}',
+    ariaLabel: 'Formatear HTML fuente',
+  },
+  {
     id: 'save',
     label: 'Guardar',
     icon: '\ue89b',
@@ -246,6 +254,7 @@ export function createToolbar({
   onSave,
   onInsertImage,
   onToggleSourceHtml,
+  onFormatHtml,
   isSourceHtmlActive,
 }: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
@@ -348,6 +357,12 @@ export function createToolbar({
         return;
       }
 
+      if (config.id === 'format-html') {
+        void onFormatHtml?.();
+        updateState();
+        return;
+      }
+
       config.command?.(editor);
       updateState();
     });
@@ -379,6 +394,8 @@ export function createToolbar({
       const isDisabled = isToolbarButtonDisabled(config, editor, {
         hasInsertImageAction: Boolean(onInsertImage),
         hasToggleSourceHtmlAction: Boolean(onToggleSourceHtml),
+        hasFormatHtmlAction: Boolean(onFormatHtml),
+        sourceHtmlActive: isSourceHtmlActive?.() ?? false,
       });
       const isActive =
         config.id === 'source-html'
@@ -386,6 +403,7 @@ export function createToolbar({
           : (config.isActive?.(editor) ?? false);
 
       button.disabled = isDisabled;
+      button.hidden = config.id === 'format-html' && !(isSourceHtmlActive?.() ?? false);
       button.dataset.active = String(isActive);
 
       if (config.pressed) {
@@ -429,6 +447,8 @@ function isToolbarButtonDisabled(
   actions: {
     hasInsertImageAction: boolean;
     hasToggleSourceHtmlAction: boolean;
+    hasFormatHtmlAction: boolean;
+    sourceHtmlActive: boolean;
   },
 ): boolean {
   if (editor.isDestroyed) {
@@ -437,6 +457,10 @@ function isToolbarButtonDisabled(
 
   if (config.id === 'source-html') {
     return !actions.hasToggleSourceHtmlAction;
+  }
+
+  if (config.id === 'format-html') {
+    return !actions.hasFormatHtmlAction || !actions.sourceHtmlActive;
   }
 
   if (config.id === 'insert-image' && !actions.hasInsertImageAction) {

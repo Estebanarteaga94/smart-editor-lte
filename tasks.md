@@ -383,8 +383,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Implementar servicio `html-format.service.ts`.
   - Criterio: recibe HTML como string, devuelve HTML formateado con parser `html` y reporta errores sin modificar el contenido original.
   - Nota: `formatHtmlSource` usa `prettier/standalone` con `prettier/plugins/html` y devuelve un resultado `ok` que conserva el HTML original cuando Prettier reporta error.
-- [ ] Agregar boton para formatear HTML en `source-html`.
+- [x] Agregar boton para formatear HTML en `source-html`.
   - Criterio: el boton aparece solo cuando la vista activa es `source-html`, ejecuta el servicio de formato y reemplaza el contenido de CodeMirror con el HTML formateado.
+  - Nota: la toolbar agrega `format-html` oculto fuera de `source-html`; al activarse ejecuta `HtmlFormatService`, carga Prettier bajo demanda y actualiza el valor de `SourceView`.
 - [ ] Manejar errores de formateo HTML.
   - Criterio: HTML que Prettier no puede formatear muestra mensaje amigable y conserva intacto el contenido de CodeMirror.
 - [ ] Probar formateo de HTML fuente.

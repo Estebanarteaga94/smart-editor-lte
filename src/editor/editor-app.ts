@@ -20,12 +20,14 @@ import {
   createLocalMediaUploadService,
   type MediaUploadService,
 } from './services/media-upload.service';
+import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
 import { serializeEditorContent } from './services/serializer.service';
 
 export interface MountEditorAppOptions {
   app: HTMLElement;
   storage?: DocumentStorageService;
   mediaUpload?: MediaUploadService;
+  htmlFormat?: HtmlFormatService;
   documentId?: string;
   documentTitle?: string;
   placeholder?: string;
@@ -45,6 +47,7 @@ export async function mountEditorApp({
   app,
   storage = createLocalDocumentStorageService(),
   mediaUpload = createLocalMediaUploadService(),
+  htmlFormat = createHtmlFormatService(),
   documentId = defaultEditorConfig.documentId,
   documentTitle = defaultDocumentTitle,
   placeholder = defaultEditorConfig.placeholder,
@@ -120,6 +123,9 @@ export async function mountEditorApp({
 
       showSourceHtmlMode();
     },
+    onFormatHtml: () => {
+      void formatActiveSourceHtml();
+    },
     isSourceHtmlActive: () => activeMode === 'source-html',
   });
   const tableMenu = createTableMenu({
@@ -177,6 +183,21 @@ export async function mountEditorApp({
     shell.editable.hidden = false;
     editor.setEditable(true);
     toolbar.updateState();
+  }
+
+  async function formatActiveSourceHtml(): Promise<void> {
+    if (activeMode !== 'source-html' || !sourceView) {
+      return;
+    }
+
+    const result = await htmlFormat.formatHtml(sourceView.getValue());
+
+    if (!result.ok) {
+      return;
+    }
+
+    sourceView.setValue(result.html);
+    sourceHtmlValue = result.html;
   }
 
   async function insertUploadedImage(file: File, altText: string): Promise<void> {

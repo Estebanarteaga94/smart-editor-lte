@@ -9,6 +9,7 @@ import type {
   DocumentStoragePayload,
   DocumentStorageService,
 } from './services/document-storage.service';
+import type { HtmlFormatService } from './services/html-format.service';
 import type { MediaUploadService } from './services/media-upload.service';
 import { mountEditorApp, type MountedEditorApp } from './editor-app';
 
@@ -1540,6 +1541,56 @@ describe('mountEditorApp', () => {
     expect(mountedApp.editor.isEditable).toBe(true);
     expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
   });
+
+  it('formats the source-html CodeMirror content from the toolbar', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const htmlFormatDouble = createHtmlFormatDouble(
+      '<ul>\n  <li>Uno</li>\n  <li>Dos</li>\n</ul>\n',
+    );
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      htmlFormat: htmlFormatDouble.service,
+      documentId: 'doc-source-html-format',
+    });
+    mountedApps.add(mountedApp);
+
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const formatHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="format-html"]',
+    );
+
+    expect(formatHtmlButton).not.toBeNull();
+    expect(formatHtmlButton?.hidden).toBe(true);
+    expect(formatHtmlButton?.disabled).toBe(true);
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+    sourceView?.setValue('<ul><li>Uno</li><li>Dos</li></ul>');
+
+    expect(formatHtmlButton?.hidden).toBe(false);
+    expect(formatHtmlButton?.disabled).toBe(false);
+
+    formatHtmlButton?.click();
+    await flushPromises();
+
+    expect(htmlFormatDouble.formatHtml).toHaveBeenCalledWith('<ul><li>Uno</li><li>Dos</li></ul>');
+    expect(sourceView?.getValue()).toBe('<ul>\n  <li>Uno</li>\n  <li>Dos</li>\n</ul>\n');
+    expect(mountedApp.getSourceHtmlValue()).toBe('<ul>\n  <li>Uno</li>\n  <li>Dos</li>\n</ul>\n');
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    expect(formatHtmlButton?.hidden).toBe(true);
+    expect(formatHtmlButton?.disabled).toBe(true);
+  });
 });
 
 function createStorageDouble(
@@ -1594,6 +1645,28 @@ function createMediaUploadDouble(
       uploadImage,
     },
     uploadImage,
+  };
+}
+
+function createHtmlFormatDouble(formattedHtml: string): {
+  service: HtmlFormatService;
+  formatHtml: ReturnType<
+    typeof vi.fn<(html: string) => Promise<Awaited<ReturnType<HtmlFormatService['formatHtml']>>>>
+  >;
+} {
+  const formatHtml = vi.fn((_html: string) =>
+    Promise.resolve({
+      ok: true,
+      html: formattedHtml,
+      error: null,
+    } satisfies Awaited<ReturnType<HtmlFormatService['formatHtml']>>),
+  );
+
+  return {
+    service: {
+      formatHtml,
+    },
+    formatHtml,
   };
 }
 

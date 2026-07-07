@@ -113,6 +113,9 @@ describe('createToolbar', () => {
     const sourceHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="source-html"]',
     );
+    const formatHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="format-html"]',
+    );
 
     expect(blockFormatSelect).not.toBeNull();
     expect(blockFormatSelect?.getAttribute('aria-label')).toBe('Seleccionar formato de bloque');
@@ -134,8 +137,8 @@ describe('createToolbar', () => {
       'Encabezado 5',
       'Encabezado 6',
     ]);
-    expect(buttons).toHaveLength(142);
-    expect(iconButtons).toHaveLength(22);
+    expect(buttons).toHaveLength(143);
+    expect(iconButtons).toHaveLength(23);
     expect(colorPicker).not.toBeNull();
     expect(colorTrigger).not.toBeNull();
     expect(colorPanel?.hidden).toBe(true);
@@ -175,6 +178,10 @@ describe('createToolbar', () => {
     expect(sourceHtmlButton?.getAttribute('aria-label')).toBe('Alternar vista HTML');
     expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
     expect(sourceHtmlButton?.disabled).toBe(true);
+    expect(formatHtmlButton).not.toBeNull();
+    expect(formatHtmlButton?.getAttribute('aria-label')).toBe('Formatear HTML fuente');
+    expect(formatHtmlButton?.hidden).toBe(true);
+    expect(formatHtmlButton?.disabled).toBe(true);
     expect(toolbar.element.querySelector('[data-toolbar-action="image-dimensions"]')).toBeNull();
     expect(toolbar.element.querySelector('[data-toolbar-action="image-width"]')).toBeNull();
     expect(toolbar.element.querySelector('[data-toolbar-action="image-height"]')).toBeNull();
@@ -220,6 +227,7 @@ describe('createToolbar', () => {
     const lifecycle = createEditorLifecycle();
     const onInsertImage = vi.fn();
     const onToggleSourceHtml = vi.fn();
+    const onFormatHtml = vi.fn();
     let sourceHtmlActive = false;
     const toolbar = createToolbar({
       editor,
@@ -230,6 +238,7 @@ describe('createToolbar', () => {
         sourceHtmlActive = !sourceHtmlActive;
         onToggleSourceHtml();
       },
+      onFormatHtml,
       isSourceHtmlActive: () => sourceHtmlActive,
     });
     const blockFormatSelect = toolbar.element.querySelector<HTMLSelectElement>(
@@ -292,6 +301,9 @@ describe('createToolbar', () => {
     const sourceHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="source-html"]',
     );
+    const formatHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="format-html"]',
+    );
 
     expect(blockFormatSelect).not.toBeNull();
     expect(boldButton).not.toBeNull();
@@ -318,6 +330,10 @@ describe('createToolbar', () => {
     expect(sourceHtmlButton).not.toBeNull();
     expect(sourceHtmlButton?.disabled).toBe(false);
     expect(sourceHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('</>');
+    expect(formatHtmlButton).not.toBeNull();
+    expect(formatHtmlButton?.hidden).toBe(true);
+    expect(formatHtmlButton?.disabled).toBe(true);
+    expect(formatHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('{}');
 
     if (blockFormatSelect) {
       blockFormatSelect.value = 'heading-6';
@@ -389,6 +405,11 @@ describe('createToolbar', () => {
     expect(onToggleSourceHtml).toHaveBeenCalledOnce();
     expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('true');
     expect(sourceHtmlButton?.dataset.active).toBe('true');
+    expect(formatHtmlButton?.hidden).toBe(false);
+    expect(formatHtmlButton?.disabled).toBe(false);
+
+    formatHtmlButton?.click();
+    expect(onFormatHtml).toHaveBeenCalledOnce();
 
     lifecycle.dispose();
   });

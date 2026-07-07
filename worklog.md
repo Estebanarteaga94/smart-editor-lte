@@ -4701,3 +4701,51 @@ Decision Git:
 Pendientes inmediatos:
 
 - Agregar boton para formatear HTML en `source-html`.
+
+## 2026-07-07 - Boton de formateo HTML fuente
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: agregar boton para formatear HTML en `source-html`.
+
+Acciones realizadas:
+
+- Se agrego el boton `format-html` a la toolbar.
+- El boton queda oculto y deshabilitado fuera de la vista `source-html`.
+- Al activar `source-html`, el boton queda visible y habilitado aunque Tiptap este en modo no editable.
+- `mountEditorApp` inyecta `HtmlFormatService` y ejecuta el formateo sobre el valor actual de `SourceView`.
+- Cuando el formateo es exitoso, se reemplaza el contenido de CodeMirror con el HTML formateado y se actualiza `sourceHtmlValue`.
+- `html-format.service.ts` carga `prettier/standalone` y `prettier/plugins/html` bajo demanda para no meter Prettier en el bundle inicial de la app.
+- Se agregaron pruebas de toolbar para visibilidad, estado disabled y callback del boton.
+- Se agrego prueba de integracion para validar que el boton reemplaza el contenido de CodeMirror con el HTML formateado.
+- Se marco `Agregar boton para formatear HTML en source-html` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 36 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 24 archivos de prueba correctos, 171 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; Prettier queda en chunks diferidos `standalone` y `html`, y el bundle principal reportado fue 1,051.76 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Manejar errores de formateo HTML.
