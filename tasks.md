@@ -220,7 +220,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 
 ### 1.8 Renderizado de contenido guardado
 
-- [ ] Implementar vista de renderizado basica.
+- [x] Implementar vista de renderizado basica.
   - Criterio: existe una zona o ruta/componente que muestra el HTML guardado.
 - [ ] Sanitizar antes de renderizar con HTML.
   - Criterio: no se usa `innerHTML` con contenido de usuario sin sanitizacion.

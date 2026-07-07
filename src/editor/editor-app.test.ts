@@ -60,6 +60,9 @@ describe('mountEditorApp', () => {
     });
     expect(mountedApp.editor.getHTML()).toContain('<h2>Restaurado</h2>');
     expect(mountedApp.editor.getText()).toContain('Contenido recuperado');
+    expect(appRoot.querySelector('.editor-preview__content')?.innerHTML).toContain(
+      '<h2>Restaurado</h2>',
+    );
   });
 
   it('keeps saving canonical JSON and renderable HTML after restoring', async () => {
@@ -114,6 +117,25 @@ describe('mountEditorApp', () => {
     expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Error');
     expect(statusBar?.dataset.saveStatus).toBe('error');
     expect(mountedApp.editor.getHTML()).toBe('<p>Contenido no guardado</p>');
+  });
+
+  it('updates the basic rendered preview when editor content changes', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<h3>Vista basica</h3><p>Render actualizado</p>');
+
+    const previewContent = appRoot.querySelector<HTMLElement>('.editor-preview__content');
+
+    expect(previewContent?.innerHTML).toContain('<h3>Vista basica</h3>');
+    expect(previewContent?.innerHTML).toContain('<p>Render actualizado</p>');
   });
 });
 

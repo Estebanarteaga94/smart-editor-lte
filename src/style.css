@@ -331,6 +331,38 @@ textarea {
   background: var(--status-error);
 }
 
+.editor-preview {
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.editor-preview__title {
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.editor-preview__content {
+  min-height: 96px;
+  padding: 18px;
+  overflow-wrap: anywhere;
+}
+
+.editor-preview__content > *:first-child {
+  margin-top: 0;
+}
+
+.editor-preview__content > *:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 760px) {
   .editor-app {
     padding: 20px 12px;
@@ -366,6 +398,10 @@ textarea {
   .editor-shell__editable .tiptap {
     min-height: 440px;
     padding: 18px;
+  }
+
+  .editor-preview__content {
+    padding: 16px;
   }
 
   .editor-app__header h1 {

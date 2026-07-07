@@ -1722,3 +1722,63 @@ Pendientes inmediatos:
 
 - Implementar vista de renderizado basica.
 - Continuar con Fase 1.8 en orden.
+
+## 2026-07-07 - Vista de renderizado basica
+
+Objetivo:
+
+- Cerrar la primera tarea pendiente de Fase 1.8: implementar una vista de renderizado basica.
+
+Acciones realizadas:
+
+- Se implemento `createPreviewView` en `src/editor/components/preview-view.ts`.
+- La vista crea una seccion `.editor-preview` con titulo y contenedor `.editor-preview__content`.
+- La vista expone `setHtml(html)` para actualizar el HTML renderizado.
+- `mountEditorApp` monta la vista debajo del shell del editor.
+- Al cargar un documento existente, la vista inicia con `contentHtml` guardado.
+- Al editar contenido, la vista se actualiza con el HTML renderizable emitido por Tiptap.
+- Se agregaron estilos base para la zona de renderizado.
+- Se agregaron pruebas unitarias del componente de preview.
+- Se agregaron pruebas unitarias para confirmar que la preview se monta desde documento cargado y se actualiza al editar.
+- Se marco la tarea como completada en `tasks.md`.
+
+Archivos creados:
+
+- `src/editor/components/preview-view.test.ts`
+
+Archivos modificados:
+
+- `src/editor/components/preview-view.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 12 archivos de prueba correctos, 58 pruebas correctas.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5174/` porque `5173` estaba ocupado.
+- Se ejecuto verificacion manual automatizada con Playwright.
+- Resultado: existe `.editor-preview`, el titulo dice `Vista renderizada` y el contenido se actualiza con el texto editado.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Notas:
+
+- La vista usa por ahora el HTML producido por Tiptap. La sanitizacion queda pendiente para la siguiente tarea de Fase 1.8.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio cierra una tarea formal de Fase 1.8 y esta cubierto por pruebas, check y verificacion manual automatizada.
+
+Pendientes inmediatos:
+
+- Sanitizar antes de renderizar con HTML.
+- Continuar con Fase 1.8 en orden.

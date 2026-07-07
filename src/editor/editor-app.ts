@@ -1,6 +1,7 @@
 import type { JSONContent } from '@tiptap/core';
 
 import { createEditorShell } from './components/editor-shell';
+import { createPreviewView } from './components/preview-view';
 import { createToolbar } from './components/toolbar';
 import { createWysiwygEditor } from './core/create-editor';
 import { createEditorLifecycle } from './core/editor-lifecycle';
@@ -37,8 +38,12 @@ export async function mountEditorApp({
   const lifecycle = createEditorLifecycle();
   const loadedDocument = await storage.loadDocument(documentId);
   const activeDocumentTitle = loadedDocument?.title ?? documentTitle;
+  const preview = createPreviewView({
+    html: loadedDocument?.contentHtml ?? '',
+  });
 
   lifecycle.mountRoot(app, shell.root);
+  shell.root.append(preview.element);
 
   const editor = createWysiwygEditor({
     element: shell.editable,
@@ -47,6 +52,7 @@ export async function mountEditorApp({
     placeholder: 'Escribe el contenido del documento...',
     onChange: ({ contentJson, contentHtml }) => {
       shell.setSaveStatus('saving');
+      preview.setHtml(contentHtml);
 
       if (contentJson.type && contentHtml.length > 0) {
         shell.setSaveStatus('saved');
@@ -56,6 +62,7 @@ export async function mountEditorApp({
       shell.setSaveStatus('error');
     },
   });
+  preview.setHtml(editor.getHTML());
 
   lifecycle.registerTiptapEditor(editor);
   const toolbar = createToolbar({
