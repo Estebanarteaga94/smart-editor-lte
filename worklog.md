@@ -3866,7 +3866,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque la tarea quedo completada y verificada.
-- Commit creado: pendiente de registrar tras crear el commit.
+- Commit creado: `ab25c5d` Manejar errores de subida de imagen.
 
 Pendientes inmediatos:
 
