@@ -4576,3 +4576,39 @@ Pendientes inmediatos:
 
 - Agregar modo `source-json`.
 - Continuar con Fase 5 en orden.
+
+## 2026-07-07 - Tareas para formateo HTML fuente
+
+Objetivo:
+
+- Agregar tareas necesarias para implementar formateo del codigo HTML dentro de la vista `source-html`.
+
+Acciones realizadas:
+
+- Se agrego una tarea para confirmar la dependencia de formateo HTML en navegador con `prettier/standalone` y `prettier/plugins/html`.
+- Se agrego una tarea para implementar `html-format.service.ts`.
+- Se agrego una tarea para crear el boton de formatear HTML visible solo en `source-html`.
+- Se agrego una tarea para manejar errores de formateo sin perder el contenido de CodeMirror.
+- Se agrego una tarea para cubrir el formateo y los errores con pruebas automatizadas.
+- Las tareas quedaron ubicadas en Fase 5 despues de `source-html`, antes de `source-json`, porque dependen de la vista HTML pero no de la sincronizacion hacia Tiptap.
+
+Archivos modificados:
+
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npx prettier --write tasks.md worklog.md`.
+- Resultado: documentos formateados correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+
+Decision Git:
+
+- Se crea commit porque el usuario solicito ajustar el plan de tareas y el cambio documental quedo verificado.
+
+Pendientes inmediatos:
+
+- Agregar dependencia de formateo HTML en navegador.
+- Continuar con Fase 5 en orden.
