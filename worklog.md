@@ -3873,6 +3873,52 @@ Pendientes inmediatos:
 - Preparar cliente para eliminar assets.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Cliente para eliminar assets
+
+Objetivo:
+
+- Cerrar la tarea de Fase 4: preparar cliente para eliminar assets.
+- Exponer una funcion para `DELETE /api/documents/{id}/assets/{assetId}` sin adelantar UI de eliminacion ni la Fase 8 completa.
+
+Acciones realizadas:
+
+- Se implemento `createHttpAssetsApi` en `src/api/assets.api.ts`.
+- El cliente expone `uploadImage(documentId, file, altText?)` y `deleteAsset(documentId, assetId)`.
+- `deleteAsset` usa metodo `DELETE`, codifica `documentId` y `assetId`, soporta `baseUrl` y rechaza respuestas no OK con mensaje controlado.
+- `uploadImage` conserva el contrato de subida ya definido para assets y parsea la respuesta como `EditorAsset`.
+- Se agregaron pruebas unitarias para subida, eliminacion, `baseUrl`, codificacion de identificadores, errores no OK y respuestas invalidas.
+- Se marco `Preparar cliente para eliminar assets` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/api/assets.api.ts`
+- `src/api/assets.api.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/api/assets.api.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 5 pruebas correctas.
+- Se ejecuto `npx prettier --write src/api/assets.api.ts src/api/assets.api.test.ts`.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 21 archivos de prueba correctos, 159 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Instalar y configurar CodeMirror.
+- Continuar con Fase 5 en orden.
+
 ## 2026-07-07 - Posicion externa del dialogo de imagen
 
 Objetivo:

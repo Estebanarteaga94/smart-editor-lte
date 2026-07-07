@@ -356,8 +356,9 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Manejar errores de subida.
   - Criterio: fallo de validacion o red muestra mensaje y no inserta nodo roto.
   - Nota: los errores de validacion muestran el detalle del validador, los errores de red muestran un mensaje accionable y el documento conserva su JSON/HTML previo sin insertar imagen.
-- [ ] Preparar cliente para eliminar assets.
+- [x] Preparar cliente para eliminar assets.
   - Criterio: existe funcion para `DELETE /api/documents/{id}/assets/{assetId}` o decision documentada.
+  - Nota: `createHttpAssetsApi` expone `deleteAsset(documentId, assetId)` con `DELETE`, codifica ambos identificadores, soporta `baseUrl` y rechaza respuestas no OK con error controlado.
 
 ## Fase 5 - Vista de codigo HTML/JSON
 
