@@ -1625,3 +1625,58 @@ Pendientes inmediatos:
 
 - Implementar carga de documento existente.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-07 - Carga de documento existente al iniciar
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.7: implementar carga de documento existente para restaurar contenido guardado al recargar la pagina.
+
+Acciones realizadas:
+
+- Se extrajo el montaje principal a `src/editor/editor-app.ts` con `mountEditorApp`.
+- `main.ts` ahora invoca `mountEditorApp({ app })`.
+- `mountEditorApp` consulta `storage.loadDocument(documentId)` antes de crear la instancia Tiptap.
+- Si existe documento guardado, el editor inicia desde `contentJson`, manteniendo el JSON de ProseMirror como fuente canonica.
+- Si no existe documento guardado, se usa el contenido inicial de ejemplo.
+- El guardado manual sigue enviando `title`, `contentJson` y `contentHtml`.
+- Se agregaron pruebas unitarias para confirmar que el contenido guardado se restaura antes del montaje.
+- Se agregaron pruebas unitarias para confirmar que, despues de restaurar o iniciar, el guardado sigue enviando JSON canonico y HTML renderizable.
+- Se marco la tarea como completada en `tasks.md`.
+
+Archivos creados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+
+Archivos modificados:
+
+- `src/main.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 11 archivos de prueba correctos, 54 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5174/` porque `5173` estaba ocupado.
+- Se ejecuto verificacion manual automatizada con Playwright sembrando `localStorage`.
+- Resultado: al abrir la pagina, el editor mostro `<h2>Restaurado desde localStorage</h2>` y el parrafo guardado.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio cierra una tarea formal de Fase 1.7 y esta cubierto por pruebas, check y verificacion manual automatizada.
+
+Pendientes inmediatos:
+
+- Manejar error de guardado.
+- Continuar con Fase 1.7 en orden.

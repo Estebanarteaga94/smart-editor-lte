@@ -213,7 +213,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
   - Criterio: el documento se guarda y recupera desde `localStorage` o mock documentado.
 - [x] Guardar siempre JSON canonico y HTML renderizable.
   - Criterio: ningun guardado persiste solo HTML.
-- [ ] Implementar carga de documento existente.
+- [x] Implementar carga de documento existente.
   - Criterio: al recargar la pagina se restaura contenido guardado.
 - [ ] Manejar error de guardado.
   - Criterio: fallo de red, respuesta no OK o excepcion muestra estado `Error` sin perder contenido local.
