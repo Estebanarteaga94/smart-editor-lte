@@ -2,13 +2,16 @@ import type { Editor } from '@tiptap/core';
 
 export type EditorCommand = (editor: Editor) => boolean;
 
-export type HeadingLevel = 1 | 2 | 3;
+export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface EditorCommandRegistry {
   setParagraph: EditorCommand;
   setHeading1: EditorCommand;
   setHeading2: EditorCommand;
   setHeading3: EditorCommand;
+  setHeading4: EditorCommand;
+  setHeading5: EditorCommand;
+  setHeading6: EditorCommand;
   toggleBold: EditorCommand;
   toggleItalic: EditorCommand;
   toggleUnderline: EditorCommand;
@@ -23,6 +26,9 @@ export const editorCommands: EditorCommandRegistry = {
   setHeading1,
   setHeading2,
   setHeading3,
+  setHeading4,
+  setHeading5,
+  setHeading6,
   toggleBold,
   toggleItalic,
   toggleUnderline,
@@ -50,6 +56,18 @@ export function setHeading2(editor: Editor): boolean {
 
 export function setHeading3(editor: Editor): boolean {
   return setHeading(editor, 3);
+}
+
+export function setHeading4(editor: Editor): boolean {
+  return setHeading(editor, 4);
+}
+
+export function setHeading5(editor: Editor): boolean {
+  return setHeading(editor, 5);
+}
+
+export function setHeading6(editor: Editor): boolean {
+  return setHeading(editor, 6);
 }
 
 export function toggleBold(editor: Editor): boolean {

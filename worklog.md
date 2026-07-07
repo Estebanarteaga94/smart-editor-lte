@@ -1384,3 +1384,60 @@ Pendientes inmediatos:
 
 - Implementar persistencia local temporal si no existe backend.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-06 - Selector de titulos H1 a H6 en toolbar
+
+Objetivo:
+
+- Atender la solicitud de reemplazar los botones separados de titulos por una lista o select y ampliar los niveles hasta H6.
+
+Acciones realizadas:
+
+- Se reemplazaron los botones `H1`, `H2` y `H3` por un selector de formato de bloque con opciones `Parrafo`, `Titulo H1`, `Titulo H2`, `Titulo H3`, `Titulo H4`, `Titulo H5` y `Titulo H6`.
+- Se mantuvieron los controles restantes de toolbar como botones con iconos Fontello.
+- Se amplio `HeadingLevel` a `1 | 2 | 3 | 4 | 5 | 6`.
+- Se agregaron comandos `setHeading4`, `setHeading5` y `setHeading6`.
+- Se actualizo el schema canonico para aceptar `heading.attrs.level` entre 1 y 6.
+- Se agregaron estilos responsive para el selector de formato de bloque.
+- Se actualizaron pruebas de toolbar, comandos y schema canonico para cubrir H1-H6 y el selector.
+- Se agrego nota en `tasks.md` bajo la tarea de titulos completada.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/core/editor-commands.ts`
+- `src/editor/core/editor-commands.test.ts`
+- `src/editor/models/editor-content.ts`
+- `src/editor/models/editor-content.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 10 archivos de prueba correctos, 47 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run dev -- --host 127.0.0.1`.
+- Resultado: Vite sirvio la aplicacion en `http://127.0.0.1:5174/` porque `5173` estaba ocupado.
+- Se ejecuto verificacion manual automatizada con Playwright.
+- Resultado: existe el selector con `paragraph` y `heading-1` a `heading-6`, no existen botones de heading separados y seleccionar `heading-6` genera un `<h6>` con el texto del documento.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+
+Decision Git:
+
+- Se evaluo crear commit por ser un ajuste funcional solicitado sobre toolbar y schema.
+- Se creo commit porque el cambio esta acotado, verificado y documentado.
+
+Pendientes inmediatos:
+
+- Implementar persistencia local temporal si no existe backend.
+- Continuar con Fase 1.7 en orden.

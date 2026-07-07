@@ -160,6 +160,23 @@ describe('canonical editor content schema', () => {
     expect(parseCanonicalEditorContent(validContent)).toEqual(validContent);
   });
 
+  it('accepts heading levels from H1 through H6', () => {
+    expect(
+      parseCanonicalEditorContent({
+        type: 'doc',
+        content: [
+          {
+            type: 'heading',
+            attrs: { level: 6 },
+            content: [{ type: 'text', text: 'Titulo H6' }],
+          },
+        ],
+      }),
+    ).toMatchObject({
+      content: [{ type: 'heading', attrs: { level: 6 } }],
+    });
+  });
+
   it('rejects unknown nodes', () => {
     expect(() =>
       parseCanonicalEditorContent({
@@ -217,6 +234,20 @@ describe('canonical editor content schema', () => {
                 marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }],
               },
             ],
+          },
+        ],
+      }),
+    ).toThrow();
+  });
+
+  it('rejects heading levels outside H1 through H6', () => {
+    expect(() =>
+      parseCanonicalEditorContent({
+        type: 'doc',
+        content: [
+          {
+            type: 'heading',
+            attrs: { level: 7 },
           },
         ],
       }),

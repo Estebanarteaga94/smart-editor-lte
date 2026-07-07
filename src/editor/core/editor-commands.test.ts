@@ -6,9 +6,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { createWysiwygEditor } from './create-editor';
 import {
+  setHeading,
   setHeading1,
   setHeading2,
   setHeading3,
+  setHeading4,
+  setHeading5,
+  setHeading6,
   setParagraph,
   toggleBold,
   toggleBulletList,
@@ -44,7 +48,7 @@ afterEach(() => {
 });
 
 describe('editorCommands', () => {
-  it('sets paragraph and headings H1, H2 and H3', () => {
+  it('sets paragraph and headings H1 through H6', () => {
     const editor = mountEditor();
 
     expect(setHeading1(editor)).toBe(true);
@@ -57,9 +61,26 @@ describe('editorCommands', () => {
     expect(setHeading3(editor)).toBe(true);
     expect(editor.getJSON().content?.[0]).toMatchObject({ type: 'heading', attrs: { level: 3 } });
 
+    expect(setHeading4(editor)).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: 'heading', attrs: { level: 4 } });
+
+    expect(setHeading5(editor)).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: 'heading', attrs: { level: 5 } });
+
+    expect(setHeading6(editor)).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: 'heading', attrs: { level: 6 } });
+    expect(editor.getHTML()).toContain('<h6>Texto</h6>');
+
     expect(setParagraph(editor)).toBe(true);
     expect(editor.getJSON().content?.[0]).toMatchObject({ type: 'paragraph' });
     expect(editor.getHTML()).toContain('<p>Texto</p>');
+  });
+
+  it('sets headings through the generic command', () => {
+    const editor = mountEditor();
+
+    expect(setHeading(editor, 6)).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: 'heading', attrs: { level: 6 } });
   });
 
   it('toggles bold, italic and underline over selected text', () => {

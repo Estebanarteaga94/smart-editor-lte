@@ -188,6 +188,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 
 - [x] Implementar comandos de parrafo y encabezados H1, H2, H3.
   - Criterio: existen funciones en `editor-commands.ts`; al ejecutar cada accion, el JSON contiene el bloque esperado, el HTML renderiza correctamente y el boton refleja estado activo.
+  - Nota: por solicitud de UI, los titulos se ampliaron a H1-H6 y se seleccionan desde una lista desplegable en lugar de botones separados.
 - [x] Implementar comandos de negrita, cursiva y subrayado.
   - Criterio: los botones aplican y remueven formato sobre seleccion y texto nuevo; JSON, HTML y estado activo quedan cubiertos por prueba o verificacion manual.
 - [x] Implementar lista no ordenada y lista ordenada.
@@ -198,7 +199,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
   - Criterio: ejecuta el servicio de persistencia, envia `title`, `contentJson` y `contentHtml`, y muestra estado correcto.
 - [x] Agregar accesibilidad basica a controles.
   - Criterio: cada boton tiene `aria-label`, estado disabled cuando aplique y foco visible.
-  - Nota: la toolbar usa iconos Fontello servidos desde `public/font`, conservando `aria-label` para lectores de pantalla.
+  - Nota: la toolbar usa iconos Fontello servidos desde `public/font`, conservando `aria-label` para lectores de pantalla; el selector de formato de bloque tambien expone `aria-label`.
 
 ### 1.7 Persistencia MVP
 

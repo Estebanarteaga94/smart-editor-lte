@@ -1,21 +1,15 @@
 import type { Editor } from '@tiptap/core';
 
-import { editorCommands, type EditorCommand } from '../core/editor-commands';
+import {
+  editorCommands,
+  setHeading,
+  type EditorCommand,
+  type HeadingLevel,
+} from '../core/editor-commands';
 import type { EditorLifecycle } from '../core/editor-lifecycle';
 
 export type ToolbarButtonId =
-  | 'paragraph'
-  | 'heading-1'
-  | 'heading-2'
-  | 'heading-3'
-  | 'bold'
-  | 'italic'
-  | 'underline'
-  | 'bullet-list'
-  | 'ordered-list'
-  | 'undo'
-  | 'redo'
-  | 'save';
+  'bold' | 'italic' | 'underline' | 'bullet-list' | 'ordered-list' | 'undo' | 'redo' | 'save';
 
 export interface ToolbarButtonConfig {
   id: ToolbarButtonId;
@@ -40,46 +34,19 @@ export interface EditorToolbar {
   updateState: () => void;
 }
 
+type BlockFormatValue = 'paragraph' | `heading-${1 | 2 | 3 | 4 | 5 | 6}`;
+
+const blockFormatOptions: readonly { value: BlockFormatValue; label: string }[] = [
+  { value: 'paragraph', label: 'Parrafo' },
+  { value: 'heading-1', label: 'Titulo H1' },
+  { value: 'heading-2', label: 'Titulo H2' },
+  { value: 'heading-3', label: 'Titulo H3' },
+  { value: 'heading-4', label: 'Titulo H4' },
+  { value: 'heading-5', label: 'Titulo H5' },
+  { value: 'heading-6', label: 'Titulo H6' },
+];
+
 const toolbarButtons: readonly ToolbarButtonConfig[] = [
-  {
-    id: 'paragraph',
-    label: 'P',
-    icon: '\uf1dd',
-    ariaLabel: 'Convertir a parrafo',
-    command: editorCommands.setParagraph,
-    isActive: (editor) => editor.isActive('paragraph'),
-    pressed: true,
-  },
-  {
-    id: 'heading-1',
-    label: 'H1',
-    icon: '\uf1dc',
-    iconModifier: '1',
-    ariaLabel: 'Convertir a encabezado H1',
-    command: editorCommands.setHeading1,
-    isActive: (editor) => editor.isActive('heading', { level: 1 }),
-    pressed: true,
-  },
-  {
-    id: 'heading-2',
-    label: 'H2',
-    icon: '\uf1dc',
-    iconModifier: '2',
-    ariaLabel: 'Convertir a encabezado H2',
-    command: editorCommands.setHeading2,
-    isActive: (editor) => editor.isActive('heading', { level: 2 }),
-    pressed: true,
-  },
-  {
-    id: 'heading-3',
-    label: 'H3',
-    icon: '\uf1dc',
-    iconModifier: '3',
-    ariaLabel: 'Convertir a encabezado H3',
-    command: editorCommands.setHeading3,
-    isActive: (editor) => editor.isActive('heading', { level: 3 }),
-    pressed: true,
-  },
   {
     id: 'bold',
     label: 'B',
@@ -151,9 +118,16 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
 
 export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
+  const blockFormatSelect = createBlockFormatSelect();
   const buttons = new Map<ToolbarButtonId, HTMLButtonElement>();
 
   element.className = 'editor-toolbar';
+  element.append(blockFormatSelect);
+
+  lifecycle.addEventListener(blockFormatSelect, 'change', () => {
+    applyBlockFormat(editor, blockFormatSelect.value as BlockFormatValue);
+    updateState();
+  });
 
   for (const config of toolbarButtons) {
     const button = createToolbarButton(config);
@@ -176,6 +150,9 @@ export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOption
   }
 
   const updateState = (): void => {
+    blockFormatSelect.disabled = editor.isDestroyed || !editor.isEditable;
+    blockFormatSelect.value = getActiveBlockFormat(editor);
+
     for (const config of toolbarButtons) {
       const button = buttons.get(config.id);
 
@@ -244,4 +221,42 @@ function createToolbarButton(config: ToolbarButtonConfig): HTMLButtonElement {
   }
 
   return button;
+}
+
+function createBlockFormatSelect(): HTMLSelectElement {
+  const select = document.createElement('select');
+
+  select.className = 'editor-shell__block-format';
+  select.dataset.toolbarAction = 'block-format';
+  select.setAttribute('aria-label', 'Seleccionar formato de bloque');
+  select.title = 'Seleccionar formato de bloque';
+
+  for (const optionConfig of blockFormatOptions) {
+    const option = document.createElement('option');
+    option.value = optionConfig.value;
+    option.textContent = optionConfig.label;
+    select.append(option);
+  }
+
+  return select;
+}
+
+function applyBlockFormat(editor: Editor, value: BlockFormatValue): void {
+  if (value === 'paragraph') {
+    editorCommands.setParagraph(editor);
+    return;
+  }
+
+  const level = Number(value.replace('heading-', '')) as HeadingLevel;
+  setHeading(editor, level);
+}
+
+function getActiveBlockFormat(editor: Editor): BlockFormatValue {
+  for (const level of [1, 2, 3, 4, 5, 6] as const) {
+    if (editor.isActive('heading', { level })) {
+      return `heading-${level}`;
+    }
+  }
+
+  return 'paragraph';
 }

@@ -68,7 +68,7 @@ const emptyAttrsSchema = z.object({}).strict();
 const paragraphAttrsSchema = z.object({ textAlign: textAlignSchema }).strict();
 const headingAttrsSchema = z
   .object({
-    level: z.number().int().min(1).max(3),
+    level: z.number().int().min(1).max(6),
     textAlign: textAlignSchema,
   })
   .strict();

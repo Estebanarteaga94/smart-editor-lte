@@ -42,18 +42,26 @@ describe('createToolbar', () => {
       onSave: vi.fn(),
     });
     const buttons = [...toolbar.element.querySelectorAll('button')];
+    const blockFormatSelect = toolbar.element.querySelector<HTMLSelectElement>(
+      '[data-toolbar-action="block-format"]',
+    );
 
-    expect(buttons).toHaveLength(12);
+    expect(blockFormatSelect).not.toBeNull();
+    expect(blockFormatSelect?.getAttribute('aria-label')).toBe('Seleccionar formato de bloque');
+    expect([...(blockFormatSelect?.options ?? [])].map((option) => option.value)).toEqual([
+      'paragraph',
+      'heading-1',
+      'heading-2',
+      'heading-3',
+      'heading-4',
+      'heading-5',
+      'heading-6',
+    ]);
+    expect(buttons).toHaveLength(8);
     expect(buttons.every((button) => button.type === 'button')).toBe(true);
     expect(buttons.every((button) => button.hasAttribute('aria-label'))).toBe(true);
     expect(buttons.every((button) => button.querySelector('.editor-shell__tool-icon'))).toBe(true);
-    expect(toolbar.element.querySelector('[data-toolbar-action="paragraph"]')).not.toBeNull();
     expect(toolbar.element.querySelector('[data-toolbar-action="save"]')).not.toBeNull();
-    expect(
-      toolbar.element.querySelector(
-        '[data-toolbar-action="heading-1"] .editor-shell__tool-icon-modifier',
-      )?.textContent,
-    ).toBe('1');
 
     lifecycle.dispose();
   });
@@ -66,20 +74,23 @@ describe('createToolbar', () => {
       lifecycle,
       onSave: vi.fn(),
     });
-    const headingButton = toolbar.element.querySelector<HTMLButtonElement>(
-      '[data-toolbar-action="heading-1"]',
+    const blockFormatSelect = toolbar.element.querySelector<HTMLSelectElement>(
+      '[data-toolbar-action="block-format"]',
     );
     const boldButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="bold"]',
     );
 
-    expect(headingButton).not.toBeNull();
+    expect(blockFormatSelect).not.toBeNull();
     expect(boldButton).not.toBeNull();
 
-    headingButton?.click();
-    expect(editor.isActive('heading', { level: 1 })).toBe(true);
-    expect(headingButton?.getAttribute('aria-pressed')).toBe('true');
-    expect(headingButton?.dataset.active).toBe('true');
+    if (blockFormatSelect) {
+      blockFormatSelect.value = 'heading-6';
+      blockFormatSelect.dispatchEvent(new Event('change'));
+    }
+
+    expect(editor.isActive('heading', { level: 6 })).toBe(true);
+    expect(blockFormatSelect?.value).toBe('heading-6');
 
     editor.commands.selectAll();
     boldButton?.click();
