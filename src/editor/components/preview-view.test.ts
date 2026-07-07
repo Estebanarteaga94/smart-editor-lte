@@ -28,4 +28,24 @@ describe('createPreviewView', () => {
 
     expect(preview.content.innerHTML).toBe('<p>Actualizado</p>');
   });
+
+  it('sanitizes saved HTML before rendering it', () => {
+    const preview = createPreviewView({
+      html: '<script>alert("xss")</script><p onclick="alert(1)">Seguro</p><a href="javascript:alert(1)">Link</a>',
+    });
+
+    expect(preview.content.innerHTML).toContain('<p>Seguro</p>');
+    expect(preview.content.innerHTML).toContain('<a>Link</a>');
+    expect(preview.content.innerHTML).not.toContain('<script');
+    expect(preview.content.innerHTML).not.toContain('onclick');
+    expect(preview.content.innerHTML).not.toContain('javascript:');
+  });
+
+  it('sanitizes updated HTML before rendering it', () => {
+    const preview = createPreviewView();
+
+    preview.setHtml('<img src="/image.png" alt="Imagen" onerror="alert(1)">');
+
+    expect(preview.content.innerHTML).toBe('<img src="/image.png" alt="Imagen">');
+  });
 });

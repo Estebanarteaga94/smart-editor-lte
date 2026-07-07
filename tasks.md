@@ -222,10 +222,12 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 
 - [x] Implementar vista de renderizado basica.
   - Criterio: existe una zona o ruta/componente que muestra el HTML guardado.
-- [ ] Sanitizar antes de renderizar con HTML.
+- [x] Sanitizar antes de renderizar con HTML.
   - Criterio: no se usa `innerHTML` con contenido de usuario sin sanitizacion.
-- [ ] Verificar que el contenido recuperado conserva estructura.
+  - Nota: `createPreviewView` sanitiza todo HTML inicial y actualizado mediante `sanitizeHtml` antes de asignarlo a `innerHTML`.
+- [x] Verificar que el contenido recuperado conserva estructura.
   - Criterio: titulos, parrafos, negrita, cursiva, subrayado y listas se restauran correctamente.
+  - Nota: `editor-app.test.ts` cubre recuperacion desde storage con encabezado, parrafo con marcas basicas, lista no ordenada y lista ordenada.
 
 ## Fase 2 - Formato avanzado
 

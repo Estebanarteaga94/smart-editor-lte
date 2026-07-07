@@ -1,6 +1,9 @@
+import { createSanitizerService, type SanitizerService } from '../services/sanitizer.service';
+
 export interface PreviewViewOptions {
   title?: string;
   html?: string;
+  sanitizer?: SanitizerService;
 }
 
 export interface PreviewView {
@@ -13,6 +16,7 @@ export function createPreviewView(options: PreviewViewOptions = {}): PreviewView
   const element = document.createElement('section');
   const title = document.createElement('h2');
   const content = document.createElement('div');
+  const sanitizer = options.sanitizer ?? createSanitizerService();
 
   element.className = 'editor-preview';
   element.setAttribute('aria-label', options.title ?? 'Vista renderizada');
@@ -25,7 +29,7 @@ export function createPreviewView(options: PreviewViewOptions = {}): PreviewView
   element.append(title, content);
 
   const setHtml = (html: string): void => {
-    content.innerHTML = html;
+    content.innerHTML = sanitizer.sanitizeHtml(html);
   };
 
   setHtml(options.html ?? '');

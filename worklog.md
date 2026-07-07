@@ -1782,3 +1782,90 @@ Pendientes inmediatos:
 
 - Sanitizar antes de renderizar con HTML.
 - Continuar con Fase 1.8 en orden.
+
+## 2026-07-07 - Sanitizacion de HTML en preview
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.8: sanitizar antes de renderizar con HTML.
+
+Acciones realizadas:
+
+- Se implemento `sanitizeHtml` en `src/editor/services/sanitizer.service.ts` usando DOMPurify.
+- Se agrego una politica explicita de tags, atributos y protocolos permitidos para el HTML renderizable del editor.
+- `createPreviewView` ahora recibe un `SanitizerService` opcional y usa uno seguro por defecto.
+- Todo HTML inicial y todo HTML actualizado mediante `setHtml(html)` pasa por `sanitizeHtml` antes de asignarse a `innerHTML`.
+- Se agregaron pruebas para confirmar que la preview elimina `<script>`, handlers inline como `onclick`/`onerror` y URLs `javascript:`.
+- Se marco la tarea como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/sanitizer.service.ts`
+- `src/editor/components/preview-view.ts`
+- `src/editor/components/preview-view.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 12 archivos de prueba correctos, 60 pruebas correctas.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run lint`.
+- Resultado inicial: fallo por una asercion de tipo innecesaria en `sanitizer.service.ts`.
+- Se retiro la asercion innecesaria.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- No se creo commit todavia porque se cerro una sola tarea pequena en esta iteracion y el usuario no solicito publicar cambios.
+
+Pendientes inmediatos:
+
+- Verificar que el contenido recuperado conserva estructura.
+- Continuar con Fase 1.8 en orden.
+
+## 2026-07-07 - Verificacion de estructura recuperada
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.8: verificar que el contenido recuperado conserva estructura.
+
+Acciones realizadas:
+
+- Se agrego una prueba de integracion en `src/editor/editor-app.test.ts` para montar la app con un documento recuperado desde storage.
+- El documento de prueba incluye encabezado, parrafo, negrita, cursiva, subrayado, lista no ordenada y lista ordenada.
+- La prueba valida que el JSON restaurado conserva tipos de nodo y marcas.
+- La prueba valida que el HTML generado por Tiptap conserva la estructura renderizable esperada.
+- La prueba valida que la preview renderiza la estructura recuperada despues de pasar por sanitizacion.
+- Se marco la tarea como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 12 archivos de prueba correctos, 61 pruebas correctas.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creara commit porque las tareas finales de Fase 1.8 quedaron completas, verificadas y forman un cierre coherente junto con la sanitizacion de preview.
+
+Pendientes inmediatos:
+
+- Agregar tachado.
+- Continuar con Fase 2 en orden.

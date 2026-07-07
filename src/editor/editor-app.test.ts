@@ -65,6 +65,137 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('preserves recovered headings, paragraphs, basic marks and lists', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble({
+      title: 'Documento con estructura',
+      contentJson: {
+        type: 'doc',
+        content: [
+          {
+            type: 'heading',
+            attrs: {
+              level: 1,
+            },
+            content: [{ type: 'text', text: 'Titulo recuperado' }],
+          },
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'Parrafo con ' },
+              {
+                type: 'text',
+                text: 'negrita',
+                marks: [{ type: 'bold' }],
+              },
+              { type: 'text', text: ', ' },
+              {
+                type: 'text',
+                text: 'cursiva',
+                marks: [{ type: 'italic' }],
+              },
+              { type: 'text', text: ' y ' },
+              {
+                type: 'text',
+                text: 'subrayado',
+                marks: [{ type: 'underline' }],
+              },
+              { type: 'text', text: '.' },
+            ],
+          },
+          {
+            type: 'bulletList',
+            content: [
+              {
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Primer punto' }],
+                  },
+                ],
+              },
+              {
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Segundo punto' }],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'orderedList',
+            content: [
+              {
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Primer paso' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      contentHtml:
+        '<h1>Titulo recuperado</h1><p>Parrafo con <strong>negrita</strong>, <em>cursiva</em> y <u>subrayado</u>.</p><ul><li><p>Primer punto</p></li><li><p>Segundo punto</p></li></ul><ol><li><p>Primer paso</p></li></ol>',
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-structured',
+    });
+    mountedApps.add(mountedApp);
+
+    const restoredJson = mountedApp.editor.getJSON();
+    const restoredHtml = mountedApp.editor.getHTML();
+    const previewContent = appRoot.querySelector<HTMLElement>('.editor-preview__content');
+
+    expect(restoredJson.content).toMatchObject([
+      { type: 'heading', attrs: { level: 1 } },
+      {
+        type: 'paragraph',
+        content: expect.arrayContaining([
+          expect.objectContaining({
+            text: 'negrita',
+            marks: [{ type: 'bold' }],
+          }),
+          expect.objectContaining({
+            text: 'cursiva',
+            marks: [{ type: 'italic' }],
+          }),
+          expect.objectContaining({
+            text: 'subrayado',
+            marks: [{ type: 'underline' }],
+          }),
+        ]),
+      },
+      { type: 'bulletList' },
+      { type: 'orderedList' },
+    ]);
+    expect(restoredHtml).toContain('<h1>Titulo recuperado</h1>');
+    expect(restoredHtml).toContain('<strong>negrita</strong>');
+    expect(restoredHtml).toContain('<em>cursiva</em>');
+    expect(restoredHtml).toContain('<u>subrayado</u>');
+    expect(restoredHtml).toContain('<ul>');
+    expect(restoredHtml).toContain('<ol>');
+    expect(previewContent?.querySelector('h1')?.textContent).toBe('Titulo recuperado');
+    expect(previewContent?.querySelector('strong')?.textContent).toBe('negrita');
+    expect(previewContent?.querySelector('em')?.textContent).toBe('cursiva');
+    expect(previewContent?.querySelector('u')?.textContent).toBe('subrayado');
+    expect(
+      [...(previewContent?.querySelectorAll('ul li') ?? [])].map((item) => item.textContent),
+    ).toEqual(['Primer punto', 'Segundo punto']);
+    expect(previewContent?.querySelector('ol li')?.textContent).toBe('Primer paso');
+  });
+
   it('keeps saving canonical JSON and renderable HTML after restoring', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
