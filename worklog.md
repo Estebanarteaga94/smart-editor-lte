@@ -3739,6 +3739,58 @@ Pendientes inmediatos:
 - Agregar ancho y alto editables.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Correccion de recorte del menu de tablas
+
+Objetivo:
+
+- Corregir el menu del boton de gestion de tablas, que no se veia completo al sobresalir del recuadro del editor.
+
+Diagnostico:
+
+- El panel de acciones de tabla estaba montado dentro de la toolbar del editor.
+- El contenedor `.editor-shell` mantiene `overflow: hidden`, por lo que un panel ancho o desplegado cerca del borde podia quedar recortado.
+
+Acciones realizadas:
+
+- Se cambio el panel de acciones de tabla para montarlo en `document.body` como overlay flotante.
+- El disparador conserva su lugar en la toolbar y referencia el panel con `aria-controls`.
+- Al abrir el menu se calcula la posicion desde `getBoundingClientRect()` del disparador.
+- El panel usa `position: fixed`, se ajusta al viewport y tiene scroll interno si su contenido supera la altura disponible.
+- Se mantuvo el cierre por Escape y por clic fuera del menu, contemplando que el panel ya no es hijo del contenedor del disparador.
+- Se agregaron pruebas para confirmar que el panel flotante se monta fuera del shell, se posiciona dentro del viewport y se limpia al destruir el ciclo de vida.
+
+Archivos modificados:
+
+- `src/editor/components/table-menu.ts`
+- `src/editor/components/table-menu.test.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/table-menu.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 35 pruebas correctas.
+- Se ejecuto `npx prettier --write src/editor/components/table-menu.ts src/editor/components/table-menu.test.ts src/editor/editor-app.test.ts src/style.css`.
+- Resultado: archivos formateados correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 19 archivos de prueba correctos, 146 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se levanto `npm run dev -- --host 127.0.0.1 --port 4174` y se ejecuto una prueba Playwright manual automatizada insertando una tabla, seleccionando una celda y abriendo el menu de tabla.
+- Resultado Playwright manual: el panel quedo visible, con `position: fixed`, montado en `BODY`, fuera de `.editor-shell`, `aria-expanded="true"` y dentro del viewport.
+- Se detuvo el servidor Vite usado para la prueba manual.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit obligatorio porque la correccion de bug reportado quedo verificada.
+
+Pendientes inmediatos:
+
+- Agregar ancho y alto editables.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Alineacion de imagenes
 
 Objetivo:

@@ -129,6 +129,8 @@ describe('createTableMenu', () => {
     expect(triggerButton?.getAttribute('aria-haspopup')).toBe('true');
     expect(triggerButton?.getAttribute('aria-expanded')).toBe('false');
     expect(panel?.hidden).toBe(true);
+    expect(panel?.parentElement).toBe(document.body);
+    expect(tableMenu.element.contains(panel)).toBe(false);
 
     pressTableMenuButton(triggerButton);
 
@@ -141,6 +143,56 @@ describe('createTableMenu', () => {
     expect(triggerButton?.getAttribute('aria-expanded')).toBe('false');
 
     lifecycle.dispose();
+  });
+
+  it('positions the table command panel as a floating overlay inside the viewport', () => {
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
+    const editor = mountEditor();
+    const lifecycle = createEditorLifecycle();
+    const tableMenu = createTableMenu({ editor, lifecycle });
+    const triggerButton = getTableMenuTrigger(tableMenu.element);
+    const panel = getTableMenuPanel(tableMenu.element);
+
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: false });
+    setSelectionInFirstTableCell(editor);
+    tableMenu.updateState();
+
+    expect(triggerButton).not.toBeNull();
+    expect(panel).not.toBeNull();
+    expect(panel?.parentElement).toBe(document.body);
+    expect(tableMenu.element.contains(panel)).toBe(false);
+
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 });
+    mockElementRect(triggerButton, {
+      left: 760,
+      top: 10,
+      right: 790,
+      bottom: 40,
+      width: 30,
+      height: 30,
+    });
+    mockElementSize(panel, 360, 180);
+
+    pressTableMenuButton(triggerButton);
+
+    expect(panel?.hidden).toBe(false);
+    expect(panel?.style.left).toBe('424px');
+    expect(panel?.style.top).toBe('46px');
+
+    lifecycle.dispose();
+
+    expect(panel?.isConnected).toBe(false);
+
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: originalInnerWidth,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: originalInnerHeight,
+    });
   });
 
   it('adds rows before and after from the contextual table menu', () => {
@@ -447,7 +499,11 @@ function getTableMenuButton(
     | 'merge-cells'
     | 'split-cell',
 ): HTMLButtonElement | null {
-  return element.querySelector<HTMLButtonElement>(`[data-table-menu-action="${action}"]`);
+  return (
+    getTableMenuPanel(element)?.querySelector<HTMLButtonElement>(
+      `[data-table-menu-action="${action}"]`,
+    ) ?? null
+  );
 }
 
 function getTableMenuTrigger(element: HTMLElement): HTMLButtonElement | null {
@@ -455,7 +511,10 @@ function getTableMenuTrigger(element: HTMLElement): HTMLButtonElement | null {
 }
 
 function getTableMenuPanel(element: HTMLElement): HTMLElement | null {
-  return element.querySelector<HTMLElement>('.editor-table-menu__panel');
+  const trigger = getTableMenuTrigger(element);
+  const panelId = trigger?.getAttribute('aria-controls');
+
+  return panelId ? document.getElementById(panelId) : null;
 }
 
 function pressTableMenuButton(button: HTMLButtonElement | null): void {
@@ -526,4 +585,47 @@ function getCellPositions(editor: ReturnType<typeof createWysiwygEditor>): numbe
   });
 
   return positions;
+}
+
+function mockElementRect(element: Element | null, rect: Partial<DOMRect>): void {
+  if (!element) {
+    throw new Error('Expected element to mock rect');
+  }
+
+  const left = rect.left ?? 0;
+  const top = rect.top ?? 0;
+  const width = rect.width ?? 0;
+  const height = rect.height ?? 0;
+  const right = rect.right ?? left + width;
+  const bottom = rect.bottom ?? top + height;
+
+  Object.defineProperty(element, 'getBoundingClientRect', {
+    configurable: true,
+    value: () => ({
+      x: left,
+      y: top,
+      left,
+      top,
+      right,
+      bottom,
+      width,
+      height,
+      toJSON: () => ({}),
+    }),
+  });
+}
+
+function mockElementSize(element: HTMLElement | null, width: number, height: number): void {
+  if (!element) {
+    throw new Error('Expected element to mock size');
+  }
+
+  Object.defineProperty(element, 'offsetWidth', {
+    configurable: true,
+    value: width,
+  });
+  Object.defineProperty(element, 'offsetHeight', {
+    configurable: true,
+    value: height,
+  });
 }

@@ -1084,30 +1084,31 @@ describe('mountEditorApp', () => {
     const tableMenuTrigger = appRoot.querySelector<HTMLButtonElement>(
       '.editor-table-menu [data-table-menu-trigger="true"]',
     );
-    const tableMenuPanel = appRoot.querySelector<HTMLElement>('.editor-table-menu__panel');
-    const addRowAfterButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="add-row-after"]',
+    const tableMenuPanelId = tableMenuTrigger?.getAttribute('aria-controls');
+    const tableMenuPanel = tableMenuPanelId ? document.getElementById(tableMenuPanelId) : null;
+    const addRowAfterButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="add-row-after"]',
     );
-    const deleteRowButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="delete-row"]',
+    const deleteRowButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="delete-row"]',
     );
-    const addColumnAfterButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="add-column-after"]',
+    const addColumnAfterButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="add-column-after"]',
     );
-    const deleteColumnButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="delete-column"]',
+    const deleteColumnButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="delete-column"]',
     );
-    const deleteTableButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="delete-table"]',
+    const deleteTableButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="delete-table"]',
     );
-    const toggleHeaderRowButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="toggle-header-row"]',
+    const toggleHeaderRowButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="toggle-header-row"]',
     );
-    const mergeCellsButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="merge-cells"]',
+    const mergeCellsButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="merge-cells"]',
     );
-    const splitCellButton = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-action="split-cell"]',
+    const splitCellButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+      '[data-table-menu-action="split-cell"]',
     );
 
     expect(tableMenu).not.toBeNull();
@@ -1120,6 +1121,8 @@ describe('mountEditorApp', () => {
     expect(tableMenuTrigger?.textContent).not.toContain('Tabla');
     expect(tableMenuTrigger?.querySelector('.editor-table-menu__trigger-label')).toBeNull();
     expect(tableMenuPanel).not.toBeNull();
+    expect(tableMenuPanel?.parentElement).toBe(document.body);
+    expect(tableMenu?.contains(tableMenuPanel)).toBe(false);
     expect(tableMenuPanel?.hidden).toBe(true);
     expect(addRowAfterButton).not.toBeNull();
     expect(addRowAfterButton?.disabled).toBe(true);

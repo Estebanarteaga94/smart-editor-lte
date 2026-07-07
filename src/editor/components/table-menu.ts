@@ -120,9 +120,12 @@ const tableButtonConfigs: readonly TableMenuButtonConfig[] = [
   },
 ];
 
+let tableMenuId = 0;
+
 export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableMenu {
+  const panelId = `editor-table-menu-panel-${(tableMenuId += 1)}`;
   const element = document.createElement('div');
-  const triggerButton = createTableMenuTriggerButton();
+  const triggerButton = createTableMenuTriggerButton(panelId);
   const panel = document.createElement('div');
   const buttons = new Map<TableMenuAction, HTMLButtonElement>();
 
@@ -131,12 +134,17 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
   element.setAttribute('role', 'group');
   element.setAttribute('aria-label', 'Comandos de tabla');
 
+  panel.id = panelId;
   panel.className = 'editor-table-menu__panel';
   panel.hidden = true;
   panel.setAttribute('role', 'group');
   panel.setAttribute('aria-label', 'Acciones de tabla');
 
-  element.append(triggerButton, panel);
+  element.append(triggerButton);
+  document.body.append(panel);
+  lifecycle.registerCleanup(() => {
+    panel.remove();
+  });
 
   for (const config of tableButtonConfigs) {
     const button = createTableMenuButton(config);
@@ -158,10 +166,18 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
     });
   }
 
+  const positionPanel = (): void => {
+    positionFloatingPanel(triggerButton, panel);
+  };
+
   const setPanelOpen = (open: boolean): void => {
     panel.hidden = !open;
     element.classList.toggle('is-open', open);
     triggerButton.setAttribute('aria-expanded', String(open));
+
+    if (open) {
+      positionPanel();
+    }
   };
 
   lifecycle.addEventListener(triggerButton, 'mousedown', (event) => {
@@ -179,7 +195,12 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
   lifecycle.addEventListener(document, 'pointerdown', (event) => {
     const target = event.target;
 
-    if (panel.hidden || !(target instanceof Node) || element.contains(target)) {
+    if (
+      panel.hidden ||
+      !(target instanceof Node) ||
+      element.contains(target) ||
+      panel.contains(target)
+    ) {
       return;
     }
 
@@ -193,6 +214,14 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
 
     setPanelOpen(false);
     triggerButton.focus();
+  });
+
+  lifecycle.addEventListener(window, 'resize', () => {
+    positionPanel();
+  });
+
+  lifecycle.addEventListener(window, 'scroll', () => {
+    positionPanel();
   });
 
   const updateState = (): void => {
@@ -237,6 +266,28 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
     element,
     updateState,
   };
+}
+
+function positionFloatingPanel(triggerButton: HTMLButtonElement, panel: HTMLElement): void {
+  if (panel.hidden) {
+    return;
+  }
+
+  const viewportPadding = 16;
+  const panelGap = 6;
+  const triggerRect = triggerButton.getBoundingClientRect();
+  const panelWidth = panel.offsetWidth;
+  const panelHeight = panel.offsetHeight;
+  const maxLeft = Math.max(viewportPadding, window.innerWidth - panelWidth - viewportPadding);
+  const preferredLeft = Math.min(triggerRect.left, maxLeft);
+  const left = Math.max(viewportPadding, preferredLeft);
+  const belowTop = triggerRect.bottom + panelGap;
+  const aboveTop = triggerRect.top - panelHeight - panelGap;
+  const hasRoomBelow = belowTop + panelHeight <= window.innerHeight - viewportPadding;
+  const top = hasRoomBelow ? belowTop : Math.max(viewportPadding, aboveTop);
+
+  panel.style.left = `${left}px`;
+  panel.style.top = `${top}px`;
 }
 
 export function getTableMenuState(editor: Editor): TableMenuState {
@@ -339,7 +390,7 @@ function createTableMenuButton(config: TableMenuButtonConfig): HTMLButtonElement
   return button;
 }
 
-function createTableMenuTriggerButton(): HTMLButtonElement {
+function createTableMenuTriggerButton(panelId: string): HTMLButtonElement {
   const button = document.createElement('button');
   const icon = document.createElement('span');
   const chevron = document.createElement('span');
@@ -350,6 +401,7 @@ function createTableMenuTriggerButton(): HTMLButtonElement {
   button.setAttribute('aria-label', 'Comandos de tabla');
   button.setAttribute('aria-haspopup', 'true');
   button.setAttribute('aria-expanded', 'false');
+  button.setAttribute('aria-controls', panelId);
   button.title = 'Comandos de tabla';
 
   icon.className = 'editor-shell__tool-icon editor-table-menu__button-icon';
