@@ -1338,3 +1338,49 @@ Pendientes inmediatos:
 
 - Implementar `document-storage.service.ts` con `saveDocument(documentId, payload)` usando `PUT /api/documents/{id}`.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-06 - Implementacion HTTP de document-storage.service.ts
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.7: implementar `document-storage.service.ts` con `saveDocument(documentId, payload)` usando `PUT /api/documents/{id}`.
+
+Acciones realizadas:
+
+- Se agrego `createHttpDocumentStorageService` como implementacion HTTP del contrato `DocumentStorageService`.
+- `saveDocument(documentId, payload)` valida el payload con `parseDocumentStoragePayload` antes de enviarlo.
+- El guardado remoto usa `PUT` hacia `/api/documents/{id}` con `Content-Type: application/json`.
+- El `documentId` se codifica con `encodeURIComponent` para construir una URL segura.
+- Se agrego soporte opcional de `baseUrl` para apuntar a un backend externo sin cambiar el contrato.
+- Se implemento `loadDocument(documentId)` para completar la interfaz HTTP con `GET`, validando la respuesta con `parseEditorDocument`.
+- Se mantuvo intacta la implementacion local existente para que la siguiente tarea de persistencia temporal pueda cerrarse de forma separada.
+- Se agregaron pruebas unitarias para verificar metodo, URL, headers, body JSON, `baseUrl`, validacion previa al envio y manejo de respuesta no OK.
+
+Archivos modificados:
+
+- `src/editor/services/document-storage.service.ts`
+- `src/editor/services/document-storage.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 10 archivos de prueba correctos, 44 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio cierra una tarea formal de Fase 1.7 y esta cubierto por pruebas, lint, build y check.
+
+Pendientes inmediatos:
+
+- Implementar persistencia local temporal si no existe backend.
+- Continuar con Fase 1.7 en orden.

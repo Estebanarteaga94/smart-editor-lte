@@ -4,6 +4,7 @@ import {
   canonicalEditorContentSchema,
   type CanonicalEditorContent,
 } from '../models/editor-content';
+import { parseEditorDocument } from '../models/editor-document';
 
 export interface DocumentStoragePayload {
   title: string;
@@ -29,6 +30,63 @@ export interface DocumentStorageService {
 export interface LocalDocumentStorageOptions {
   storage?: Storage;
   keyPrefix?: string;
+}
+
+export interface HttpDocumentStorageOptions {
+  baseUrl?: string;
+  fetch?: typeof fetch;
+}
+
+export function createHttpDocumentStorageService(
+  options: HttpDocumentStorageOptions = {},
+): DocumentStorageService {
+  const fetchDocument = options.fetch ?? globalThis.fetch;
+  const baseUrl = normalizeBaseUrl(options.baseUrl ?? '');
+
+  if (!fetchDocument) {
+    throw new Error('Fetch API is required to create an HTTP document storage service');
+  }
+
+  return {
+    async saveDocument(documentId, payload) {
+      const parsedPayload = parseDocumentStoragePayload(payload);
+      const response = await fetchDocument(createDocumentUrl(baseUrl, documentId), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(parsedPayload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Document save failed with status ${response.status}`);
+      }
+    },
+    async loadDocument(documentId) {
+      const response = await fetchDocument(createDocumentUrl(baseUrl, documentId), {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Document load failed with status ${response.status}`);
+      }
+
+      const document = parseEditorDocument(await response.json());
+
+      return {
+        title: document.title,
+        contentJson: document.contentJson,
+        contentHtml: document.contentHtml,
+      };
+    },
+  };
 }
 
 export function createLocalDocumentStorageService(
@@ -57,4 +115,12 @@ export function createLocalDocumentStorageService(
 
 function createStorageKey(prefix: string, documentId: string): string {
   return `${prefix}:${documentId}`;
+}
+
+function createDocumentUrl(baseUrl: string, documentId: string): string {
+  return `${baseUrl}/api/documents/${encodeURIComponent(documentId)}`;
+}
+
+function normalizeBaseUrl(baseUrl: string): string {
+  return baseUrl.replace(/\/+$/, '');
 }

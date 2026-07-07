@@ -204,7 +204,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 
 - [x] Implementar `serializer.service.ts`.
   - Criterio: expone funciones para obtener JSON canonico y HTML renderizable desde el editor.
-- [ ] Implementar `document-storage.service.ts`.
+- [x] Implementar `document-storage.service.ts`.
   - Criterio: contiene `saveDocument(documentId, payload)` con `PUT /api/documents/{id}`.
 - [ ] Implementar persistencia local temporal si no existe backend.
   - Criterio: el documento se guarda y recupera desde `localStorage` o mock documentado.

@@ -2,10 +2,14 @@
  * @vitest-environment jsdom
  */
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createWysiwygEditor } from '../core/create-editor';
-import { createLocalDocumentStorageService } from './document-storage.service';
+import {
+  createHttpDocumentStorageService,
+  createLocalDocumentStorageService,
+  type DocumentStoragePayload,
+} from './document-storage.service';
 import { serializeEditorContent } from './serializer.service';
 
 const mountedEditors = new Set<ReturnType<typeof createWysiwygEditor>>();
@@ -88,6 +92,91 @@ describe('document storage service', () => {
       type: 'bulletList',
     });
     expect(loadedDocument?.contentHtml).toContain('<ul>');
+  });
+
+  it('saves documents through PUT /api/documents/{id}', async () => {
+    const payload: DocumentStoragePayload = {
+      title: 'Documento remoto',
+      contentJson: { type: 'doc', content: [] },
+      contentHtml: '<p>Documento remoto</p>',
+    };
+    const fetchDocument = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response(null, { status: 204 })),
+    );
+    const storage = createHttpDocumentStorageService({
+      fetch: fetchDocument,
+    });
+
+    await storage.saveDocument('doc remoto/1', payload);
+
+    expect(fetchDocument).toHaveBeenCalledTimes(1);
+    expect(fetchDocument).toHaveBeenCalledWith('/api/documents/doc%20remoto%2F1', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  });
+
+  it('supports a configured base URL for document PUT requests', async () => {
+    const fetchDocument = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response(null, { status: 204 })),
+    );
+    const storage = createHttpDocumentStorageService({
+      baseUrl: 'https://editor.example.test/',
+      fetch: fetchDocument,
+    });
+
+    await storage.saveDocument('doc-1', {
+      title: 'Documento',
+      contentJson: { type: 'doc', content: [] },
+      contentHtml: '<p>Documento</p>',
+    });
+
+    expect(fetchDocument).toHaveBeenCalledWith(
+      'https://editor.example.test/api/documents/doc-1',
+      expect.objectContaining({ method: 'PUT' }),
+    );
+  });
+
+  it('rejects invalid payloads before sending them to the API', async () => {
+    const fetchDocument = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response(null, { status: 204 })),
+    );
+    const storage = createHttpDocumentStorageService({
+      fetch: fetchDocument,
+    });
+
+    await expect(
+      storage.saveDocument('doc-1', {
+        title: 'Documento invalido',
+        contentJson: {
+          type: 'doc',
+          content: [{ type: 'script', text: 'alert(1)' }],
+        },
+        contentHtml: '<script>alert(1)</script>',
+      } as unknown as DocumentStoragePayload),
+    ).rejects.toThrow();
+
+    expect(fetchDocument).not.toHaveBeenCalled();
+  });
+
+  it('throws when the document PUT request fails', async () => {
+    const fetchDocument = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response('Error', { status: 500 })),
+    );
+    const storage = createHttpDocumentStorageService({
+      fetch: fetchDocument,
+    });
+
+    await expect(
+      storage.saveDocument('doc-1', {
+        title: 'Documento',
+        contentJson: { type: 'doc', content: [] },
+        contentHtml: '<p>Documento</p>',
+      }),
+    ).rejects.toThrow('Document save failed with status 500');
   });
 });
 
