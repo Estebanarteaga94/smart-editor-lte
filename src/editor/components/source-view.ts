@@ -18,6 +18,15 @@ export interface SourceViewOptions {
   onChange?: (value: string) => void;
 }
 
+export interface SourceView {
+  element: HTMLElement;
+  editorView: EditorView;
+  getValue: () => string;
+  setValue: (value: string) => void;
+  cleanup: () => void;
+  destroy: () => void;
+}
+
 export interface SourceJsonUpdateResult {
   content: CanonicalEditorContent;
   applied: boolean;
@@ -60,6 +69,45 @@ export function createSourceEditorState(options: SourceViewOptions): EditorState
     doc: options.value,
     extensions: createSourceEditorExtensions(options),
   });
+}
+
+export function createSourceView(options: SourceViewOptions): SourceView {
+  const element = document.createElement('section');
+  element.className = `editor-source-view editor-source-view--${options.language}`;
+  element.dataset.sourceLanguage = options.language;
+
+  const editorView = new EditorView({
+    parent: element,
+    state: createSourceEditorState(options),
+  });
+
+  let destroyed = false;
+
+  const destroy = (): void => {
+    if (destroyed) {
+      return;
+    }
+
+    destroyed = true;
+    editorView.destroy();
+  };
+
+  return {
+    element,
+    editorView,
+    getValue: () => editorView.state.doc.toString(),
+    setValue: (value: string) => {
+      editorView.dispatch({
+        changes: {
+          from: 0,
+          to: editorView.state.doc.length,
+          insert: value,
+        },
+      });
+    },
+    cleanup: destroy,
+    destroy,
+  };
 }
 
 export function resolveSourceJsonUpdate(

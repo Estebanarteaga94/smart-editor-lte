@@ -4432,3 +4432,49 @@ Pendientes inmediatos:
 
 - Implementar `source-view.ts`.
 - Continuar con Fase 5 en orden.
+
+## 2026-07-07 - Implementacion de source-view.ts
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: implementar `source-view.ts` como componente vanilla que crea una instancia real de CodeMirror.
+
+Acciones realizadas:
+
+- Se agrego la interfaz `SourceView` con `element`, `editorView`, `getValue`, `setValue`, `cleanup` y `destroy`.
+- Se implemento `createSourceView(options)` para crear el contenedor DOM, montar `EditorView` con el valor inicial y usar el lenguaje HTML o JSON configurado.
+- El componente conserva `data-source-language` para identificar el tipo de vista fuente.
+- `setValue` actualiza el documento CodeMirror mediante transaccion.
+- `cleanup` y `destroy` comparten una funcion idempotente que destruye la instancia de CodeMirror una sola vez.
+- Se ampliaron las pruebas de `source-view.test.ts` para validar montaje, acceso/actualizacion de valor, callback `onChange` y cleanup idempotente.
+- Se marco `Implementar source-view.ts` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/source-view.ts`
+- `src/editor/components/source-view.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/source-view.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 5 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 22 archivos de prueba correctos, 165 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar modo `source-html`.
+- Continuar con Fase 5 en orden.

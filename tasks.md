@@ -370,8 +370,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Instalar y configurar CodeMirror.
   - Criterio: HTML y JSON tienen resaltado de sintaxis.
   - Nota: se agrego configuracion base de CodeMirror para HTML/JSON con extensiones de lenguaje, resaltado, numeros de linea, ajuste de linea y callback de cambios; `source-view.test.ts` valida tokens resaltados para ambos lenguajes.
-- [ ] Implementar `source-view.ts`.
+- [x] Implementar `source-view.ts`.
   - Criterio: crea `EditorView`, recibe valor inicial, lenguaje, callback `onChange` y funcion de cleanup que destruye la instancia.
+  - Nota: `createSourceView` crea un componente vanilla con contenedor DOM, `EditorView`, acceso a valor actual, actualizacion programatica y cleanup/destroy idempotente.
 - [ ] Agregar modo `source-html`.
   - Criterio: muestra HTML generado actual y permite editarlo.
 - [ ] Agregar modo `source-json`.
