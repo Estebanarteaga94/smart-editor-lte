@@ -3767,6 +3767,54 @@ Pendientes inmediatos:
 - Manejar errores de subida.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Posicion externa del dialogo de imagen
+
+Objetivo:
+
+- Ajustar el dialogo contextual de imagen para que quede por fuera de la imagen seleccionada y no se superponga sobre ella.
+
+Acciones realizadas:
+
+- Se cambio el posicionamiento de `image-options-dialog.ts` para calcular la posicion desde el rectangulo DOM real del nodo de imagen seleccionado.
+- El dialogo intenta ubicarse primero debajo de la imagen, luego arriba, luego a la derecha o izquierda si el viewport no permite las opciones verticales.
+- Se agrego clamp contra los bordes del viewport.
+- Se agrego prueba para validar que el dialogo se ubica debajo cuando hay espacio y arriba cuando no cabe debajo.
+- Se actualizo `context.md` y `tasks.md` con la regla de no solapar la imagen.
+
+Archivos modificados:
+
+- `src/editor/components/image-options-dialog.ts`
+- `src/editor/components/image-options-dialog.test.ts`
+- `context.md`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/image-options-dialog.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 2 pruebas correctas.
+- Se ejecuto `npx prettier --write` sobre los archivos modificados.
+- Se ejecuto `npm run check`.
+- Primer resultado: fallo de lint por una asercion de tipo innecesaria en la prueba de posicionamiento.
+- Se reemplazo la asercion por `new DOMRect(...)`.
+- Se ejecuto nuevamente `npm run check`.
+- Resultado final: build, lint y tests terminaron correctamente; 20 archivos de prueba correctos, 150 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit porque el ajuste de UI queda verificado y documentado.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Manejar errores de subida.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Evaluacion de caption opcional
 
 Objetivo:

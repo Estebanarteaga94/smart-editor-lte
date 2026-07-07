@@ -261,6 +261,7 @@ Decision de UI para imagenes:
 - El boton de insertar imagen puede permanecer en la toolbar porque abre el flujo de carga.
 - Las acciones sobre una imagen ya insertada no deben agregarse a la toolbar.
 - Al seleccionar una imagen, debe aparecer un dialogo contextual con las acciones disponibles, como alineacion y dimensiones.
+- El dialogo contextual debe posicionarse por fuera del rectangulo de la imagen seleccionada para no superponerse sobre el contenido.
 
 Decision sobre captions:
 

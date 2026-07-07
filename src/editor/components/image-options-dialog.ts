@@ -23,6 +23,11 @@ interface ImageDimensions {
   height: ImageDimensionValue;
 }
 
+const dialogGap = 8;
+const viewportMargin = 8;
+const fallbackDialogWidth = 312;
+const fallbackDialogHeight = 44;
+
 const imageAlignments: readonly { alignment: ImageAlignment; icon: string; ariaLabel: string }[] = [
   { alignment: 'left', icon: '\ue883', ariaLabel: 'Alinear imagen a la izquierda' },
   { alignment: 'center', icon: '\ue884', ariaLabel: 'Alinear imagen al centro' },
@@ -171,14 +176,42 @@ export function createImageOptionsDialog({
     }
 
     try {
-      const coords = editor.view.coordsAtPos(selectedImagePosition);
+      const imageRect = getSelectedImageRect();
 
-      element.style.top = `${Math.max(8, coords.bottom + 8)}px`;
-      element.style.left = `${Math.max(8, coords.left)}px`;
+      if (!imageRect) {
+        return;
+      }
+
+      const dialogRect = element.getBoundingClientRect();
+      const dialogWidth = dialogRect.width > 0 ? dialogRect.width : fallbackDialogWidth;
+      const dialogHeight = dialogRect.height > 0 ? dialogRect.height : fallbackDialogHeight;
+      const position = calculateDialogPosition(imageRect, dialogWidth, dialogHeight);
+
+      element.style.top = `${position.top}px`;
+      element.style.left = `${position.left}px`;
     } catch {
       element.style.top = '';
       element.style.left = '';
     }
+  }
+
+  function getSelectedImageRect(): DOMRect | null {
+    if (selectedImagePosition === null) {
+      return null;
+    }
+
+    const node = editor.view.nodeDOM(selectedImagePosition);
+
+    if (!(node instanceof HTMLElement)) {
+      return null;
+    }
+
+    const imageElement =
+      node.matches('img, [data-node="image"]') || node.querySelector('img, [data-node="image"]')
+        ? node
+        : null;
+
+    return imageElement?.getBoundingClientRect() ?? null;
   }
 
   function preserveSelectedImage(): void {
@@ -232,6 +265,65 @@ export function createImageOptionsDialog({
     editorCommands.setImageDimensions(editor, { width, height });
     updateState();
   }
+}
+
+function calculateDialogPosition(
+  imageRect: DOMRect,
+  dialogWidth: number,
+  dialogHeight: number,
+): { top: number; left: number } {
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const clampedLeft = clamp(
+    imageRect.left,
+    viewportMargin,
+    viewportWidth - dialogWidth - viewportMargin,
+  );
+  const clampedTop = clamp(
+    imageRect.top,
+    viewportMargin,
+    viewportHeight - dialogHeight - viewportMargin,
+  );
+  const candidates = [
+    {
+      top: imageRect.bottom + dialogGap,
+      left: clampedLeft,
+      fits: imageRect.bottom + dialogGap + dialogHeight <= viewportHeight - viewportMargin,
+    },
+    {
+      top: imageRect.top - dialogGap - dialogHeight,
+      left: clampedLeft,
+      fits: imageRect.top - dialogGap - dialogHeight >= viewportMargin,
+    },
+    {
+      top: clampedTop,
+      left: imageRect.right + dialogGap,
+      fits: imageRect.right + dialogGap + dialogWidth <= viewportWidth - viewportMargin,
+    },
+    {
+      top: clampedTop,
+      left: imageRect.left - dialogGap - dialogWidth,
+      fits: imageRect.left - dialogGap - dialogWidth >= viewportMargin,
+    },
+  ];
+  const candidate = candidates.find((item) => item.fits) ?? candidates[0];
+
+  return {
+    top: Math.round(
+      clamp(candidate.top, viewportMargin, viewportHeight - dialogHeight - viewportMargin),
+    ),
+    left: Math.round(
+      clamp(candidate.left, viewportMargin, viewportWidth - dialogWidth - viewportMargin),
+    ),
+  };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  if (max < min) {
+    return min;
+  }
+
+  return Math.min(Math.max(value, min), max);
 }
 
 function createImageOptionButton({

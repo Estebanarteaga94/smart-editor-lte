@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createWysiwygEditor } from '../core/create-editor';
 import { createEditorLifecycle } from '../core/editor-lifecycle';
@@ -24,6 +24,8 @@ function mountEditor() {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
+
   for (const editor of mountedEditors) {
     editor.destroy();
   }
@@ -152,4 +154,72 @@ describe('createImageOptionsDialog', () => {
 
     lifecycle.dispose();
   });
+
+  it('positions the dialog outside the selected image rectangle', () => {
+    const editor = mountEditor();
+    const lifecycle = createEditorLifecycle();
+    const imageElement = document.createElement('span');
+    const dialog = createImageOptionsDialog({
+      editor,
+      lifecycle,
+    });
+
+    imageElement.dataset.node = 'image';
+    document.body.append(dialog.element);
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 800,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 600,
+    });
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageElement);
+    vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
+    );
+    vi.spyOn(imageElement, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 100, left: 120, right: 420, bottom: 300, width: 300, height: 200 }),
+    );
+
+    editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen',
+          },
+        },
+      ],
+    });
+    editor.commands.setNodeSelection(0);
+    dialog.updateState();
+
+    expect(dialog.element.style.top).toBe('308px');
+    expect(dialog.element.style.left).toBe('120px');
+
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 340,
+    });
+    dialog.updateState();
+
+    expect(dialog.element.style.top).toBe('48px');
+    expect(dialog.element.style.left).toBe('120px');
+
+    lifecycle.dispose();
+  });
 });
+
+function createRect(rect: {
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}): DOMRect {
+  return new DOMRect(rect.left, rect.top, rect.width, rect.height);
+}

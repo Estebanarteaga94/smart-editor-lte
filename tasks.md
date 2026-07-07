@@ -351,6 +351,7 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Mover acciones de imagen seleccionada a dialogo contextual.
   - Criterio: al seleccionar una imagen aparece un dialogo con acciones de alineacion y dimensiones; la toolbar no expone controles para manipular imagenes ya insertadas.
   - Nota: `image-options-dialog.ts` centraliza las acciones de imagen seleccionada y la toolbar conserva solo el flujo de insertar imagen.
+  - Ajuste: el dialogo contextual se posiciona fuera del rectangulo de la imagen seleccionada para evitar solaparse sobre la imagen.
 - [ ] Manejar errores de subida.
   - Criterio: fallo de validacion o red muestra mensaje y no inserta nodo roto.
 - [ ] Preparar cliente para eliminar assets.
