@@ -1533,3 +1533,51 @@ Pendientes inmediatos:
 
 - Implementar persistencia local temporal si no existe backend.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-07 - Verificacion formal de persistencia local temporal
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.7: implementar persistencia local temporal si no existe backend.
+
+Acciones realizadas:
+
+- Se formalizo el prefijo por defecto de claves locales como `defaultLocalDocumentStorageKeyPrefix`.
+- Se mantuvo `createLocalDocumentStorageService` como implementacion temporal basada en `window.localStorage` por defecto.
+- Se conservaron las opciones `storage` y `keyPrefix` para usar un mock documentado en pruebas o ambientes sin backend.
+- Se agrego prueba para confirmar que el servicio usa `window.localStorage` por defecto y guarda bajo la clave `smart-editor-lte:document:{documentId}`.
+- Se agrego prueba para confirmar que `loadDocument` recupera el payload local guardado.
+- Se agrego prueba para confirmar que un documento local inexistente devuelve `null`.
+- Se mantuvo separada la carga automatica en UI porque corresponde a la tarea siguiente de Fase 1.7.
+- Se marco la tarea como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/document-storage.service.ts`
+- `src/editor/services/document-storage.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 10 archivos de prueba correctos, 49 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio cierra una tarea formal de Fase 1.7 y esta cubierto por pruebas, lint, build y check.
+
+Pendientes inmediatos:
+
+- Guardar siempre JSON canonico y HTML renderizable.
+- Continuar con Fase 1.7 en orden.

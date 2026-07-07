@@ -8,6 +8,7 @@ import { createWysiwygEditor } from '../core/create-editor';
 import {
   createHttpDocumentStorageService,
   createLocalDocumentStorageService,
+  defaultLocalDocumentStorageKeyPrefix,
   type DocumentStoragePayload,
 } from './document-storage.service';
 import { serializeEditorContent } from './serializer.service';
@@ -35,6 +36,10 @@ afterEach(() => {
 
   mountedEditors.clear();
   storage.clear();
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: undefined,
+  });
   document.body.innerHTML = '';
 });
 
@@ -92,6 +97,38 @@ describe('document storage service', () => {
       type: 'bulletList',
     });
     expect(loadedDocument?.contentHtml).toContain('<ul>');
+  });
+
+  it('uses window.localStorage as the default temporary storage', async () => {
+    const browserStorage = createMemoryStorage();
+
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: browserStorage,
+    });
+
+    const storage = createLocalDocumentStorageService();
+    const payload: DocumentStoragePayload = {
+      title: 'Documento local',
+      contentJson: { type: 'doc', content: [] },
+      contentHtml: '<p>Documento local</p>',
+    };
+
+    await storage.saveDocument('doc-local', payload);
+
+    expect(browserStorage.getItem(`${defaultLocalDocumentStorageKeyPrefix}:doc-local`)).toBe(
+      JSON.stringify(payload),
+    );
+    await expect(storage.loadDocument('doc-local')).resolves.toEqual(payload);
+  });
+
+  it('returns null when a local temporary document does not exist', async () => {
+    const storage = createLocalDocumentStorageService({
+      storage: createMemoryStorage(),
+      keyPrefix: 'missing-document',
+    });
+
+    await expect(storage.loadDocument('doc-missing')).resolves.toBeNull();
   });
 
   it('saves documents through PUT /api/documents/{id}', async () => {

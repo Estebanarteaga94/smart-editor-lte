@@ -32,6 +32,8 @@ export interface LocalDocumentStorageOptions {
   keyPrefix?: string;
 }
 
+export const defaultLocalDocumentStorageKeyPrefix = 'smart-editor-lte:document';
+
 export interface HttpDocumentStorageOptions {
   baseUrl?: string;
   fetch?: typeof fetch;
@@ -93,7 +95,7 @@ export function createLocalDocumentStorageService(
   options: LocalDocumentStorageOptions = {},
 ): DocumentStorageService {
   const storage = options.storage ?? window.localStorage;
-  const keyPrefix = options.keyPrefix ?? 'smart-editor-lte:document';
+  const keyPrefix = options.keyPrefix ?? defaultLocalDocumentStorageKeyPrefix;
 
   return {
     saveDocument(documentId, payload) {
