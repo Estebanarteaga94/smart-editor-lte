@@ -4612,3 +4612,48 @@ Pendientes inmediatos:
 
 - Agregar dependencia de formateo HTML en navegador.
 - Continuar con Fase 5 en orden.
+
+## 2026-07-07 - Dependencia de formateo HTML en navegador
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: dejar disponible el formateo HTML desde frontend con `prettier/standalone` y `prettier/plugins/html`.
+
+Acciones realizadas:
+
+- Se movio `prettier` de `devDependencies` a `dependencies` con `npm install prettier --save-prod`.
+- Se agrego `src/editor/services/html-format.dependencies.test.ts` como prueba de disponibilidad de dependencias.
+- La prueba importa `prettier/standalone` y `prettier/plugins/html`, formatea un fragmento HTML y valida el resultado.
+- No se implemento todavia `html-format.service.ts`; queda como la siguiente tarea pendiente.
+- Se marco `Agregar dependencia de formateo HTML en navegador` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `package.json`
+- `package-lock.json`
+- `src/editor/services/html-format.dependencies.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/html-format.dependencies.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 1 prueba correcta.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 23 archivos de prueba correctos, 167 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar servicio `html-format.service.ts`.

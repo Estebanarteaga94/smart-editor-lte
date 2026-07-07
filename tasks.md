@@ -377,8 +377,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Agregar modo `source-html`.
   - Criterio: muestra HTML generado actual y permite editarlo.
   - Nota: la toolbar incluye `source-html`; al activarlo se oculta WYSIWYG, se monta `SourceView` con el HTML actual y se permite editarlo en CodeMirror sin sincronizar todavia hacia Tiptap.
-- [ ] Agregar dependencia de formateo HTML en navegador.
+- [x] Agregar dependencia de formateo HTML en navegador.
   - Criterio: el proyecto puede usar `prettier/standalone` y `prettier/plugins/html` desde el frontend sin introducir otro motor de formato.
+  - Nota: `prettier` quedo en `dependencies` y `html-format.dependencies.test.ts` valida el uso de `prettier/standalone` con `prettier/plugins/html`.
 - [ ] Implementar servicio `html-format.service.ts`.
   - Criterio: recibe HTML como string, devuelve HTML formateado con parser `html` y reporta errores sin modificar el contenido original.
 - [ ] Agregar boton para formatear HTML en `source-html`.
