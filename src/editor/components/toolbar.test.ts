@@ -164,6 +164,9 @@ describe('createToolbar', () => {
     );
     expect(insertImageButton).not.toBeNull();
     expect(insertImageButton?.getAttribute('aria-label')).toBe('Insertar imagen');
+    expect(insertImageButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe(
+      '\ue80d',
+    );
     expect(insertImageButton?.disabled).toBe(true);
 
     linkTrigger?.click();

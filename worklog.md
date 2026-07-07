@@ -3701,6 +3701,44 @@ Pendientes inmediatos:
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Correccion de icono de insertar imagen
+
+Objetivo:
+
+- Cambiar el icono del boton de insertar imagen porque el glifo anterior no correspondia a la accion.
+
+Acciones realizadas:
+
+- Se reemplazo el glifo `book` usado por `insert-image` por el glifo `picture` disponible en la fuente Fontello del proyecto.
+- Se agrego una asercion en la prueba de toolbar para fijar el icono correcto del boton de insertar imagen.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 9 pruebas correctas.
+- Se ejecuto `npx prettier --write src/editor/components/toolbar.ts src/editor/components/toolbar.test.ts`.
+- Resultado: archivos ya estaban en formato.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 19 archivos de prueba correctos, 145 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit obligatorio porque la correccion de bug reportado quedo verificada.
+
+Pendientes inmediatos:
+
+- Agregar ancho y alto editables.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Alineacion de imagenes
 
 Objetivo:

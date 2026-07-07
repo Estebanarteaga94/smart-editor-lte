@@ -197,7 +197,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'insert-image',
     label: 'Imagen',
-    icon: '\ue891',
+    icon: '\ue80d',
     ariaLabel: 'Insertar imagen',
     separatorAfter: true,
   },
