@@ -367,8 +367,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 
 > Dependencia: requiere Fase 1.4, Fase 1.5.1 y schema de JSON canonico de Fase 1.3.1.
 
-- [ ] Instalar y configurar CodeMirror.
+- [x] Instalar y configurar CodeMirror.
   - Criterio: HTML y JSON tienen resaltado de sintaxis.
+  - Nota: se agrego configuracion base de CodeMirror para HTML/JSON con extensiones de lenguaje, resaltado, numeros de linea, ajuste de linea y callback de cambios; `source-view.test.ts` valida tokens resaltados para ambos lenguajes.
 - [ ] Implementar `source-view.ts`.
   - Criterio: crea `EditorView`, recibe valor inicial, lenguaje, callback `onChange` y funcion de cleanup que destruye la instancia.
 - [ ] Agregar modo `source-html`.

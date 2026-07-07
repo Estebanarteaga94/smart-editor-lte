@@ -1,3 +1,9 @@
+import { html } from '@codemirror/lang-html';
+import { json } from '@codemirror/lang-json';
+import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { EditorState, type Extension } from '@codemirror/state';
+import { EditorView, lineNumbers } from '@codemirror/view';
+
 import {
   validateSourceJsonContent,
   type CanonicalEditorContent,
@@ -20,6 +26,40 @@ export interface SourceJsonUpdateResult {
 
 export function validateSourceJsonInput(source: string): SourceJsonValidationResult {
   return validateSourceJsonContent(source);
+}
+
+export function createSourceEditorExtensions(
+  options: Pick<SourceViewOptions, 'language' | 'onChange'>,
+): Extension[] {
+  const languageExtension = options.language === 'html' ? html() : json();
+  const extensions: Extension[] = [
+    lineNumbers(),
+    EditorView.lineWrapping,
+    EditorView.contentAttributes.of({
+      'data-language': options.language,
+    }),
+    syntaxHighlighting(defaultHighlightStyle),
+    languageExtension,
+  ];
+
+  if (options.onChange) {
+    extensions.push(
+      EditorView.updateListener.of((update) => {
+        if (update.docChanged) {
+          options.onChange?.(update.state.doc.toString());
+        }
+      }),
+    );
+  }
+
+  return extensions;
+}
+
+export function createSourceEditorState(options: SourceViewOptions): EditorState {
+  return EditorState.create({
+    doc: options.value,
+    extensions: createSourceEditorExtensions(options),
+  });
 }
 
 export function resolveSourceJsonUpdate(

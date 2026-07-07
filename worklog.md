@@ -4385,3 +4385,50 @@ Pendientes inmediatos:
 
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
+
+## 2026-07-07 - Configuracion base de CodeMirror
+
+Objetivo:
+
+- Cerrar la primera tarea pendiente de Fase 5: instalar y configurar CodeMirror para que HTML y JSON tengan resaltado de sintaxis.
+
+Acciones realizadas:
+
+- Se agrego `@codemirror/language` como dependencia directa porque el codigo importa su API de resaltado.
+- Se configuro `source-view.ts` con extensiones base de CodeMirror para HTML y JSON.
+- La configuracion incluye numeros de linea, ajuste de linea, atributo `data-language`, `syntaxHighlighting(defaultHighlightStyle)` y las extensiones `html()` / `json()`.
+- Se agrego un listener de actualizacion para emitir cambios de documento desde CodeMirror sin implementar todavia la vista completa.
+- Se agrego `source-view.test.ts` para montar CodeMirror en jsdom y validar que HTML y JSON renderizan tokens resaltados.
+- Se marco `Instalar y configurar CodeMirror` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `package.json`
+- `package-lock.json`
+- `src/editor/components/source-view.ts`
+- `src/editor/components/source-view.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/source-view.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 3 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 22 archivos de prueba correctos, 163 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `source-view.ts`.
+- Continuar con Fase 5 en orden.
