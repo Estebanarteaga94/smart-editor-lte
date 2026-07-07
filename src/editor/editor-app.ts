@@ -1,21 +1,28 @@
 import type { JSONContent } from '@tiptap/core';
 
 import { createEditorShell } from './components/editor-shell';
+import { createImageDialog } from './components/image-dialog';
 import { createPreviewView } from './components/preview-view';
 import { createTableMenu } from './components/table-menu';
 import { createToolbar } from './components/toolbar';
 import { createWysiwygEditor } from './core/create-editor';
+import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
 import { defaultEditorConfig } from './models/editor-config';
 import {
   createLocalDocumentStorageService,
   type DocumentStorageService,
 } from './services/document-storage.service';
+import {
+  createLocalMediaUploadService,
+  type MediaUploadService,
+} from './services/media-upload.service';
 import { serializeEditorContent } from './services/serializer.service';
 
 export interface MountEditorAppOptions {
   app: HTMLElement;
   storage?: DocumentStorageService;
+  mediaUpload?: MediaUploadService;
   documentId?: string;
   documentTitle?: string;
   placeholder?: string;
@@ -31,6 +38,7 @@ const defaultDocumentTitle = 'Documento de ejemplo';
 export async function mountEditorApp({
   app,
   storage = createLocalDocumentStorageService(),
+  mediaUpload = createLocalMediaUploadService(),
   documentId = defaultEditorConfig.documentId,
   documentTitle = defaultDocumentTitle,
   placeholder = defaultEditorConfig.placeholder,
@@ -44,6 +52,7 @@ export async function mountEditorApp({
   const preview = createPreviewView({
     html: loadedDocument?.contentHtml ?? '',
   });
+  let preservedImageSelection: { from: number; to: number } | null = null;
 
   lifecycle.mountRoot(app, shell.root);
   shell.root.append(preview.element);
@@ -68,9 +77,20 @@ export async function mountEditorApp({
   preview.setHtml(editor.getHTML());
 
   lifecycle.registerTiptapEditor(editor);
+  const imageDialog = createImageDialog({
+    lifecycle,
+    onSubmit: ({ file, altText }) => {
+      void insertUploadedImage(file, altText);
+    },
+  });
   const toolbar = createToolbar({
     editor,
     lifecycle,
+    onInsertImage: () => {
+      const { from, to } = editor.state.selection;
+      preservedImageSelection = { from, to };
+      imageDialog.open();
+    },
     onSave: async () => {
       try {
         shell.setSaveStatus('saving');
@@ -91,6 +111,7 @@ export async function mountEditorApp({
 
   shell.toolbar.replaceChildren(toolbar.element);
   toolbar.element.append(tableMenu.element);
+  shell.root.append(imageDialog.element);
   lifecycle.addEventListener(window, 'beforeunload', () => {
     lifecycle.dispose();
   });
@@ -99,6 +120,36 @@ export async function mountEditorApp({
     lifecycle,
     editor,
   };
+
+  async function insertUploadedImage(file: File, altText: string): Promise<void> {
+    try {
+      imageDialog.setDisabled(true);
+      shell.setSaveStatus('saving');
+      restorePreservedImageSelection();
+
+      const asset = await mediaUpload.uploadImage(documentId, file, altText);
+      restorePreservedImageSelection();
+      const inserted = editorCommands.insertImage(editor, {
+        src: asset.url,
+        alt: asset.altText ?? altText,
+      });
+
+      shell.setSaveStatus(inserted ? 'saved' : 'error');
+    } catch {
+      shell.setSaveStatus('error');
+    } finally {
+      imageDialog.setDisabled(false);
+      preservedImageSelection = null;
+    }
+  }
+
+  function restorePreservedImageSelection(): void {
+    if (!preservedImageSelection || editor.isDestroyed) {
+      return;
+    }
+
+    editor.commands.setTextSelection(preservedImageSelection);
+  }
 }
 
 function createDefaultDocumentContent(title: string): JSONContent {

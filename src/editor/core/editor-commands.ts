@@ -7,9 +7,16 @@ export { isSafeLinkHref, normalizeLinkHref } from '../utils/safe-url';
 export type EditorCommand = (editor: Editor) => boolean;
 export type EditorColorCommand = (editor: Editor, color: string) => boolean;
 export type EditorLinkCommand = (editor: Editor, href: string) => boolean;
+export type EditorImageCommand = (editor: Editor, attrs: EditorImageAttributes) => boolean;
 
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 export type TextAlignment = 'left' | 'center' | 'right' | 'justify';
+
+export interface EditorImageAttributes {
+  src: string;
+  alt?: string;
+  title?: string;
+}
 
 export interface EditorCommandRegistry {
   setParagraph: EditorCommand;
@@ -29,6 +36,7 @@ export interface EditorCommandRegistry {
   unsetHighlight: EditorCommand;
   setLink: EditorLinkCommand;
   unsetLink: EditorCommand;
+  insertImage: EditorImageCommand;
   setTextAlignLeft: EditorCommand;
   setTextAlignCenter: EditorCommand;
   setTextAlignRight: EditorCommand;
@@ -60,6 +68,7 @@ export const editorCommands: EditorCommandRegistry = {
   unsetHighlight,
   setLink,
   unsetLink,
+  insertImage,
   setTextAlignLeft,
   setTextAlignCenter,
   setTextAlignRight,
@@ -158,6 +167,10 @@ export function setLink(editor: Editor, href: string): boolean {
 
 export function unsetLink(editor: Editor): boolean {
   return editor.chain().focus().extendMarkRange('link').unsetLink().run();
+}
+
+export function insertImage(editor: Editor, attrs: EditorImageAttributes): boolean {
+  return editor.chain().focus().setImage(attrs).run();
 }
 
 export function setTextAlign(editor: Editor, alignment: TextAlignment): boolean {

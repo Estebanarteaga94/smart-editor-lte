@@ -107,6 +107,9 @@ describe('createToolbar', () => {
     const insertTableButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="insert-table"]',
     );
+    const insertImageButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="insert-image"]',
+    );
 
     expect(blockFormatSelect).not.toBeNull();
     expect(blockFormatSelect?.getAttribute('aria-label')).toBe('Seleccionar formato de bloque');
@@ -128,8 +131,8 @@ describe('createToolbar', () => {
       'Encabezado 5',
       'Encabezado 6',
     ]);
-    expect(buttons).toHaveLength(140);
-    expect(iconButtons).toHaveLength(20);
+    expect(buttons).toHaveLength(141);
+    expect(iconButtons).toHaveLength(21);
     expect(colorPicker).not.toBeNull();
     expect(colorTrigger).not.toBeNull();
     expect(colorPanel?.hidden).toBe(true);
@@ -159,6 +162,9 @@ describe('createToolbar', () => {
     expect(insertTableButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe(
       '\uf0ce',
     );
+    expect(insertImageButton).not.toBeNull();
+    expect(insertImageButton?.getAttribute('aria-label')).toBe('Insertar imagen');
+    expect(insertImageButton?.disabled).toBe(true);
 
     linkTrigger?.click();
 
@@ -199,10 +205,12 @@ describe('createToolbar', () => {
   it('executes editor commands and updates active state', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
+    const onInsertImage = vi.fn();
     const toolbar = createToolbar({
       editor,
       lifecycle,
       onSave: vi.fn(),
+      onInsertImage,
     });
     const blockFormatSelect = toolbar.element.querySelector<HTMLSelectElement>(
       '[data-toolbar-action="block-format"]',
@@ -258,6 +266,9 @@ describe('createToolbar', () => {
     const insertTableButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="insert-table"]',
     );
+    const insertImageButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="insert-image"]',
+    );
 
     expect(blockFormatSelect).not.toBeNull();
     expect(boldButton).not.toBeNull();
@@ -278,6 +289,8 @@ describe('createToolbar', () => {
     expect(horizontalRuleButton).not.toBeNull();
     expect(codeBlockButton).not.toBeNull();
     expect(insertTableButton).not.toBeNull();
+    expect(insertImageButton).not.toBeNull();
+    expect(insertImageButton?.disabled).toBe(false);
 
     if (blockFormatSelect) {
       blockFormatSelect.value = 'heading-6';
@@ -340,6 +353,9 @@ describe('createToolbar', () => {
 
     clearHighlightButton?.click();
     expect(editor.getAttributes('highlight')).not.toHaveProperty('color');
+
+    insertImageButton?.click();
+    expect(onInsertImage).toHaveBeenCalledOnce();
 
     lifecycle.dispose();
   });

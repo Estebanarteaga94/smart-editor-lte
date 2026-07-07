@@ -2679,7 +2679,7 @@ Verificacion:
 
 Decision Git:
 
-- No se creo commit porque el usuario no lo solicito.
+- Se crea commit porque el cambio cierra una tarea formal de Fase 4, esta verificado y tiene un alcance coherente.
 
 Pendientes inmediatos:
 
@@ -3598,4 +3598,59 @@ Decision Git:
 Pendientes inmediatos:
 
 - Insertar imagen subida en el editor.
+- Continuar con Fase 4 en orden.
+
+## 2026-07-07 - Insercion de imagen subida en el editor
+
+Objetivo:
+
+- Cerrar la tarea de Fase 4: insertar imagen subida en el editor.
+
+Acciones realizadas:
+
+- Se agrego `editorCommands.insertImage` para insertar nodos `image` desde comandos centralizados.
+- Se agrego el boton `insert-image` a la toolbar con `aria-label` y callback `onInsertImage`.
+- `mountEditorApp` ahora monta `createImageDialog`, preserva la seleccion del editor antes de abrirlo y sube la imagen mediante un `MediaUploadService` inyectable.
+- Al terminar la subida, el editor inserta la URL retornada por el servicio y conserva el texto alternativo como atributo `alt`.
+- Se agrego `createLocalMediaUploadService` como servicio mock por defecto mientras no exista backend real; devuelve una URL relativa segura para no romper el schema canonico.
+- Se agrego prueba de integracion que abre el dialogo desde toolbar, selecciona archivo, llama al servicio de subida, inserta la imagen, actualiza preview y guarda JSON/HTML.
+- Se actualizo la cobertura de toolbar para el nuevo boton de imagen.
+- Se marco la tarea `Insertar imagen subida en el editor` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/core/editor-commands.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/editor/services/media-upload.service.ts`
+- `src/editor/utils/file-validator.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts src/editor/services/media-upload.service.test.ts src/editor/components/image-dialog.test.ts`.
+- Resultado: 4 archivos de prueba correctos, 35 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Primer resultado: fallo `npm run lint` porque `createLocalMediaUploadService.uploadImage` estaba marcado como `async` sin `await`.
+- Se corrigio el metodo para devolver `Promise.resolve` o `Promise.reject` de forma explicita.
+- Se ejecuto `npx prettier --write src/editor/services/media-upload.service.ts src/editor/editor-app.ts src/editor/editor-app.test.ts src/editor/components/toolbar.ts src/editor/components/toolbar.test.ts src/editor/core/editor-commands.ts`.
+- Resultado: los archivos revisados quedaron formateados.
+- Se ejecuto `npm run check`.
+- Resultado final: build, lint y tests terminaron correctamente; 18 archivos de prueba correctos, 131 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- No se creo commit porque el usuario no lo solicito.
+
+Pendientes inmediatos:
+
+- Soportar drag and drop de imagenes.
 - Continuar con Fase 4 en orden.

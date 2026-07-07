@@ -52,12 +52,6 @@ describe('validateImageFile', () => {
   });
 });
 
-function createFile({
-  sizeBytes = 1024,
-  type,
-}: {
-  sizeBytes?: number;
-  type: string;
-}): File {
+function createFile({ sizeBytes = 1024, type }: { sizeBytes?: number; type: string }): File {
   return new File([new Uint8Array(sizeBytes)], 'image', { type });
 }

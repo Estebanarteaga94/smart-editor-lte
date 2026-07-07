@@ -24,6 +24,7 @@ export type ToolbarButtonId =
   | 'code-block'
   | 'horizontal-rule'
   | 'insert-table'
+  | 'insert-image'
   | 'bullet-list'
   | 'ordered-list'
   | 'undo'
@@ -47,6 +48,7 @@ export interface EditorToolbarOptions {
   editor: Editor;
   lifecycle: EditorLifecycle;
   onSave: () => Promise<void> | void;
+  onInsertImage?: () => void;
 }
 
 export interface EditorToolbar {
@@ -172,6 +174,12 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     icon: '\uf0ce',
     ariaLabel: 'Insertar tabla 3 por 3 con encabezado',
     command: tableCommands.insertTable,
+  },
+  {
+    id: 'insert-image',
+    label: 'Imagen',
+    icon: '\ue891',
+    ariaLabel: 'Insertar imagen',
     separatorAfter: true,
   },
   {
@@ -218,7 +226,12 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   },
 ];
 
-export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOptions): EditorToolbar {
+export function createToolbar({
+  editor,
+  lifecycle,
+  onSave,
+  onInsertImage,
+}: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
   const blockFormatSelect = createBlockFormatSelect();
   const textColorPicker = createTextColorPicker({
@@ -308,6 +321,11 @@ export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOption
         return;
       }
 
+      if (config.id === 'insert-image') {
+        onInsertImage?.();
+        return;
+      }
+
       config.command?.(editor);
       updateState();
     });
@@ -336,7 +354,10 @@ export function createToolbar({ editor, lifecycle, onSave }: EditorToolbarOption
         continue;
       }
 
-      const isDisabled = editor.isDestroyed || (config.isDisabled?.(editor) ?? !editor.isEditable);
+      const isDisabled =
+        editor.isDestroyed ||
+        (config.id === 'insert-image' && !onInsertImage) ||
+        (config.isDisabled?.(editor) ?? !editor.isEditable);
       const isActive = config.isActive?.(editor) ?? false;
 
       button.disabled = isDisabled;

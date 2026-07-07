@@ -326,8 +326,9 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Crear dialogo de insercion de imagen.
   - Criterio: permite seleccionar archivo, escribir texto alternativo y confirmar/cancelar.
   - Nota: `createImageDialog` crea un dialogo accesible con selector de archivo PNG/JPEG/WEBP, texto alternativo, confirmacion, cancelacion, cierre con Escape, validacion de archivo y API publica para abrir/cerrar.
-- [ ] Insertar imagen subida en el editor.
+- [x] Insertar imagen subida en el editor.
   - Criterio: usa la URL retornada por el servicio y conserva `alt`.
+  - Nota: el boton de imagen abre `createImageDialog`, sube con `MediaUploadService`, inserta el nodo `image` con la URL retornada y conserva `alt` en JSON, HTML renderizable y preview.
 - [ ] Soportar drag and drop de imagenes.
   - Criterio: soltar una imagen valida la sube e inserta; archivos invalidos muestran error.
 - [ ] Soportar pegado desde portapapeles.

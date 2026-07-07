@@ -9,6 +9,7 @@ import type {
   DocumentStoragePayload,
   DocumentStorageService,
 } from './services/document-storage.service';
+import type { MediaUploadService } from './services/media-upload.service';
 import { mountEditorApp, type MountedEditorApp } from './editor-app';
 
 const mountedApps = new Set<MountedEditorApp>();
@@ -645,6 +646,98 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('uploads an image from the dialog and inserts the returned URL with alt text', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble({
+      url: 'https://cdn.example.com/assets/logo.png',
+      altText: 'Logo cargado',
+    });
+    const file = createImageFile('logo.png', 'image/png');
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-image-upload',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Antes de la imagen</p>');
+
+    const insertImageButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="insert-image"]',
+    );
+    const fileInput = appRoot.querySelector<HTMLInputElement>('[data-image-dialog="file"]');
+    const altTextInput = appRoot.querySelector<HTMLInputElement>('[data-image-dialog="alt-text"]');
+    const dialogPanel = appRoot.querySelector<HTMLFormElement>('[data-image-dialog="panel"]');
+
+    expect(insertImageButton).not.toBeNull();
+    expect(insertImageButton?.disabled).toBe(false);
+    expect(fileInput).not.toBeNull();
+    expect(altTextInput).not.toBeNull();
+    expect(dialogPanel).not.toBeNull();
+
+    insertImageButton?.click();
+    setSelectedFiles(fileInput, [file]);
+    fileInput?.dispatchEvent(new Event('change'));
+    if (altTextInput) {
+      altTextInput.value = '  Logo cargado  ';
+    }
+    dialogPanel?.dispatchEvent(new SubmitEvent('submit', { cancelable: true }));
+    await flushPromises();
+
+    expect(mediaUploadDouble.uploadImage).toHaveBeenCalledWith(
+      'doc-image-upload',
+      file,
+      'Logo cargado',
+    );
+    expect(mountedApp.editor.getJSON().content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'image',
+          attrs: expect.objectContaining({
+            src: 'https://cdn.example.com/assets/logo.png',
+            alt: 'Logo cargado',
+          }),
+        }),
+      ]),
+    );
+    expect(mountedApp.editor.getHTML()).toContain(
+      '<img src="https://cdn.example.com/assets/logo.png" alt="Logo cargado">',
+    );
+    expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
+      src: 'https://cdn.example.com/assets/logo.png',
+      alt: 'Logo cargado',
+    });
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+    saveButton?.click();
+    await flushPromises();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-image-upload',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: expect.arrayContaining([
+            expect.objectContaining({
+              type: 'image',
+              attrs: expect.objectContaining({
+                src: 'https://cdn.example.com/assets/logo.png',
+                alt: 'Logo cargado',
+              }),
+            }),
+          ]),
+        }),
+        contentHtml: expect.stringContaining(
+          '<img src="https://cdn.example.com/assets/logo.png" alt="Logo cargado">',
+        ),
+      }),
+    );
+  });
+
   it('mounts the table command group inside the normal toolbar', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
@@ -960,9 +1053,49 @@ function createStorageDouble(
   };
 }
 
+function createMediaUploadDouble(asset: { url: string; altText?: string }): {
+  service: MediaUploadService;
+  uploadImage: ReturnType<typeof vi.fn<MediaUploadService['uploadImage']>>;
+} {
+  const uploadImage = vi.fn<MediaUploadService['uploadImage']>((documentId, file, altText) =>
+    Promise.resolve({
+      id: 'asset-uploaded',
+      documentId,
+      fileName: file.name,
+      mimeType: file.type,
+      size: file.size,
+      url: asset.url,
+      altText: asset.altText ?? altText,
+      createdAt: '2026-07-07T00:00:00.000Z',
+    }),
+  );
+
+  return {
+    service: {
+      uploadImage,
+    },
+    uploadImage,
+  };
+}
+
 function flushPromises(): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, 0);
+  });
+}
+
+function createImageFile(name: string, type: string): File {
+  return new File([new Uint8Array(1024)], name, { type });
+}
+
+function setSelectedFiles(input: HTMLInputElement | null, files: readonly File[]): void {
+  if (!input) {
+    throw new Error('Expected file input');
+  }
+
+  Object.defineProperty(input, 'files', {
+    configurable: true,
+    value: files,
   });
 }
 
