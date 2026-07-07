@@ -113,6 +113,9 @@ describe('createToolbar', () => {
     const sourceHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="source-html"]',
     );
+    const sourceJsonButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-json"]',
+    );
     const formatHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="format-html"]',
     );
@@ -137,8 +140,8 @@ describe('createToolbar', () => {
       'Encabezado 5',
       'Encabezado 6',
     ]);
-    expect(buttons).toHaveLength(143);
-    expect(iconButtons).toHaveLength(23);
+    expect(buttons).toHaveLength(144);
+    expect(iconButtons).toHaveLength(24);
     expect(colorPicker).not.toBeNull();
     expect(colorTrigger).not.toBeNull();
     expect(colorPanel?.hidden).toBe(true);
@@ -178,6 +181,11 @@ describe('createToolbar', () => {
     expect(sourceHtmlButton?.getAttribute('aria-label')).toBe('Alternar vista HTML');
     expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
     expect(sourceHtmlButton?.disabled).toBe(true);
+    expect(sourceJsonButton).not.toBeNull();
+    expect(sourceJsonButton?.getAttribute('aria-label')).toBe('Alternar vista JSON');
+    expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0f6');
+    expect(sourceJsonButton?.disabled).toBe(true);
     expect(formatHtmlButton).not.toBeNull();
     expect(formatHtmlButton?.getAttribute('aria-label')).toBe('Formatear HTML fuente');
     expect(formatHtmlButton?.hidden).toBe(true);
@@ -227,19 +235,25 @@ describe('createToolbar', () => {
     const lifecycle = createEditorLifecycle();
     const onInsertImage = vi.fn();
     const onToggleSourceHtml = vi.fn();
+    const onToggleSourceJson = vi.fn();
     const onFormatHtml = vi.fn();
-    let sourceHtmlActive = false;
+    let sourceMode: 'wysiwyg' | 'source-html' | 'source-json' = 'wysiwyg';
     const toolbar = createToolbar({
       editor,
       lifecycle,
       onSave: vi.fn(),
       onInsertImage,
       onToggleSourceHtml: () => {
-        sourceHtmlActive = !sourceHtmlActive;
+        sourceMode = sourceMode === 'source-html' ? 'wysiwyg' : 'source-html';
         onToggleSourceHtml();
       },
+      onToggleSourceJson: () => {
+        sourceMode = sourceMode === 'source-json' ? 'wysiwyg' : 'source-json';
+        onToggleSourceJson();
+      },
       onFormatHtml,
-      isSourceHtmlActive: () => sourceHtmlActive,
+      isSourceHtmlActive: () => sourceMode === 'source-html',
+      isSourceJsonActive: () => sourceMode === 'source-json',
     });
     const blockFormatSelect = toolbar.element.querySelector<HTMLSelectElement>(
       '[data-toolbar-action="block-format"]',
@@ -301,6 +315,9 @@ describe('createToolbar', () => {
     const sourceHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="source-html"]',
     );
+    const sourceJsonButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-json"]',
+    );
     const formatHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="format-html"]',
     );
@@ -330,6 +347,9 @@ describe('createToolbar', () => {
     expect(sourceHtmlButton).not.toBeNull();
     expect(sourceHtmlButton?.disabled).toBe(false);
     expect(sourceHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('</>');
+    expect(sourceJsonButton).not.toBeNull();
+    expect(sourceJsonButton?.disabled).toBe(false);
+    expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0f6');
     expect(formatHtmlButton).not.toBeNull();
     expect(formatHtmlButton?.hidden).toBe(true);
     expect(formatHtmlButton?.disabled).toBe(true);
@@ -410,6 +430,16 @@ describe('createToolbar', () => {
 
     formatHtmlButton?.click();
     expect(onFormatHtml).toHaveBeenCalledOnce();
+
+    sourceJsonButton?.click();
+    toolbar.updateState();
+    expect(onToggleSourceJson).toHaveBeenCalledOnce();
+    expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(sourceHtmlButton?.dataset.active).toBe('false');
+    expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(sourceJsonButton?.dataset.active).toBe('true');
+    expect(formatHtmlButton?.hidden).toBe(true);
+    expect(formatHtmlButton?.disabled).toBe(true);
 
     lifecycle.dispose();
   });

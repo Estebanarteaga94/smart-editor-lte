@@ -392,8 +392,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Probar formateo de HTML fuente.
   - Criterio: una prueba automatizada cubre HTML desordenado -> HTML formateado, y otra cubre error de formato sin perdida de contenido.
   - Nota: `html-format.service.test.ts` cubre el servicio con HTML desordenado y error sin modificar el original; `editor-app.test.ts` cubre el flujo de `source-html`, reemplazo de CodeMirror y preservacion del contenido ante error.
-- [ ] Agregar modo `source-json`.
+- [x] Agregar modo `source-json`.
   - Criterio: muestra JSON formateado actual y permite editarlo.
+  - Nota: la toolbar incluye `source-json`; al activarlo se oculta WYSIWYG, se monta `SourceView` con el JSON canonico actual formateado y se permite editarlo en CodeMirror sin sincronizar todavia hacia Tiptap.
 - [ ] Implementar validacion de JSON.
   - Criterio: JSON invalido o fuera del schema permitido muestra error y no reemplaza el documento.
 - [ ] Implementar sanitizacion de HTML.

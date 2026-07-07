@@ -39,6 +39,7 @@ export interface MountedEditorApp {
   getActiveMode: () => EditorMode;
   getSourceView: () => SourceView | null;
   getSourceHtmlValue: () => string | null;
+  getSourceJsonValue: () => string | null;
 }
 
 const defaultDocumentTitle = 'Documento de ejemplo';
@@ -65,6 +66,7 @@ export async function mountEditorApp({
   let activeMode: EditorMode = 'wysiwyg';
   let sourceView: SourceView | null = null;
   let sourceHtmlValue: string | null = null;
+  let sourceJsonValue: string | null = null;
 
   lifecycle.mountRoot(app, shell.root);
   shell.root.append(preview.element);
@@ -123,10 +125,19 @@ export async function mountEditorApp({
 
       showSourceHtmlMode();
     },
+    onToggleSourceJson: () => {
+      if (activeMode === 'source-json') {
+        showWysiwygMode();
+        return;
+      }
+
+      showSourceJsonMode();
+    },
     onFormatHtml: () => {
       void formatActiveSourceHtml();
     },
     isSourceHtmlActive: () => activeMode === 'source-html',
+    isSourceJsonActive: () => activeMode === 'source-json',
   });
   const tableMenu = createTableMenu({
     editor,
@@ -153,6 +164,7 @@ export async function mountEditorApp({
     getActiveMode: () => activeMode,
     getSourceView: () => sourceView,
     getSourceHtmlValue: () => sourceHtmlValue,
+    getSourceJsonValue: () => sourceJsonValue,
   };
 
   function showSourceHtmlMode(): void {
@@ -164,6 +176,25 @@ export async function mountEditorApp({
       language: 'html',
       onChange: (value) => {
         sourceHtmlValue = value;
+      },
+    });
+    lifecycle.registerSourceView(sourceView);
+    shell.source.replaceChildren(sourceView.element);
+    shell.source.hidden = false;
+    shell.editable.hidden = true;
+    editor.setEditable(false);
+    toolbar.updateState();
+  }
+
+  function showSourceJsonMode(): void {
+    activeMode = 'source-json';
+    sourceJsonValue = JSON.stringify(editor.getJSON(), null, 2);
+    lifecycle.destroySourceView();
+    sourceView = createSourceView({
+      value: sourceJsonValue,
+      language: 'json',
+      onChange: (value) => {
+        sourceJsonValue = value;
       },
     });
     lifecycle.registerSourceView(sourceView);

@@ -1542,6 +1542,92 @@ describe('mountEditorApp', () => {
     expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
   });
 
+  it('shows formatted JSON in source-json mode and allows editing it', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-source-json',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<h2>JSON fuente</h2><p>Contenido actual</p>');
+
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const sourceJsonButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-json"]',
+    );
+    const formatHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="format-html"]',
+    );
+    const editableSlot = appRoot.querySelector<HTMLElement>('.editor-shell__editable');
+    const sourceSlot = appRoot.querySelector<HTMLElement>('.editor-shell__source');
+
+    expect(sourceJsonButton).not.toBeNull();
+    expect(sourceJsonButton?.disabled).toBe(false);
+    expect(mountedApp.getActiveMode()).toBe('wysiwyg');
+    expect(editableSlot?.hidden).toBe(false);
+    expect(sourceSlot?.hidden).toBe(true);
+
+    sourceJsonButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+    const codeMirrorContent = sourceSlot?.querySelector<HTMLElement>(
+      '.cm-content[data-language="json"]',
+    );
+    const sourceJson = sourceView?.getValue() ?? '';
+    const parsedJson = JSON.parse(sourceJson) as JSONContent;
+
+    expect(mountedApp.getActiveMode()).toBe('source-json');
+    expect(editableSlot?.hidden).toBe(true);
+    expect(sourceSlot?.hidden).toBe(false);
+    expect(mountedApp.editor.isEditable).toBe(false);
+    expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(sourceJsonButton?.dataset.active).toBe('true');
+    expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(formatHtmlButton?.hidden).toBe(true);
+    expect(formatHtmlButton?.disabled).toBe(true);
+    expect(sourceView).not.toBeNull();
+    expect(sourceJson).toContain('\n  "type": "doc"');
+    expect(parsedJson).toMatchObject({
+      type: 'doc',
+      content: [
+        {
+          type: 'heading',
+          attrs: {
+            level: 2,
+          },
+        },
+        {
+          type: 'paragraph',
+        },
+      ],
+    });
+    expect(codeMirrorContent).toBeInstanceOf(HTMLElement);
+    expect(codeMirrorContent?.getAttribute('contenteditable')).toBe('true');
+
+    sourceView?.setValue('{"type":"doc","content":[]}');
+
+    expect(mountedApp.getSourceJsonValue()).toBe('{"type":"doc","content":[]}');
+
+    sourceJsonButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getActiveMode()).toBe('wysiwyg');
+    expect(mountedApp.getSourceView()).toBeNull();
+    expect(sourceSlot?.hidden).toBe(true);
+    expect(sourceSlot?.querySelector('.cm-editor')).toBeNull();
+    expect(editableSlot?.hidden).toBe(false);
+    expect(mountedApp.editor.isEditable).toBe(true);
+    expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('false');
+  });
+
   it('formats the source-html CodeMirror content from the toolbar', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

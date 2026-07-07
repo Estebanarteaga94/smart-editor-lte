@@ -4531,7 +4531,6 @@ Decision Git:
 Pendientes inmediatos:
 
 - Agregar modo `source-json`.
-- Continuar con Fase 5 en orden.
 
 ## 2026-07-07 - Icono distinto para bloque de codigo
 
@@ -4835,3 +4834,52 @@ Decision Git:
 Pendientes inmediatos:
 
 - Agregar modo `source-json`.
+
+## 2026-07-07 - Modo source-json
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: agregar modo `source-json`.
+
+Acciones realizadas:
+
+- Se conecto el boton `source-json` de la toolbar con `mountEditorApp`.
+- Al activar `source-json`, se oculta el editor WYSIWYG, se desactiva Tiptap y se monta `SourceView` con lenguaje JSON.
+- El valor inicial del modo JSON usa `JSON.stringify(editor.getJSON(), null, 2)` para mostrar el JSON canonico actual formateado.
+- La vista permite editar el texto JSON en CodeMirror y mantiene el valor editado en `sourceJsonValue`.
+- Al volver a WYSIWYG se destruye la instancia de CodeMirror y se restaura el editor visual editable.
+- El boton `format-html` permanece oculto/deshabilitado fuera de `source-html`.
+- Se agregaron pruebas de toolbar para el boton JSON, estado activo y alternancia frente a `source-html`.
+- Se agrego prueba de integracion para validar montaje de CodeMirror JSON, JSON formateado, edicion local y regreso a WYSIWYG.
+- Se marco `Agregar modo source-json` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 39 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 24 archivos de prueba correctos, 174 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,052.80 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+- Commit creado: `1ac9840 Agregar modo source-json`.
+
+Pendientes inmediatos:
+
+- Implementar validacion de JSON.

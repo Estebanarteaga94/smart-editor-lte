@@ -26,6 +26,7 @@ export type ToolbarButtonId =
   | 'insert-table'
   | 'insert-image'
   | 'source-html'
+  | 'source-json'
   | 'format-html'
   | 'bullet-list'
   | 'ordered-list'
@@ -52,8 +53,10 @@ export interface EditorToolbarOptions {
   onSave: () => Promise<void> | void;
   onInsertImage?: () => void;
   onToggleSourceHtml?: () => void;
+  onToggleSourceJson?: () => void;
   onFormatHtml?: () => Promise<void> | void;
   isSourceHtmlActive?: () => boolean;
+  isSourceJsonActive?: () => boolean;
 }
 
 export interface EditorToolbar {
@@ -235,6 +238,13 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     pressed: true,
   },
   {
+    id: 'source-json',
+    label: 'JSON',
+    icon: '\uf0f6',
+    ariaLabel: 'Alternar vista JSON',
+    pressed: true,
+  },
+  {
     id: 'format-html',
     label: 'Formatear',
     icon: '{}',
@@ -254,8 +264,10 @@ export function createToolbar({
   onSave,
   onInsertImage,
   onToggleSourceHtml,
+  onToggleSourceJson,
   onFormatHtml,
   isSourceHtmlActive,
+  isSourceJsonActive,
 }: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
   const blockFormatSelect = createBlockFormatSelect();
@@ -357,6 +369,12 @@ export function createToolbar({
         return;
       }
 
+      if (config.id === 'source-json') {
+        onToggleSourceJson?.();
+        updateState();
+        return;
+      }
+
       if (config.id === 'format-html') {
         void onFormatHtml?.();
         updateState();
@@ -373,6 +391,8 @@ export function createToolbar({
     const activeTextColor = getActiveTextColor(editor);
     const activeHighlightColor = getActiveHighlightColor(editor);
     const activeLinkHref = getActiveLinkHref(editor);
+    const sourceHtmlActive = isSourceHtmlActive?.() ?? false;
+    const sourceJsonActive = isSourceJsonActive?.() ?? false;
 
     blockFormatSelect.disabled = controlsDisabled;
     blockFormatSelect.value = getActiveBlockFormat(editor);
@@ -394,16 +414,18 @@ export function createToolbar({
       const isDisabled = isToolbarButtonDisabled(config, editor, {
         hasInsertImageAction: Boolean(onInsertImage),
         hasToggleSourceHtmlAction: Boolean(onToggleSourceHtml),
+        hasToggleSourceJsonAction: Boolean(onToggleSourceJson),
         hasFormatHtmlAction: Boolean(onFormatHtml),
-        sourceHtmlActive: isSourceHtmlActive?.() ?? false,
+        sourceHtmlActive,
+        sourceJsonActive,
       });
-      const isActive =
-        config.id === 'source-html'
-          ? (isSourceHtmlActive?.() ?? false)
-          : (config.isActive?.(editor) ?? false);
+      const isActive = getToolbarButtonActiveState(config, editor, {
+        sourceHtmlActive,
+        sourceJsonActive,
+      });
 
       button.disabled = isDisabled;
-      button.hidden = config.id === 'format-html' && !(isSourceHtmlActive?.() ?? false);
+      button.hidden = config.id === 'format-html' && !sourceHtmlActive;
       button.dataset.active = String(isActive);
 
       if (config.pressed) {
@@ -447,8 +469,10 @@ function isToolbarButtonDisabled(
   actions: {
     hasInsertImageAction: boolean;
     hasToggleSourceHtmlAction: boolean;
+    hasToggleSourceJsonAction: boolean;
     hasFormatHtmlAction: boolean;
     sourceHtmlActive: boolean;
+    sourceJsonActive: boolean;
   },
 ): boolean {
   if (editor.isDestroyed) {
@@ -457,6 +481,10 @@ function isToolbarButtonDisabled(
 
   if (config.id === 'source-html') {
     return !actions.hasToggleSourceHtmlAction;
+  }
+
+  if (config.id === 'source-json') {
+    return !actions.hasToggleSourceJsonAction;
   }
 
   if (config.id === 'format-html') {
@@ -468,6 +496,25 @@ function isToolbarButtonDisabled(
   }
 
   return config.isDisabled?.(editor) ?? !editor.isEditable;
+}
+
+function getToolbarButtonActiveState(
+  config: ToolbarButtonConfig,
+  editor: Editor,
+  sourceState: {
+    sourceHtmlActive: boolean;
+    sourceJsonActive: boolean;
+  },
+): boolean {
+  if (config.id === 'source-html') {
+    return sourceState.sourceHtmlActive;
+  }
+
+  if (config.id === 'source-json') {
+    return sourceState.sourceJsonActive;
+  }
+
+  return config.isActive?.(editor) ?? false;
 }
 
 function createToolbarSeparator(): HTMLSpanElement {
