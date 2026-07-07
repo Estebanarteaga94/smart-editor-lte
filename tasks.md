@@ -336,8 +336,9 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Soportar pegado desde portapapeles.
   - Criterio: pegar una imagen valida la sube e inserta sin bloquear texto pegado normal.
   - Nota: el area editable intercepta `paste` solo cuando el portapapeles trae un archivo de imagen, lo sube mediante `MediaUploadService`, inserta el nodo `image` y deja pasar el pegado normal cuando no hay imagen.
-- [ ] Agregar alineacion de imagen.
+- [x] Agregar alineacion de imagen.
   - Criterio: izquierda, centro y derecha se reflejan visualmente y en atributos.
+  - Nota: los controles existentes de alineacion aplican sobre la imagen seleccionada; el JSON canonico conserva `attrs.align`, el HTML/preview conserva `align` sanitizado y el NodeView redimensionable refleja izquierda, centro y derecha visualmente.
 - [ ] Agregar ancho y alto editables.
   - Criterio: el usuario puede cambiar dimensiones y estas se persisten.
 - [ ] Evaluar caption opcional.

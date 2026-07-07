@@ -8,6 +8,7 @@ const allowedUriPattern = /^(?:(?:https?|mailto):|\/(?!\/)|#|\.{1,2}\/)/i;
 const blobUriPattern = /^blob:/i;
 const tableCellSpanAttrs = new Set(['colspan', 'rowspan']);
 const tableCellWidthAttrs = new Set(['colwidth']);
+const imageAlignments = new Set(['left', 'center', 'right']);
 const positiveIntegerPattern = /^[1-9]\d*$/;
 const colwidthPattern = /^[1-9]\d*(?:\s*,\s*[1-9]\d*)*$/;
 
@@ -73,6 +74,16 @@ export const editorSanitizerConfig: Config = {
 };
 
 DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+  if (
+    node instanceof HTMLImageElement &&
+    data.attrName === 'align' &&
+    imageAlignments.has(data.attrValue)
+  ) {
+    data.keepAttr = true;
+    data.forceKeepAttr = true;
+    return;
+  }
+
   if (
     node instanceof HTMLImageElement &&
     data.attrName === 'src' &&

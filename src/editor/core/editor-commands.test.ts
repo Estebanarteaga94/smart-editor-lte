@@ -18,6 +18,10 @@ import {
   setHeading6,
   setHorizontalRule,
   setHighlightColor,
+  setImageAlign,
+  setImageAlignCenter,
+  setImageAlignLeft,
+  setImageAlignRight,
   setLink,
   setParagraph,
   setTextColor,
@@ -283,6 +287,52 @@ describe('editorCommands', () => {
       attrs: { level: 2, textAlign: 'center' },
     });
     expect(editor.getHTML()).toContain('<h2 style="text-align: center;">Titulo</h2>');
+  });
+
+  it('aligns selected images without changing the canonical node type', () => {
+    const editor = mountEditor();
+    editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen',
+          },
+        },
+      ],
+    });
+    editor.commands.setNodeSelection(0);
+
+    expect(setImageAlignCenter(editor)).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        src: '/assets/image.png',
+        alt: 'Imagen',
+        align: 'center',
+      },
+    });
+    expect(editor.getHTML()).toContain('align="center"');
+
+    expect(setImageAlignRight(editor)).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: { align: 'right' },
+    });
+
+    expect(setImageAlignLeft(editor)).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: { align: 'left' },
+    });
+
+    expect(setImageAlign(editor, 'center')).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: { align: 'center' },
+    });
   });
 
   it('toggles a paragraph into blockquote and back to paragraph', () => {

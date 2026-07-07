@@ -403,6 +403,75 @@ describe('createToolbar', () => {
     lifecycle.dispose();
   });
 
+  it('uses alignment controls for selected images', () => {
+    const editor = mountEditor();
+    const lifecycle = createEditorLifecycle();
+    const toolbar = createToolbar({
+      editor,
+      lifecycle,
+      onSave: vi.fn(),
+      onInsertImage: vi.fn(),
+    });
+    const alignLeftButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-left"]',
+    );
+    const alignCenterButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-center"]',
+    );
+    const alignRightButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-right"]',
+    );
+    const alignJustifyButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-justify"]',
+    );
+
+    editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen',
+          },
+        },
+      ],
+    });
+    editor.commands.setNodeSelection(0);
+    toolbar.updateState();
+
+    expect(alignJustifyButton?.disabled).toBe(true);
+
+    alignCenterButton?.click();
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        align: 'center',
+      },
+    });
+    expect(alignCenterButton?.getAttribute('aria-pressed')).toBe('true');
+
+    alignRightButton?.click();
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        align: 'right',
+      },
+    });
+    expect(alignRightButton?.getAttribute('aria-pressed')).toBe('true');
+
+    alignLeftButton?.click();
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        align: 'left',
+      },
+    });
+    expect(alignLeftButton?.getAttribute('aria-pressed')).toBe('true');
+
+    lifecycle.dispose();
+  });
+
   it('toggles code block from the toolbar and preserves editable code', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();

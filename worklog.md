@@ -3701,6 +3701,59 @@ Pendientes inmediatos:
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Alineacion de imagenes
+
+Objetivo:
+
+- Agregar alineacion izquierda, centro y derecha para imagenes seleccionadas, reflejada visualmente y en atributos canonicos.
+
+Acciones realizadas:
+
+- Se agregaron comandos `setImageAlignLeft`, `setImageAlignCenter`, `setImageAlignRight` y `setImageAlign`.
+- La toolbar reutiliza los controles de alineacion existentes para imagenes seleccionadas y mantiene la alineacion de texto para parrafos/encabezados.
+- El boton de justificar queda deshabilitado cuando la seleccion activa es una imagen.
+- La extension `ResizableImage` sincroniza los atributos del nodo con el `img` del NodeView y aplica `justify-content` al contenedor redimensionable segun `align`.
+- El sanitizer conserva `align` en imagenes solo para valores soportados: `left`, `center` y `right`.
+- Se agregaron pruebas de comandos, toolbar, integracion de app y sanitizacion.
+- Se marco la tarea `Agregar alineacion de imagen` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/core/editor-commands.ts`
+- `src/editor/core/editor-commands.test.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/extensions/resizable-image.extension.ts`
+- `src/editor/editor-app.test.ts`
+- `src/editor/services/sanitizer.service.ts`
+- `src/editor/services/sanitizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/core/editor-commands.test.ts src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts src/editor/services/sanitizer.service.test.ts`.
+- Resultado: 4 archivos de prueba correctos, 49 pruebas correctas.
+- Se ejecuto `npx prettier --write` sobre los archivos modificados de codigo y pruebas.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 19 archivos de prueba correctos, 145 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se levanto `npm run dev -- --host 127.0.0.1 --port 4174`; como el puerto estaba ocupado por una sesion previa, Vite uso `http://127.0.0.1:4175/`.
+- Se ejecuto una prueba Playwright manual automatizada usando el dialogo real de imagen, seleccionando `src/assets/hero.png`, seleccionando la imagen insertada y aplicando centro, derecha e izquierda.
+- Resultado Playwright manual: el contenedor editable reporto `data-image-align` `center`/`right`/`left`, `justify-content` `center`/`flex-end`/`flex-start`, el `img` editable y el preview conservaron `align`, y el estado quedo en `Guardado`.
+- Se detuvieron los servidores Vite usados para la prueba manual.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit obligatorio porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar ancho y alto editables.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Pegado de imagenes desde portapapeles
 
 Objetivo:

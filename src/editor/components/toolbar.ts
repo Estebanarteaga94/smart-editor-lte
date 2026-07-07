@@ -111,8 +111,14 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     label: 'Izquierda',
     icon: '\ue883',
     ariaLabel: 'Alinear a la izquierda',
-    command: editorCommands.setTextAlignLeft,
-    isActive: (editor) => editor.isActive({ textAlign: 'left' }),
+    command: (editor) =>
+      isImageSelectionActive(editor)
+        ? editorCommands.setImageAlignLeft(editor)
+        : editorCommands.setTextAlignLeft(editor),
+    isActive: (editor) =>
+      isImageSelectionActive(editor)
+        ? isActiveImageAlignment(editor, 'left')
+        : editor.isActive({ textAlign: 'left' }),
     pressed: true,
   },
   {
@@ -120,8 +126,14 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     label: 'Centro',
     icon: '\ue884',
     ariaLabel: 'Alinear al centro',
-    command: editorCommands.setTextAlignCenter,
-    isActive: (editor) => editor.isActive({ textAlign: 'center' }),
+    command: (editor) =>
+      isImageSelectionActive(editor)
+        ? editorCommands.setImageAlignCenter(editor)
+        : editorCommands.setTextAlignCenter(editor),
+    isActive: (editor) =>
+      isImageSelectionActive(editor)
+        ? isActiveImageAlignment(editor, 'center')
+        : editor.isActive({ textAlign: 'center' }),
     pressed: true,
   },
   {
@@ -129,8 +141,14 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     label: 'Derecha',
     icon: '\ue885',
     ariaLabel: 'Alinear a la derecha',
-    command: editorCommands.setTextAlignRight,
-    isActive: (editor) => editor.isActive({ textAlign: 'right' }),
+    command: (editor) =>
+      isImageSelectionActive(editor)
+        ? editorCommands.setImageAlignRight(editor)
+        : editorCommands.setTextAlignRight(editor),
+    isActive: (editor) =>
+      isImageSelectionActive(editor)
+        ? isActiveImageAlignment(editor, 'right')
+        : editor.isActive({ textAlign: 'right' }),
     pressed: true,
   },
   {
@@ -140,6 +158,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     ariaLabel: 'Justificar texto',
     command: editorCommands.setTextAlignJustify,
     isActive: (editor) => editor.isActive({ textAlign: 'justify' }),
+    isDisabled: (editor) => isImageSelectionActive(editor),
     pressed: true,
     separatorAfter: true,
   },
@@ -491,4 +510,14 @@ function getActiveLinkHref(editor: Editor): string | null {
   const attrs = editor.getAttributes('link') as { href?: unknown };
 
   return typeof attrs.href === 'string' && attrs.href.trim().length > 0 ? attrs.href : null;
+}
+
+function isImageSelectionActive(editor: Editor): boolean {
+  return editor.isActive('image');
+}
+
+function isActiveImageAlignment(editor: Editor, alignment: 'left' | 'center' | 'right'): boolean {
+  const attrs = editor.getAttributes('image') as { align?: unknown };
+
+  return attrs.align === alignment;
 }

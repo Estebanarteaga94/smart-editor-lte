@@ -1,4 +1,5 @@
 import { Image, type ImageOptions } from '@tiptap/extension-image';
+import { mergeAttributes, ResizableNodeView } from '@tiptap/core';
 
 export interface ResizableImageAttributes {
   src: string;
@@ -58,7 +59,137 @@ export const ResizableImage = Image.extend<ImageOptions>({
       },
     };
   },
+
+  addNodeView() {
+    if (!this.options.resize || !this.options.resize.enabled || typeof document === 'undefined') {
+      return null;
+    }
+
+    const { directions, minWidth, minHeight, alwaysPreserveAspectRatio } = this.options.resize;
+
+    return ({ node, getPos, HTMLAttributes, editor }) => {
+      const imageElement = document.createElement('img');
+
+      imageElement.draggable = false;
+      syncImageElementAttributes(imageElement, this.options.HTMLAttributes, HTMLAttributes);
+
+      if (HTMLAttributes.src !== null) {
+        imageElement.src = HTMLAttributes.src;
+      }
+
+      const nodeView = new ResizableNodeView({
+        element: imageElement,
+        editor,
+        node,
+        getPos,
+        onResize: (width, height) => {
+          imageElement.style.width = `${width}px`;
+          imageElement.style.height = `${height}px`;
+        },
+        onCommit: (width, height) => {
+          const pos = getPos();
+
+          if (pos === undefined) {
+            return;
+          }
+
+          this.editor
+            .chain()
+            .setNodeSelection(pos)
+            .updateAttributes(this.name, {
+              width,
+              height,
+            })
+            .run();
+        },
+        onUpdate: (updatedNode) => {
+          if (updatedNode.type !== node.type) {
+            return false;
+          }
+
+          syncImageElementAttributes(imageElement, this.options.HTMLAttributes, updatedNode.attrs);
+          applyImageNodeViewAlignment(nodeView.dom, updatedNode.attrs.align);
+
+          return true;
+        },
+        options: {
+          directions,
+          min: {
+            width: minWidth,
+            height: minHeight,
+          },
+          preserveAspectRatio: alwaysPreserveAspectRatio === true,
+        },
+      });
+
+      const dom = nodeView.dom;
+
+      applyImageNodeViewAlignment(dom, node.attrs.align);
+
+      dom.style.visibility = 'hidden';
+      dom.style.pointerEvents = 'none';
+      imageElement.onload = () => {
+        dom.style.visibility = '';
+        dom.style.pointerEvents = '';
+      };
+
+      return nodeView;
+    };
+  },
 });
+
+function syncImageElementAttributes(
+  imageElement: HTMLImageElement,
+  extensionAttributes: Record<string, unknown>,
+  nodeAttributes: Record<string, unknown>,
+): void {
+  const mergedAttributes = mergeAttributes(extensionAttributes, nodeAttributes);
+
+  Object.entries(mergedAttributes).forEach(([key, value]) => {
+    if (value == null) {
+      imageElement.removeAttribute(key);
+      return;
+    }
+
+    switch (key) {
+      case 'width':
+      case 'height':
+        break;
+      default:
+        imageElement.setAttribute(key, String(value));
+        break;
+    }
+  });
+
+  if (typeof mergedAttributes.src === 'string') {
+    imageElement.src = mergedAttributes.src;
+  }
+}
+
+function applyImageNodeViewAlignment(container: HTMLElement, value: unknown): void {
+  const alignment = parseImageAlignment(typeof value === 'string' ? value : null);
+
+  if (!alignment) {
+    delete container.dataset.imageAlign;
+    container.style.justifyContent = '';
+    return;
+  }
+
+  container.dataset.imageAlign = alignment;
+  container.style.justifyContent = alignmentToFlexJustification(alignment);
+}
+
+function alignmentToFlexJustification(alignment: ImageAlignment): string {
+  if (alignment === 'center') {
+    return 'center';
+  }
+
+  if (alignment === 'right') {
+    return 'flex-end';
+  }
+
+  return 'flex-start';
+}
 
 function parseImageDimension(value: string | null): number | string | null {
   if (!value) {

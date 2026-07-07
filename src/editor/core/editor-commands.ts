@@ -11,6 +11,7 @@ export type EditorImageCommand = (editor: Editor, attrs: EditorImageAttributes) 
 
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 export type TextAlignment = 'left' | 'center' | 'right' | 'justify';
+export type ImageAlignment = 'left' | 'center' | 'right';
 
 export interface EditorImageAttributes {
   src: string;
@@ -37,6 +38,9 @@ export interface EditorCommandRegistry {
   setLink: EditorLinkCommand;
   unsetLink: EditorCommand;
   insertImage: EditorImageCommand;
+  setImageAlignLeft: EditorCommand;
+  setImageAlignCenter: EditorCommand;
+  setImageAlignRight: EditorCommand;
   setTextAlignLeft: EditorCommand;
   setTextAlignCenter: EditorCommand;
   setTextAlignRight: EditorCommand;
@@ -69,6 +73,9 @@ export const editorCommands: EditorCommandRegistry = {
   setLink,
   unsetLink,
   insertImage,
+  setImageAlignLeft,
+  setImageAlignCenter,
+  setImageAlignRight,
   setTextAlignLeft,
   setTextAlignCenter,
   setTextAlignRight,
@@ -171,6 +178,22 @@ export function unsetLink(editor: Editor): boolean {
 
 export function insertImage(editor: Editor, attrs: EditorImageAttributes): boolean {
   return editor.chain().focus().setImage(attrs).run();
+}
+
+export function setImageAlign(editor: Editor, alignment: ImageAlignment): boolean {
+  return editor.chain().focus().updateAttributes('image', { align: alignment }).run();
+}
+
+export function setImageAlignLeft(editor: Editor): boolean {
+  return setImageAlign(editor, 'left');
+}
+
+export function setImageAlignCenter(editor: Editor): boolean {
+  return setImageAlign(editor, 'center');
+}
+
+export function setImageAlignRight(editor: Editor): boolean {
+  return setImageAlign(editor, 'right');
 }
 
 export function setTextAlign(editor: Editor, alignment: TextAlignment): boolean {

@@ -18,4 +18,15 @@ describe('sanitizeHtml', () => {
     expect(sanitized).toContain('<a>Blob link</a>');
     expect(sanitized).not.toContain('href="blob:');
   });
+
+  it('keeps only supported image alignment values', () => {
+    const html =
+      '<img src="/image.png" align="center" alt="Centrada"><img src="/image.png" align="justify" alt="Invalida">';
+
+    const sanitized = sanitizeHtml(html);
+
+    expect(sanitized).toContain('<img src="/image.png" align="center" alt="Centrada">');
+    expect(sanitized).toContain('<img src="/image.png" alt="Invalida">');
+    expect(sanitized).not.toContain('align="justify"');
+  });
 });

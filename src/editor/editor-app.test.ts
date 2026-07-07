@@ -438,6 +438,101 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('aligns selected images from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-image-alignment',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen alineada',
+          },
+        },
+      ],
+    });
+    mountedApp.editor.commands.setNodeSelection(0);
+
+    const alignCenterButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-center"]',
+    );
+    const alignRightButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-right"]',
+    );
+    const alignLeftButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-left"]',
+    );
+    const alignJustifyButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-justify"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    expect(alignJustifyButton?.disabled).toBe(true);
+
+    clickToolbarButton(alignCenterButton);
+    await flushPromises();
+    const editableImageContainer = appRoot.querySelector<HTMLElement>(
+      '.editor-shell__editable [data-node="image"]',
+    );
+
+    expect(mountedApp.editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: { align: 'center' },
+    });
+    expect(editableImageContainer?.dataset.imageAlign).toBe('center');
+    expect(editableImageContainer?.style.justifyContent).toBe('center');
+    expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
+      align: 'center',
+    });
+
+    clickToolbarButton(alignRightButton);
+    await flushPromises();
+    expect(editableImageContainer?.dataset.imageAlign).toBe('right');
+    expect(editableImageContainer?.style.justifyContent).toBe('flex-end');
+    expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
+      align: 'right',
+    });
+
+    clickToolbarButton(alignLeftButton);
+    await flushPromises();
+    expect(editableImageContainer?.dataset.imageAlign).toBe('left');
+    expect(editableImageContainer?.style.justifyContent).toBe('flex-start');
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-image-alignment',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: expect.arrayContaining([
+            expect.objectContaining({
+              type: 'image',
+              attrs: expect.objectContaining({
+                src: '/assets/image.png',
+                alt: 'Imagen alineada',
+                align: 'left',
+              }),
+            }),
+          ]),
+        }),
+        contentHtml: expect.stringContaining('align="left"'),
+      }),
+    );
+    expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
+      align: 'left',
+    });
+  });
+
   it('persists blockquote from the toolbar as canonical JSON and renderable HTML', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
@@ -1332,6 +1427,15 @@ function setSelectedFiles(input: HTMLInputElement | null, files: readonly File[]
     configurable: true,
     value: files,
   });
+}
+
+function clickToolbarButton(button: HTMLButtonElement | null): void {
+  if (!button) {
+    throw new Error('Expected toolbar button');
+  }
+
+  button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+  button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 }
 
 function getImageDropTarget(root: ParentNode): HTMLElement {
