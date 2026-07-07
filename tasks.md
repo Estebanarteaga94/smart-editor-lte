@@ -189,6 +189,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 - [x] Implementar comandos de parrafo y encabezados H1, H2, H3.
   - Criterio: existen funciones en `editor-commands.ts`; al ejecutar cada accion, el JSON contiene el bloque esperado, el HTML renderiza correctamente y el boton refleja estado activo.
   - Nota: por solicitud de UI, los titulos se ampliaron a H1-H6 y se seleccionan desde una lista desplegable en lugar de botones separados.
+  - Nota: las opciones visibles del selector usan `Encabezado 1` a `Encabezado 6`.
 - [x] Implementar comandos de negrita, cursiva y subrayado.
   - Criterio: los botones aplican y remueven formato sobre seleccion y texto nuevo; JSON, HTML y estado activo quedan cubiertos por prueba o verificacion manual.
 - [x] Implementar lista no ordenada y lista ordenada.

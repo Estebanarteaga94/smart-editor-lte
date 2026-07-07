@@ -58,6 +58,15 @@ describe('createToolbar', () => {
       'heading-5',
       'heading-6',
     ]);
+    expect([...(blockFormatSelect?.options ?? [])].map((option) => option.textContent)).toEqual([
+      'Parrafo',
+      'Encabezado 1',
+      'Encabezado 2',
+      'Encabezado 3',
+      'Encabezado 4',
+      'Encabezado 5',
+      'Encabezado 6',
+    ]);
     expect(buttons).toHaveLength(8);
     expect(separators).toHaveLength(4);
     expect(separators.every((separator) => separator.getAttribute('aria-hidden') === 'true')).toBe(

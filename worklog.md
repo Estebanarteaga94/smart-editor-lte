@@ -1437,6 +1437,46 @@ Pendientes inmediatos:
 - Implementar persistencia local temporal si no existe backend.
 - Continuar con Fase 1.7 en orden.
 
+## 2026-07-06 - Renombre de opciones de encabezado
+
+Objetivo:
+
+- Cambiar las opciones visibles del selector de titulos de `Titulo H*` a `Encabezado *`.
+
+Acciones realizadas:
+
+- Se cambiaron las etiquetas del selector de formato de bloque a `Encabezado 1`, `Encabezado 2`, `Encabezado 3`, `Encabezado 4`, `Encabezado 5` y `Encabezado 6`.
+- Se conservaron los valores internos `heading-1` a `heading-6` para no cambiar contratos de comandos ni JSON canonico.
+- Se actualizo la prueba de toolbar para validar tambien el texto visible de las opciones.
+- Se agrego nota en `tasks.md` bajo la tarea de titulos completada.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 10 archivos de prueba correctos, 47 pruebas correctas.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Decision Git:
+
+- Se evaluo crear commit por ser un ajuste pequeno de texto visible solicitado.
+- Se creo commit porque el cambio esta acotado, verificado y documentado.
+
+Pendientes inmediatos:
+
+- Implementar persistencia local temporal si no existe backend.
+- Continuar con Fase 1.7 en orden.
+
 ## 2026-07-06 - Selector de titulos H1 a H6 en toolbar
 
 Objetivo:

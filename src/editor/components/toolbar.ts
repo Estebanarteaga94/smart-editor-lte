@@ -39,12 +39,12 @@ type BlockFormatValue = 'paragraph' | `heading-${1 | 2 | 3 | 4 | 5 | 6}`;
 
 const blockFormatOptions: readonly { value: BlockFormatValue; label: string }[] = [
   { value: 'paragraph', label: 'Parrafo' },
-  { value: 'heading-1', label: 'Titulo H1' },
-  { value: 'heading-2', label: 'Titulo H2' },
-  { value: 'heading-3', label: 'Titulo H3' },
-  { value: 'heading-4', label: 'Titulo H4' },
-  { value: 'heading-5', label: 'Titulo H5' },
-  { value: 'heading-6', label: 'Titulo H6' },
+  { value: 'heading-1', label: 'Encabezado 1' },
+  { value: 'heading-2', label: 'Encabezado 2' },
+  { value: 'heading-3', label: 'Encabezado 3' },
+  { value: 'heading-4', label: 'Encabezado 4' },
+  { value: 'heading-5', label: 'Encabezado 5' },
+  { value: 'heading-6', label: 'Encabezado 6' },
 ];
 
 const toolbarButtons: readonly ToolbarButtonConfig[] = [
