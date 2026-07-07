@@ -2,6 +2,7 @@ import type { JSONContent } from '@tiptap/core';
 
 import { createEditorShell } from './components/editor-shell';
 import { createImageDialog } from './components/image-dialog';
+import { createImageOptionsDialog } from './components/image-options-dialog';
 import { createPreviewView } from './components/preview-view';
 import { createTableMenu } from './components/table-menu';
 import { createToolbar } from './components/toolbar';
@@ -108,10 +109,15 @@ export async function mountEditorApp({
     editor,
     lifecycle,
   });
+  const imageOptionsDialog = createImageOptionsDialog({
+    editor,
+    lifecycle,
+  });
 
   shell.toolbar.replaceChildren(toolbar.element);
   toolbar.element.append(tableMenu.element);
   shell.root.append(imageDialog.element);
+  shell.root.append(imageOptionsDialog.element);
   registerImageDropUpload();
   registerImagePasteUpload();
   lifecycle.addEventListener(window, 'beforeunload', () => {

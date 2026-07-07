@@ -339,13 +339,18 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Agregar alineacion de imagen.
   - Criterio: izquierda, centro y derecha se reflejan visualmente y en atributos.
   - Nota: los controles existentes de alineacion aplican sobre la imagen seleccionada; el JSON canonico conserva `attrs.align`, el HTML/preview conserva `align` sanitizado y el NodeView redimensionable refleja izquierda, centro y derecha visualmente.
+  - Ajuste de UI: por decision posterior, las acciones sobre imagen seleccionada pasan a un dialogo contextual y dejan de ejecutarse desde la toolbar.
 - [x] Agregar ancho y alto editables.
   - Criterio: el usuario puede cambiar dimensiones y estas se persisten.
   - Nota: la toolbar muestra controles numericos de ancho y alto cuando hay una imagen seleccionada; los valores actualizan `width` y `height` en JSON canonico y HTML renderizable.
+  - Ajuste de UI: por decision posterior, los controles de ancho y alto se movieron al dialogo contextual de imagen seleccionada.
 - [x] Evaluar caption opcional.
   - Criterio: decision documentada en `tasks.md` o documento tecnico; si se implementa, se crea tarea separada de implementacion.
   - Decision: no se implementa en Fase 4. Un caption correcto requiere introducir un contenedor semantico de imagen, por ejemplo `figure`/`figcaption`, y ampliar el schema canonico permitido; agregarlo como atributo de `image` mezclaria metadata con contenido editable.
   - Seguimiento: queda visible como funcion opcional empresarial en Fase 11.
+- [x] Mover acciones de imagen seleccionada a dialogo contextual.
+  - Criterio: al seleccionar una imagen aparece un dialogo con acciones de alineacion y dimensiones; la toolbar no expone controles para manipular imagenes ya insertadas.
+  - Nota: `image-options-dialog.ts` centraliza las acciones de imagen seleccionada y la toolbar conserva solo el flujo de insertar imagen.
 - [ ] Manejar errores de subida.
   - Criterio: fallo de validacion o red muestra mensaje y no inserta nodo roto.
 - [ ] Preparar cliente para eliminar assets.

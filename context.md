@@ -256,6 +256,12 @@ Incluye insertar tabla, filas, columnas, encabezados, combinar, separar, redimen
 
 Incluye subida manual, drag and drop, pegado, alt, alineacion, ancho, alto, caption opcional, validacion de tamano/MIME y servicio de assets.
 
+Decision de UI para imagenes:
+
+- El boton de insertar imagen puede permanecer en la toolbar porque abre el flujo de carga.
+- Las acciones sobre una imagen ya insertada no deben agregarse a la toolbar.
+- Al seleccionar una imagen, debe aparecer un dialogo contextual con las acciones disponibles, como alineacion y dimensiones.
+
 Decision sobre captions:
 
 - No se implementan en la Fase 4 actual.

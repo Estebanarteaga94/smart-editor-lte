@@ -53,10 +53,41 @@ function getRenderableEditorHtmlFromContent(
   html: string,
   contentJson: CanonicalEditorContent,
 ): string {
-  const htmlWithCanonicalTableAttrs = applyCanonicalTableCellAttributes(html, contentJson);
-  const sanitizedHtml = sanitizeHtml(htmlWithCanonicalTableAttrs);
+  const htmlWithCanonicalAttrs = applyCanonicalImageAttributes(
+    applyCanonicalTableCellAttributes(html, contentJson),
+    contentJson,
+  );
+  const sanitizedHtml = sanitizeHtml(htmlWithCanonicalAttrs);
 
-  return applyCanonicalTableCellAttributes(sanitizedHtml, contentJson);
+  return applyCanonicalImageAttributes(
+    applyCanonicalTableCellAttributes(sanitizedHtml, contentJson),
+    contentJson,
+  );
+}
+
+function applyCanonicalImageAttributes(html: string, contentJson: CanonicalEditorContent): string {
+  if (typeof document === 'undefined') {
+    return html;
+  }
+
+  const template = document.createElement('template');
+  const jsonImages = collectImageNodes(contentJson);
+
+  template.innerHTML = html;
+
+  const htmlImages = Array.from(template.content.querySelectorAll('img'));
+
+  jsonImages.forEach((jsonImage, imageIndex) => {
+    const htmlImage = htmlImages[imageIndex];
+
+    if (!htmlImage) {
+      return;
+    }
+
+    applyImageAttrs(htmlImage, jsonImage.attrs);
+  });
+
+  return template.innerHTML;
 }
 
 function applyCanonicalTableCellAttributes(
@@ -139,6 +170,57 @@ function applyCellAttrs(htmlCell: HTMLTableCellElement, attrs: CanonicalJsonNode
   }
 }
 
+function applyImageAttrs(htmlImage: HTMLImageElement, attrs: CanonicalJsonNode['attrs']): void {
+  if (!attrs) {
+    return;
+  }
+
+  applyStringImageAttr(htmlImage, 'src', attrs.src);
+  applyStringImageAttr(htmlImage, 'alt', attrs.alt);
+  applyStringImageAttr(htmlImage, 'title', attrs.title);
+  applyDimensionImageAttr(htmlImage, 'width', attrs.width);
+  applyDimensionImageAttr(htmlImage, 'height', attrs.height);
+
+  if (attrs.align === 'left' || attrs.align === 'center' || attrs.align === 'right') {
+    htmlImage.setAttribute('align', attrs.align);
+  } else {
+    htmlImage.removeAttribute('align');
+  }
+}
+
+function applyStringImageAttr(
+  htmlImage: HTMLImageElement,
+  name: 'src' | 'alt' | 'title',
+  value: unknown,
+): void {
+  if (typeof value === 'string') {
+    htmlImage.setAttribute(name, value);
+    return;
+  }
+
+  if (value === null) {
+    htmlImage.removeAttribute(name);
+  }
+}
+
+function applyDimensionImageAttr(
+  htmlImage: HTMLImageElement,
+  name: 'width' | 'height',
+  value: unknown,
+): void {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    htmlImage.setAttribute(name, String(Math.round(value)));
+    return;
+  }
+
+  if (typeof value === 'string' && value.trim().length > 0) {
+    htmlImage.setAttribute(name, value.trim());
+    return;
+  }
+
+  htmlImage.removeAttribute(name);
+}
+
 function collectTableNodes(node: CanonicalJsonNode): CanonicalJsonNode[] {
   const nestedTables = node.content?.flatMap(collectTableNodes) ?? [];
 
@@ -147,4 +229,14 @@ function collectTableNodes(node: CanonicalJsonNode): CanonicalJsonNode[] {
   }
 
   return nestedTables;
+}
+
+function collectImageNodes(node: CanonicalJsonNode): CanonicalJsonNode[] {
+  const nestedImages = node.content?.flatMap(collectImageNodes) ?? [];
+
+  if (node.type === 'image') {
+    return [node, ...nestedImages];
+  }
+
+  return nestedImages;
 }

@@ -164,6 +164,37 @@ describe('serializer service', () => {
     );
   });
 
+  it('completes image attributes from canonical JSON before sanitizing HTML', () => {
+    const editor = createEditorDouble({
+      json: {
+        type: 'doc',
+        content: [
+          {
+            type: 'image',
+            attrs: {
+              src: '/assets/image.png',
+              alt: 'Imagen',
+              title: null,
+              width: 320,
+              height: 180,
+              align: 'right',
+            },
+          },
+        ],
+      },
+      html: '<img src="/assets/image.png" alt="Imagen">',
+    });
+
+    const html = getRenderableEditorHtml(editor);
+
+    expect(html).toContain('<img');
+    expect(html).toContain('src="/assets/image.png"');
+    expect(html).toContain('alt="Imagen"');
+    expect(html).toContain('width="320"');
+    expect(html).toContain('height="180"');
+    expect(html).toContain('align="right"');
+  });
+
   it('creates a serializer service bound to an editor instance', () => {
     const editor = createEditorDouble({
       json: { type: 'doc', content: [] },

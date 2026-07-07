@@ -159,40 +159,6 @@ textarea {
   height: 30px;
 }
 
-.editor-image-dimensions {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 30px;
-}
-
-.editor-image-dimensions__input {
-  width: 50px;
-  height: 30px;
-  padding: 0 4px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text);
-  background: var(--surface);
-  font-size: 12px;
-  line-height: 1;
-}
-
-.editor-image-dimensions__input:disabled {
-  color: var(--muted);
-  background: var(--surface-muted);
-  opacity: 0.68;
-}
-
-.editor-image-dimensions__input[aria-invalid='true'] {
-  border-color: var(--status-error);
-}
-
-.editor-image-dimensions__input:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 1px;
-}
-
 .editor-text-color-picker__trigger {
   color: var(--text);
 }
@@ -661,6 +627,95 @@ textarea {
 .editor-table-menu__button:focus-visible {
   outline: 3px solid rgb(37 99 235 / 0.24);
   outline-offset: 2px;
+}
+
+.editor-image-options {
+  position: fixed;
+  z-index: 30;
+  top: 128px;
+  left: 24px;
+  display: flex;
+  width: min(312px, calc(100vw - 32px));
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.editor-image-options[hidden] {
+  display: none;
+}
+
+.editor-image-options__title {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.editor-image-options__group,
+.editor-image-options__dimensions {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.editor-image-options__button {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.editor-image-options__button-icon {
+  display: block;
+  font-family: 'fontello';
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1;
+  speak: never;
+}
+
+.editor-image-options__button:not(:disabled):hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+.editor-image-options__button[data-active='true'] {
+  border-color: var(--focus);
+  color: var(--focus);
+  background: rgb(37 99 235 / 0.1);
+}
+
+.editor-image-options__button:focus-visible,
+.editor-image-options__input:focus-visible {
+  outline: 3px solid rgb(37 99 235 / 0.24);
+  outline-offset: 2px;
+}
+
+.editor-image-options__input {
+  width: 48px;
+  height: 28px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.editor-image-options__input[aria-invalid='true'] {
+  border-color: var(--status-error);
 }
 
 .editor-shell__block-format:disabled {

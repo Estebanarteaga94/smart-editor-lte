@@ -110,12 +110,6 @@ describe('createToolbar', () => {
     const insertImageButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="insert-image"]',
     );
-    const imageWidthInput = toolbar.element.querySelector<HTMLInputElement>(
-      '[data-toolbar-action="image-width"]',
-    );
-    const imageHeightInput = toolbar.element.querySelector<HTMLInputElement>(
-      '[data-toolbar-action="image-height"]',
-    );
 
     expect(blockFormatSelect).not.toBeNull();
     expect(blockFormatSelect?.getAttribute('aria-label')).toBe('Seleccionar formato de bloque');
@@ -174,14 +168,9 @@ describe('createToolbar', () => {
       '\ue80d',
     );
     expect(insertImageButton?.disabled).toBe(true);
-    expect(imageWidthInput).not.toBeNull();
-    expect(imageWidthInput?.type).toBe('number');
-    expect(imageWidthInput?.getAttribute('aria-label')).toBe('Ancho de imagen en pixeles');
-    expect(imageWidthInput?.disabled).toBe(true);
-    expect(imageHeightInput).not.toBeNull();
-    expect(imageHeightInput?.type).toBe('number');
-    expect(imageHeightInput?.getAttribute('aria-label')).toBe('Alto de imagen en pixeles');
-    expect(imageHeightInput?.disabled).toBe(true);
+    expect(toolbar.element.querySelector('[data-toolbar-action="image-dimensions"]')).toBeNull();
+    expect(toolbar.element.querySelector('[data-toolbar-action="image-width"]')).toBeNull();
+    expect(toolbar.element.querySelector('[data-toolbar-action="image-height"]')).toBeNull();
 
     linkTrigger?.click();
 
@@ -420,7 +409,7 @@ describe('createToolbar', () => {
     lifecycle.dispose();
   });
 
-  it('uses alignment controls for selected images', () => {
+  it('keeps selected image actions out of the toolbar', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
     const toolbar = createToolbar({
@@ -441,12 +430,6 @@ describe('createToolbar', () => {
     const alignJustifyButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="align-justify"]',
     );
-    const imageWidthInput = toolbar.element.querySelector<HTMLInputElement>(
-      '[data-toolbar-action="image-width"]',
-    );
-    const imageHeightInput = toolbar.element.querySelector<HTMLInputElement>(
-      '[data-toolbar-action="image-height"]',
-    );
 
     editor.commands.setContent({
       type: 'doc',
@@ -463,70 +446,28 @@ describe('createToolbar', () => {
     editor.commands.setNodeSelection(0);
     toolbar.updateState();
 
+    expect(alignLeftButton?.disabled).toBe(true);
+    expect(alignCenterButton?.disabled).toBe(true);
+    expect(alignRightButton?.disabled).toBe(true);
     expect(alignJustifyButton?.disabled).toBe(true);
-    expect(imageWidthInput?.disabled).toBe(false);
-    expect(imageHeightInput?.disabled).toBe(false);
-    expect(imageWidthInput?.value).toBe('');
-    expect(imageHeightInput?.value).toBe('');
-
-    if (imageWidthInput && imageHeightInput) {
-      imageWidthInput.value = '360';
-      imageHeightInput.value = '240';
-      imageWidthInput.dispatchEvent(new Event('change'));
-    }
-
-    expect(editor.getJSON().content?.[0]).toMatchObject({
-      type: 'image',
-      attrs: {
-        width: 360,
-        height: 240,
-      },
-    });
-    expect(editor.getHTML()).toContain('width="360"');
-    expect(editor.getHTML()).toContain('height="240"');
-    expect(imageWidthInput?.value).toBe('360');
-    expect(imageHeightInput?.value).toBe('240');
-
-    if (imageWidthInput) {
-      imageWidthInput.value = '0';
-      imageWidthInput.dispatchEvent(new Event('change'));
-    }
-
-    expect(imageWidthInput?.getAttribute('aria-invalid')).toBe('true');
-    expect(editor.getJSON().content?.[0]).toMatchObject({
-      type: 'image',
-      attrs: {
-        width: 360,
-        height: 240,
-      },
-    });
+    expect(toolbar.element.querySelector('[data-toolbar-action="image-dimensions"]')).toBeNull();
+    expect(toolbar.element.querySelector('[data-toolbar-action="image-width"]')).toBeNull();
+    expect(toolbar.element.querySelector('[data-toolbar-action="image-height"]')).toBeNull();
 
     alignCenterButton?.click();
-    expect(editor.getJSON().content?.[0]).toMatchObject({
-      type: 'image',
-      attrs: {
-        align: 'center',
-      },
-    });
-    expect(alignCenterButton?.getAttribute('aria-pressed')).toBe('true');
-
     alignRightButton?.click();
-    expect(editor.getJSON().content?.[0]).toMatchObject({
-      type: 'image',
-      attrs: {
-        align: 'right',
-      },
-    });
-    expect(alignRightButton?.getAttribute('aria-pressed')).toBe('true');
-
     alignLeftButton?.click();
+
     expect(editor.getJSON().content?.[0]).toMatchObject({
       type: 'image',
       attrs: {
-        align: 'left',
+        src: '/assets/image.png',
+        alt: 'Imagen',
+        align: null,
+        width: null,
+        height: null,
       },
     });
-    expect(alignLeftButton?.getAttribute('aria-pressed')).toBe('true');
 
     lifecycle.dispose();
   });

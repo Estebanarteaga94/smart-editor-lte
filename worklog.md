@@ -3701,6 +3701,72 @@ Pendientes inmediatos:
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Dialogo contextual para acciones de imagen
+
+Objetivo:
+
+- Ajustar la UI segun la decision del usuario: no agregar controles para trabajar con imagenes ya insertadas en la toolbar; mostrar un dialogo contextual al seleccionar una imagen.
+
+Acciones realizadas:
+
+- Se creo `image-options-dialog.ts` como componente vanilla TypeScript con ciclo de vida registrado.
+- El dialogo aparece al seleccionar un nodo `image` y se oculta al volver a texto u otro contenido.
+- El dialogo permite alinear imagen a izquierda, centro y derecha.
+- El dialogo permite editar ancho y alto con inputs numericos; valores invalidos se marcan con `aria-invalid` y no reemplazan atributos previos.
+- Se elimino de `toolbar.ts` la logica que usaba botones de alineacion para imagenes seleccionadas.
+- Se eliminaron de la toolbar los controles numericos de dimensiones de imagen.
+- La toolbar conserva el boton de insertar imagen porque abre el flujo de carga; las acciones sobre imagen ya insertada quedan en el dialogo contextual.
+- Se reforzo `serializer.service.ts` para completar atributos canonicos de imagen en el HTML renderizable antes y despues de sanitizar.
+- Se agregaron pruebas unitarias del dialogo contextual, pruebas de toolbar y una prueba de integracion de app para JSON, HTML y preview.
+- Se actualizo `context.md` y `tasks.md` con la decision de UI.
+
+Archivos modificados:
+
+- `src/editor/components/image-options-dialog.ts`
+- `src/editor/components/image-options-dialog.test.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/editor/services/serializer.service.ts`
+- `src/editor/services/serializer.service.test.ts`
+- `src/style.css`
+- `context.md`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 9 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/components/image-options-dialog.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 1 prueba correcta.
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 24 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/services/serializer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 9 pruebas correctas.
+- Se ejecuto `npx prettier --write` sobre los archivos modificados.
+- Se ejecuto `npm run check`.
+- Primer resultado: fallo de TypeScript porque `clickToolbarButton` quedo sin uso despues de mover acciones de imagen fuera de la toolbar.
+- Se elimino el helper sin uso.
+- Se ejecuto nuevamente `npm run check`.
+- Resultado final: build, lint y tests terminaron correctamente; 20 archivos de prueba correctos, 149 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit porque el ajuste de UI queda completado, verificado y documentado.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Manejar errores de subida.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Evaluacion de caption opcional
 
 Objetivo:

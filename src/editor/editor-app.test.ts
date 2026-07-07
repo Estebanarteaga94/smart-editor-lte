@@ -438,7 +438,7 @@ describe('mountEditorApp', () => {
     );
   });
 
-  it('aligns selected images from the toolbar as canonical JSON and renderable HTML', async () => {
+  it('edits selected image options from the contextual dialog as canonical JSON and renderable HTML', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
     document.body.append(appRoot);
@@ -464,23 +464,33 @@ describe('mountEditorApp', () => {
     });
     mountedApp.editor.commands.setNodeSelection(0);
 
+    const imageOptionsDialog = appRoot.querySelector<HTMLElement>('[data-image-options="dialog"]');
     const alignCenterButton = appRoot.querySelector<HTMLButtonElement>(
-      '[data-toolbar-action="align-center"]',
+      '[data-image-options="image-options-align-center"]',
     );
     const alignRightButton = appRoot.querySelector<HTMLButtonElement>(
-      '[data-toolbar-action="align-right"]',
+      '[data-image-options="image-options-align-right"]',
     );
     const alignLeftButton = appRoot.querySelector<HTMLButtonElement>(
-      '[data-toolbar-action="align-left"]',
+      '[data-image-options="image-options-align-left"]',
     );
-    const alignJustifyButton = appRoot.querySelector<HTMLButtonElement>(
-      '[data-toolbar-action="align-justify"]',
+    const widthInput = appRoot.querySelector<HTMLInputElement>(
+      '[data-image-options="image-options-width"]',
+    );
+    const heightInput = appRoot.querySelector<HTMLInputElement>(
+      '[data-image-options="image-options-height"]',
     );
     const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
 
-    expect(alignJustifyButton?.disabled).toBe(true);
+    expect(imageOptionsDialog).not.toBeNull();
+    expect(imageOptionsDialog?.hidden).toBe(false);
+    expect(alignCenterButton).not.toBeNull();
+    expect(alignRightButton).not.toBeNull();
+    expect(alignLeftButton).not.toBeNull();
+    expect(widthInput).not.toBeNull();
+    expect(heightInput).not.toBeNull();
 
-    clickToolbarButton(alignCenterButton);
+    alignCenterButton?.click();
     await flushPromises();
     const editableImageContainer = appRoot.querySelector<HTMLElement>(
       '.editor-shell__editable [data-node="image"]',
@@ -496,7 +506,20 @@ describe('mountEditorApp', () => {
       align: 'center',
     });
 
-    clickToolbarButton(alignRightButton);
+    if (widthInput && heightInput) {
+      widthInput.value = '320';
+      heightInput.value = '180';
+      widthInput.dispatchEvent(new Event('change'));
+    }
+    await flushPromises();
+    expect(mountedApp.editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: { width: 320, height: 180 },
+    });
+    expect(mountedApp.editor.getHTML()).toContain('width="320"');
+    expect(mountedApp.editor.getHTML()).toContain('height="180"');
+
+    alignRightButton?.click();
     await flushPromises();
     expect(editableImageContainer?.dataset.imageAlign).toBe('right');
     expect(editableImageContainer?.style.justifyContent).toBe('flex-end');
@@ -504,7 +527,7 @@ describe('mountEditorApp', () => {
       align: 'right',
     });
 
-    clickToolbarButton(alignLeftButton);
+    alignLeftButton?.click();
     await flushPromises();
     expect(editableImageContainer?.dataset.imageAlign).toBe('left');
     expect(editableImageContainer?.style.justifyContent).toBe('flex-start');
@@ -521,11 +544,25 @@ describe('mountEditorApp', () => {
                 src: '/assets/image.png',
                 alt: 'Imagen alineada',
                 align: 'left',
+                width: 320,
+                height: 180,
               }),
             }),
           ]),
         }),
         contentHtml: expect.stringContaining('align="left"'),
+      }),
+    );
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-image-alignment',
+      expect.objectContaining({
+        contentHtml: expect.stringContaining('width="320"'),
+      }),
+    );
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-image-alignment',
+      expect.objectContaining({
+        contentHtml: expect.stringContaining('height="180"'),
       }),
     );
     expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
@@ -1430,15 +1467,6 @@ function setSelectedFiles(input: HTMLInputElement | null, files: readonly File[]
     configurable: true,
     value: files,
   });
-}
-
-function clickToolbarButton(button: HTMLButtonElement | null): void {
-  if (!button) {
-    throw new Error('Expected toolbar button');
-  }
-
-  button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-  button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 }
 
 function getImageDropTarget(root: ParentNode): HTMLElement {
