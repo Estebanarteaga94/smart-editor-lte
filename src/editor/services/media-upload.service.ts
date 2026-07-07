@@ -22,6 +22,11 @@ export interface HttpMediaUploadServiceOptions {
   imageValidation?: ImageFileValidationOptions;
 }
 
+export interface LocalMediaUploadServiceOptions {
+  imageValidation?: ImageFileValidationOptions;
+  createObjectUrl?: (file: File) => string;
+}
+
 export function createHttpMediaUploadService(
   options: HttpMediaUploadServiceOptions = {},
 ): MediaUploadService {
@@ -63,9 +68,10 @@ export function createHttpMediaUploadService(
 }
 
 export function createLocalMediaUploadService(
-  options: { imageValidation?: ImageFileValidationOptions } = {},
+  options: LocalMediaUploadServiceOptions = {},
 ): MediaUploadService {
   const imageValidation = options.imageValidation ?? defaultImageFileValidationOptions;
+  const createObjectUrl = options.createObjectUrl ?? createBrowserObjectUrl;
 
   return {
     uploadImage(documentId, file, altText) {
@@ -76,6 +82,17 @@ export function createLocalMediaUploadService(
       }
 
       const assetId = createLocalAssetId(file);
+      let localUrl: string;
+
+      try {
+        localUrl = createObjectUrl(file);
+      } catch (error) {
+        return Promise.reject(
+          error instanceof Error
+            ? error
+            : new Error('URL.createObjectURL failed for local image upload'),
+        );
+      }
 
       return Promise.resolve({
         id: assetId,
@@ -83,12 +100,20 @@ export function createLocalMediaUploadService(
         fileName: file.name || 'image',
         mimeType: file.type,
         size: file.size,
-        url: `/assets/editor-images/${encodeURIComponent(documentId)}/${encodeURIComponent(assetId)}`,
+        url: localUrl,
         altText,
         createdAt: new Date().toISOString(),
       });
     },
   };
+}
+
+function createBrowserObjectUrl(file: File): string {
+  if (typeof URL.createObjectURL !== 'function') {
+    throw new Error('URL.createObjectURL is required for local image uploads');
+  }
+
+  return URL.createObjectURL(file);
 }
 
 function createImageUploadUrl(baseUrl: string, documentId: string): string {

@@ -738,6 +738,139 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('inserts a visible blob URL when selecting an image with the default local uploader', async () => {
+    const originalCreateObjectUrl = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+    const createObjectUrl = vi.fn(() => 'blob:http://localhost/dialog-image');
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const file = createImageFile('local.png', 'image/png');
+    document.body.append(appRoot);
+
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: createObjectUrl,
+    });
+
+    try {
+      const mountedApp = await mountEditorApp({
+        app: appRoot,
+        storage: storageDouble.service,
+        documentId: 'doc-local-image-upload',
+      });
+      mountedApps.add(mountedApp);
+
+      const insertImageButton = appRoot.querySelector<HTMLButtonElement>(
+        '[data-toolbar-action="insert-image"]',
+      );
+      const fileInput = appRoot.querySelector<HTMLInputElement>('[data-image-dialog="file"]');
+      const dialogPanel = appRoot.querySelector<HTMLFormElement>('[data-image-dialog="panel"]');
+
+      insertImageButton?.click();
+      setSelectedFiles(fileInput, [file]);
+      fileInput?.dispatchEvent(new Event('change'));
+      dialogPanel?.dispatchEvent(new SubmitEvent('submit', { cancelable: true }));
+      await flushPromises();
+
+      expect(createObjectUrl).toHaveBeenCalledWith(file);
+      expect(mountedApp.editor.getHTML()).toContain(
+        '<img src="blob:http://localhost/dialog-image" alt="">',
+      );
+      expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
+        src: 'blob:http://localhost/dialog-image',
+      });
+      expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+    } finally {
+      if (originalCreateObjectUrl) {
+        Object.defineProperty(URL, 'createObjectURL', originalCreateObjectUrl);
+      } else {
+        deleteUrlCreateObjectUrl();
+      }
+    }
+  });
+
+  it('uploads an image dropped on the editor and inserts the returned URL', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble({
+      url: 'https://cdn.example.com/assets/drop.png',
+    });
+    const file = createImageFile('drop.png', 'image/png');
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-image-drop',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Antes del drop</p>');
+
+    const dropTarget = getImageDropTarget(appRoot);
+    const dragOverEvent = dispatchFileDragEvent(dropTarget, 'dragover', [file]);
+
+    expect(dragOverEvent.defaultPrevented).toBe(true);
+    expect(dropTarget.classList.contains('editor-shell__editable--drop-target')).toBe(true);
+
+    const dropEvent = dispatchFileDragEvent(dropTarget, 'drop', [file]);
+    await flushPromises();
+
+    expect(dropEvent.defaultPrevented).toBe(true);
+    expect(mediaUploadDouble.uploadImage).toHaveBeenCalledWith('doc-image-drop', file, '');
+    expect(dropTarget.classList.contains('editor-shell__editable--drop-target')).toBe(false);
+    expect(mountedApp.editor.getJSON().content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'image',
+          attrs: expect.objectContaining({
+            src: 'https://cdn.example.com/assets/drop.png',
+            alt: '',
+          }),
+        }),
+      ]),
+    );
+    expect(mountedApp.editor.getHTML()).toContain(
+      '<img src="https://cdn.example.com/assets/drop.png" alt="">',
+    );
+    expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
+      src: 'https://cdn.example.com/assets/drop.png',
+    });
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+  });
+
+  it('shows Error and does not insert an image when the dropped file is invalid', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const invalidFile = new File([new Uint8Array(128)], 'notes.txt', {
+      type: 'text/plain',
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-invalid-image-drop',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Sin imagen rota</p>');
+
+    const dropEvent = dispatchFileDragEvent(getImageDropTarget(appRoot), 'drop', [invalidFile]);
+    await flushPromises();
+
+    expect(dropEvent.defaultPrevented).toBe(true);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Error');
+    expect(mountedApp.editor.getHTML()).toBe('<p>Sin imagen rota</p>');
+    expect(mountedApp.editor.getJSON().content).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'image',
+        }),
+      ]),
+    );
+  });
+
   it('mounts the table command group inside the normal toolbar', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
@@ -1097,6 +1230,45 @@ function setSelectedFiles(input: HTMLInputElement | null, files: readonly File[]
     configurable: true,
     value: files,
   });
+}
+
+function getImageDropTarget(root: ParentNode): HTMLElement {
+  const dropTarget = root.querySelector<HTMLElement>('.editor-shell__editable');
+
+  if (!dropTarget) {
+    throw new Error('Expected image drop target');
+  }
+
+  return dropTarget;
+}
+
+function dispatchFileDragEvent(
+  target: HTMLElement,
+  type: 'dragover' | 'drop',
+  files: readonly File[],
+): Event {
+  const event = new Event(type, {
+    bubbles: true,
+    cancelable: true,
+  });
+  const dataTransfer = {
+    files,
+    types: ['Files'],
+    dropEffect: 'none',
+  };
+
+  Object.defineProperty(event, 'dataTransfer', {
+    configurable: true,
+    value: dataTransfer,
+  });
+
+  target.dispatchEvent(event);
+
+  return event;
+}
+
+function deleteUrlCreateObjectUrl(): void {
+  Reflect.deleteProperty(URL, 'createObjectURL');
 }
 
 function createTablePersistenceContent(): JSONContent {

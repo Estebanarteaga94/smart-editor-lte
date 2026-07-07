@@ -4,7 +4,10 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { createHttpMediaUploadService } from './media-upload.service';
+import {
+  createHttpMediaUploadService,
+  createLocalMediaUploadService,
+} from './media-upload.service';
 
 describe('media upload service', () => {
   it('validates and uploads image files through POST /api/documents/{id}/assets/images', async () => {
@@ -96,6 +99,34 @@ describe('media upload service', () => {
     await expect(
       service.uploadImage('doc-1', createImageFile({ type: 'image/png' })),
     ).rejects.toThrow();
+  });
+
+  it('creates visible blob URLs for local image uploads', async () => {
+    const createObjectUrl = vi.fn(() => 'blob:http://localhost/local-image');
+    const service = createLocalMediaUploadService({ createObjectUrl });
+    const file = createImageFile({ type: 'image/png' });
+
+    await expect(service.uploadImage('doc-local', file, 'Vista local')).resolves.toMatchObject({
+      documentId: 'doc-local',
+      fileName: 'image',
+      mimeType: 'image/png',
+      size: 1024,
+      url: 'blob:http://localhost/local-image',
+      altText: 'Vista local',
+    });
+
+    expect(createObjectUrl).toHaveBeenCalledWith(file);
+  });
+
+  it('rejects invalid local image uploads before creating object URLs', async () => {
+    const createObjectUrl = vi.fn(() => 'blob:http://localhost/local-image');
+    const service = createLocalMediaUploadService({ createObjectUrl });
+
+    await expect(
+      service.uploadImage('doc-local', createImageFile({ type: 'image/gif' })),
+    ).rejects.toThrow('image/gif');
+
+    expect(createObjectUrl).not.toHaveBeenCalled();
   });
 });
 

@@ -3654,3 +3654,109 @@ Pendientes inmediatos:
 
 - Soportar drag and drop de imagenes.
 - Continuar con Fase 4 en orden.
+
+## 2026-07-07 - Drag and drop de imagenes
+
+Objetivo:
+
+- Cerrar la tarea de Fase 4: soportar drag and drop de imagenes.
+
+Acciones realizadas:
+
+- Se registraron listeners `dragenter`, `dragover`, `dragleave` y `drop` sobre el area editable mediante `EditorLifecycle`.
+- Los eventos de archivo se interceptan con `capture` para evitar que ProseMirror o el navegador manejen el drop antes del flujo del editor.
+- Al soltar una imagen, se conserva la posicion de insercion cuando el navegador permite resolver coordenadas y se reutiliza `MediaUploadService` para validar/subir el archivo.
+- La imagen subida se inserta con `editorCommands.insertImage`, manteniendo el nodo canonico `image` y actualizando JSON, HTML y preview.
+- Los archivos invalidos muestran estado `Error` y no insertan nodos de imagen rotos.
+- Se agrego un estado visual `editor-shell__editable--drop-target` mientras el usuario arrastra archivos sobre el editor.
+- Se agregaron pruebas de integracion para drop valido y drop invalido.
+- Se marco la tarea `Soportar drag and drop de imagenes` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 19 pruebas correctas.
+- Se ejecuto `npx prettier --write src/editor/editor-app.ts src/editor/editor-app.test.ts src/style.css`.
+- Resultado: `editor-app.ts` quedo formateado; `editor-app.test.ts` y `src/style.css` ya estaban en formato.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 18 archivos de prueba correctos, 133 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- No se creo commit porque el usuario no lo solicito.
+
+Pendientes inmediatos:
+
+- Soportar pegado desde portapapeles.
+- Continuar con Fase 4 en orden.
+
+## 2026-07-07 - Correccion de insercion visible de imagen local
+
+Objetivo:
+
+- Corregir el flujo reportado donde se podia seleccionar una imagen desde el dialogo, pero no se veia insertada en el editor.
+
+Diagnostico:
+
+- El dialogo si llamaba al flujo de subida e insercion.
+- El problema estaba en `createLocalMediaUploadService`: mientras no existe backend real, devolvia una ruta relativa mock como `/assets/editor-images/...`.
+- Vite no sirve ningun archivo en esa ruta, por lo que el nodo `image` podia existir pero el navegador no tenia una imagen real para mostrar.
+
+Acciones realizadas:
+
+- Se cambio el uploader local por defecto para devolver `URL.createObjectURL(file)` como URL `blob:` visible durante la sesion.
+- Se mantuvo la validacion previa de MIME y tamano antes de crear la URL local.
+- Se permitio `blob:` en `image.src` dentro del schema canonico, sin permitirlo en links.
+- Se ajusto DOMPurify para conservar `blob:` solo en `src` de `img` y seguir removiendolo de `href`.
+- Se agrego prueba de integracion del flujo real del dialogo usando el uploader local por defecto.
+- Se agregaron pruebas del servicio local, del schema canonico y del sanitizer para `blob:`.
+- Se agrego una nota correctiva en `tasks.md` bajo `Insertar imagen subida en el editor`.
+
+Archivos modificados:
+
+- `src/editor/services/media-upload.service.ts`
+- `src/editor/services/media-upload.service.test.ts`
+- `src/editor/services/sanitizer.service.ts`
+- `src/editor/services/sanitizer.service.test.ts`
+- `src/editor/utils/safe-url.ts`
+- `src/editor/models/editor-content.ts`
+- `src/editor/models/editor-content.test.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts src/editor/services/media-upload.service.test.ts src/editor/services/sanitizer.service.test.ts src/editor/models/editor-content.test.ts`.
+- Resultado: 4 archivos de prueba correctos, 39 pruebas correctas.
+- Se ejecuto `npx prettier --write` sobre los archivos modificados.
+- Se ejecuto `npm run check`.
+- Primer resultado: fallo `npm run lint` porque el rechazo de `createObjectURL` no garantizaba `Error`.
+- Se corrigio el rechazo para devolver siempre un `Error`.
+- Se ejecuto nuevamente `npm run check`.
+- Resultado final: build, lint y tests terminaron correctamente; 19 archivos de prueba correctos, 138 pruebas correctas.
+- Se levanto `npm run dev -- --host 127.0.0.1 --port 4174` y se ejecuto una prueba Playwright manual automatizada seleccionando un PNG desde el dialogo.
+- Resultado Playwright: el editor inserto un `img` con `src="blob:http://127.0.0.1:4174/..."`, `complete: true`, `naturalWidth: 1`, `naturalHeight: 1` y estado `Guardado`.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit porque el usuario lo solicito y el alcance queda verificado: drag and drop de imagenes, uploader local visible con `blob:`, schema/sanitizer ajustados y pruebas actualizadas.
+
+Pendientes inmediatos:
+
+- Soportar pegado desde portapapeles.
+- Continuar con Fase 4 en orden.

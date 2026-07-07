@@ -267,6 +267,50 @@ describe('canonical editor content schema', () => {
     ).toThrow();
   });
 
+  it('accepts blob URLs only for image sources', () => {
+    expect(
+      parseCanonicalEditorContent({
+        type: 'doc',
+        content: [
+          {
+            type: 'image',
+            attrs: {
+              src: 'blob:http://localhost/local-image',
+              alt: 'Imagen local',
+            },
+          },
+        ],
+      }),
+    ).toMatchObject({
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: 'blob:http://localhost/local-image',
+          },
+        },
+      ],
+    });
+
+    expect(() =>
+      parseCanonicalEditorContent({
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: 'Blob',
+                marks: [{ type: 'link', attrs: { href: 'blob:http://localhost/file' } }],
+              },
+            ],
+          },
+        ],
+      }),
+    ).toThrow();
+  });
+
   it('rejects heading levels outside H1 through H6', () => {
     expect(() =>
       parseCanonicalEditorContent({

@@ -95,7 +95,7 @@ const imageAttrsSchema = z
     src: z
       .string()
       .min(1)
-      .refine(isSafeImageSource, 'Image source must use http, https or a relative URL'),
+      .refine(isSafeImageSource, 'Image source must use http, https, blob or a relative URL'),
     alt: z.string().nullable().optional(),
     title: z.string().nullable().optional(),
     width: dimensionSchema,

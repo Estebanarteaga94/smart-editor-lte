@@ -1,5 +1,5 @@
 export const allowedLinkProtocols = ['http:', 'https:', 'mailto:'] as const;
-export const allowedImageProtocols = ['http:', 'https:'] as const;
+export const allowedImageProtocols = ['http:', 'https:', 'blob:'] as const;
 
 export function normalizeLinkHref(value: string): string | null {
   const trimmedValue = value.trim();

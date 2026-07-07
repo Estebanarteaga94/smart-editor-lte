@@ -329,8 +329,10 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Insertar imagen subida en el editor.
   - Criterio: usa la URL retornada por el servicio y conserva `alt`.
   - Nota: el boton de imagen abre `createImageDialog`, sube con `MediaUploadService`, inserta el nodo `image` con la URL retornada y conserva `alt` en JSON, HTML renderizable y preview.
-- [ ] Soportar drag and drop de imagenes.
+  - Correccion: el uploader local por defecto ahora devuelve una URL `blob:` del archivo seleccionado para que la imagen sea visible en navegador mientras no exista backend real.
+- [x] Soportar drag and drop de imagenes.
   - Criterio: soltar una imagen valida la sube e inserta; archivos invalidos muestran error.
+  - Nota: el area editable acepta archivos soltados, valida/sube mediante `MediaUploadService`, inserta el nodo `image` con la URL retornada y muestra `Error` sin insertar imagen cuando el archivo no es valido.
 - [ ] Soportar pegado desde portapapeles.
   - Criterio: pegar una imagen valida la sube e inserta sin bloquear texto pegado normal.
 - [ ] Agregar alineacion de imagen.

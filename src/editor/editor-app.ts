@@ -112,6 +112,7 @@ export async function mountEditorApp({
   shell.toolbar.replaceChildren(toolbar.element);
   toolbar.element.append(tableMenu.element);
   shell.root.append(imageDialog.element);
+  registerImageDropUpload();
   lifecycle.addEventListener(window, 'beforeunload', () => {
     lifecycle.dispose();
   });
@@ -150,6 +151,113 @@ export async function mountEditorApp({
 
     editor.commands.setTextSelection(preservedImageSelection);
   }
+
+  function registerImageDropUpload(): void {
+    lifecycle.addEventListener(shell.editable, 'dragenter', handleImageDragEnter, {
+      capture: true,
+    });
+    lifecycle.addEventListener(shell.editable, 'dragover', handleImageDragOver, {
+      capture: true,
+    });
+    lifecycle.addEventListener(shell.editable, 'dragleave', handleImageDragLeave, {
+      capture: true,
+    });
+    lifecycle.addEventListener(shell.editable, 'drop', handleImageDrop, {
+      capture: true,
+    });
+  }
+
+  function handleImageDragEnter(event: DragEvent): void {
+    if (!hasDraggedFiles(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    shell.editable.classList.add('editor-shell__editable--drop-target');
+  }
+
+  function handleImageDragOver(event: DragEvent): void {
+    if (!hasDraggedFiles(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    shell.editable.classList.add('editor-shell__editable--drop-target');
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  function handleImageDragLeave(event: DragEvent): void {
+    if (event.relatedTarget instanceof Node && shell.editable.contains(event.relatedTarget)) {
+      return;
+    }
+
+    shell.editable.classList.remove('editor-shell__editable--drop-target');
+  }
+
+  function handleImageDrop(event: DragEvent): void {
+    const file = getFirstDroppedFile(event);
+
+    if (!file) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    shell.editable.classList.remove('editor-shell__editable--drop-target');
+    preserveImageSelectionFromDrop(event);
+    void insertUploadedImage(file, '');
+  }
+
+  function preserveImageSelectionFromDrop(event: DragEvent): void {
+    const dropPosition = getDropPosition(event);
+
+    if (dropPosition !== null) {
+      preservedImageSelection = {
+        from: dropPosition,
+        to: dropPosition,
+      };
+      return;
+    }
+
+    const { from, to } = editor.state.selection;
+    preservedImageSelection = { from, to };
+  }
+
+  function getDropPosition(event: DragEvent): number | null {
+    try {
+      const result = editor.view.posAtCoords({
+        left: event.clientX,
+        top: event.clientY,
+      });
+
+      return result?.pos ?? null;
+    } catch {
+      return null;
+    }
+  }
+}
+
+function hasDraggedFiles(event: DragEvent): boolean {
+  const dataTransfer = event.dataTransfer;
+
+  if (!dataTransfer) {
+    return false;
+  }
+
+  return dataTransfer.files.length > 0 || Array.from(dataTransfer.types).includes('Files');
+}
+
+function getFirstDroppedFile(event: DragEvent): File | null {
+  const files = event.dataTransfer?.files;
+
+  if (!files || files.length === 0) {
+    return null;
+  }
+
+  return files[0] ?? null;
 }
 
 function createDefaultDocumentContent(title: string): JSONContent {

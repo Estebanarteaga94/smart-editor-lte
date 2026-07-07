@@ -5,6 +5,7 @@ export interface SanitizerService {
 }
 
 const allowedUriPattern = /^(?:(?:https?|mailto):|\/(?!\/)|#|\.{1,2}\/)/i;
+const blobUriPattern = /^blob:/i;
 const tableCellSpanAttrs = new Set(['colspan', 'rowspan']);
 const tableCellWidthAttrs = new Set(['colwidth']);
 const positiveIntegerPattern = /^[1-9]\d*$/;
@@ -72,6 +73,16 @@ export const editorSanitizerConfig: Config = {
 };
 
 DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+  if (
+    node instanceof HTMLImageElement &&
+    data.attrName === 'src' &&
+    blobUriPattern.test(data.attrValue)
+  ) {
+    data.keepAttr = true;
+    data.forceKeepAttr = true;
+    return;
+  }
+
   if (!(node instanceof HTMLTableCellElement)) {
     return;
   }
