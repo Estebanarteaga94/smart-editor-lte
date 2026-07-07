@@ -380,8 +380,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Agregar dependencia de formateo HTML en navegador.
   - Criterio: el proyecto puede usar `prettier/standalone` y `prettier/plugins/html` desde el frontend sin introducir otro motor de formato.
   - Nota: `prettier` quedo en `dependencies` y `html-format.dependencies.test.ts` valida el uso de `prettier/standalone` con `prettier/plugins/html`.
-- [ ] Implementar servicio `html-format.service.ts`.
+- [x] Implementar servicio `html-format.service.ts`.
   - Criterio: recibe HTML como string, devuelve HTML formateado con parser `html` y reporta errores sin modificar el contenido original.
+  - Nota: `formatHtmlSource` usa `prettier/standalone` con `prettier/plugins/html` y devuelve un resultado `ok` que conserva el HTML original cuando Prettier reporta error.
 - [ ] Agregar boton para formatear HTML en `source-html`.
   - Criterio: el boton aparece solo cuando la vista activa es `source-html`, ejecuta el servicio de formato y reemplaza el contenido de CodeMirror con el HTML formateado.
 - [ ] Manejar errores de formateo HTML.

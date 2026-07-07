@@ -4657,3 +4657,47 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar servicio `html-format.service.ts`.
+
+## 2026-07-07 - Servicio de formateo HTML
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: implementar `html-format.service.ts`.
+
+Acciones realizadas:
+
+- Se creo `src/editor/services/html-format.service.ts`.
+- El servicio expone `formatHtmlSource(html)` y `createHtmlFormatService()`.
+- `formatHtmlSource` usa `prettier/standalone` con `prettier/plugins/html` y parser `html`.
+- El resultado exitoso devuelve el HTML formateado con `ok: true`.
+- El resultado de error devuelve `ok: false`, mensaje de error y el HTML original sin modificar.
+- Se agregaron pruebas unitarias para HTML desordenado formateado, error de Prettier sin perdida de contenido y contrato del servicio.
+- Se marco `Implementar servicio html-format.service.ts` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/html-format.service.ts`
+- `src/editor/services/html-format.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/html-format.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 3 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 24 archivos de prueba correctos, 170 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar boton para formatear HTML en `source-html`.
