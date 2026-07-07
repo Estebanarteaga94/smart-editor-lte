@@ -19,6 +19,7 @@ describe('createEditorShell', () => {
     expect(shell.root.querySelector('h1')?.textContent).toBe('Titulo');
     expect(shell.root.querySelector('p')?.textContent).toBe('Descripcion');
     expect(shell.toolbar.getAttribute('role')).toBe('toolbar');
+    expect(shell.root.querySelector('.editor-shell__table-menu-slot')).toBeNull();
     expect(shell.editable.id).toBe('wysiwyg-editor');
     expect(shell.status.id).toBe('editor-status');
     expect(shell.status.textContent).toBe('Sin cambios');

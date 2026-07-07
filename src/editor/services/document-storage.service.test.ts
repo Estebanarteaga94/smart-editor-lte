@@ -165,6 +165,38 @@ describe('document storage service', () => {
     expect(memoryStorage.length).toBe(0);
   });
 
+  it('does not persist unsafe link protocols to local storage', async () => {
+    const memoryStorage = createMemoryStorage();
+    const storage = createLocalDocumentStorageService({
+      storage: memoryStorage,
+      keyPrefix: 'unsafe-link-document',
+    });
+
+    await expect(
+      storage.saveDocument('doc-unsafe-link', {
+        title: 'Documento con link inseguro',
+        contentJson: {
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: 'Link',
+                  marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }],
+                },
+              ],
+            },
+          ],
+        },
+        contentHtml: '<p><a href="javascript:alert(1)">Link</a></p>',
+      } as unknown as DocumentStoragePayload),
+    ).rejects.toThrow();
+
+    expect(memoryStorage.length).toBe(0);
+  });
+
   it('saves documents through PUT /api/documents/{id}', async () => {
     const payload: DocumentStoragePayload = {
       title: 'Documento remoto',

@@ -2,9 +2,11 @@ import type { JSONContent } from '@tiptap/core';
 
 import { createEditorShell } from './components/editor-shell';
 import { createPreviewView } from './components/preview-view';
+import { createTableMenu } from './components/table-menu';
 import { createToolbar } from './components/toolbar';
 import { createWysiwygEditor } from './core/create-editor';
 import { createEditorLifecycle } from './core/editor-lifecycle';
+import { defaultEditorConfig } from './models/editor-config';
 import {
   createLocalDocumentStorageService,
   type DocumentStorageService,
@@ -16,6 +18,7 @@ export interface MountEditorAppOptions {
   storage?: DocumentStorageService;
   documentId?: string;
   documentTitle?: string;
+  placeholder?: string;
 }
 
 export interface MountedEditorApp {
@@ -23,14 +26,14 @@ export interface MountedEditorApp {
   editor: ReturnType<typeof createWysiwygEditor>;
 }
 
-const defaultDocumentId = 'default-document';
 const defaultDocumentTitle = 'Documento de ejemplo';
 
 export async function mountEditorApp({
   app,
   storage = createLocalDocumentStorageService(),
-  documentId = defaultDocumentId,
+  documentId = defaultEditorConfig.documentId,
   documentTitle = defaultDocumentTitle,
+  placeholder = defaultEditorConfig.placeholder,
 }: MountEditorAppOptions): Promise<MountedEditorApp> {
   const shell = createEditorShell({
     saveStatus: 'unchanged',
@@ -49,7 +52,7 @@ export async function mountEditorApp({
     element: shell.editable,
     initialContent:
       loadedDocument?.contentJson ?? createDefaultDocumentContent(activeDocumentTitle),
-    placeholder: 'Escribe el contenido del documento...',
+    placeholder,
     onChange: ({ contentJson, contentHtml }) => {
       shell.setSaveStatus('saving');
       preview.setHtml(contentHtml);
@@ -81,8 +84,13 @@ export async function mountEditorApp({
       }
     },
   });
+  const tableMenu = createTableMenu({
+    editor,
+    lifecycle,
+  });
 
   shell.toolbar.replaceChildren(toolbar.element);
+  toolbar.element.append(tableMenu.element);
   lifecycle.addEventListener(window, 'beforeunload', () => {
     lifecycle.dispose();
   });

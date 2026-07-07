@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import type { Editor } from '@tiptap/core';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -54,6 +58,14 @@ describe('serializer service', () => {
     expect(getRenderableEditorHtml(editor)).toBe('<h1>Titulo</h1>');
   });
 
+  it('sanitizes renderable HTML before persistence', () => {
+    const editor = createEditorDouble({
+      html: '<p onclick="alert(1)">Seguro</p><a href="javascript:alert(1)">Link</a>',
+    });
+
+    expect(getRenderableEditorHtml(editor)).toBe('<p>Seguro</p><a>Link</a>');
+  });
+
   it('serializes canonical JSON and renderable HTML together', () => {
     const editor = createEditorDouble({
       json: {
@@ -70,6 +82,86 @@ describe('serializer service', () => {
       },
       contentHtml: '<p>Contenido</p>',
     });
+  });
+
+  it('preserves resized table column metadata in canonical JSON and sanitized HTML', () => {
+    const editor = createEditorDouble({
+      json: {
+        type: 'doc',
+        content: [
+          {
+            type: 'table',
+            content: [
+              {
+                type: 'tableRow',
+                content: [
+                  {
+                    type: 'tableCell',
+                    attrs: { colspan: 1, rowspan: 1, colwidth: [140], align: null },
+                    content: [{ type: 'paragraph' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      html: '<table style="width: 140px;"><colgroup><col style="width: 140px;"></colgroup><tbody><tr><td colspan="1" rowspan="1" colwidth="140"><p></p></td></tr></tbody></table>',
+    });
+    const serialized = serializeEditorContent(editor);
+
+    expect(serialized.contentJson).toMatchObject({
+      content: [
+        {
+          content: [
+            {
+              content: [
+                {
+                  attrs: expect.objectContaining({ colwidth: [140], align: null }),
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    expect(serialized.contentHtml).toContain('<colgroup>');
+    expect(serialized.contentHtml).toContain('<col style="width: 140px;">');
+  });
+
+  it('completes merged table cell attributes from canonical JSON before sanitizing HTML', () => {
+    const editor = createEditorDouble({
+      json: {
+        type: 'doc',
+        content: [
+          {
+            type: 'table',
+            content: [
+              {
+                type: 'tableRow',
+                content: [
+                  {
+                    type: 'tableCell',
+                    attrs: { colspan: 2, rowspan: 1, colwidth: [120, 160], align: null },
+                    content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Unida' }] }],
+                  },
+                  {
+                    type: 'tableCell',
+                    attrs: { colspan: 1, rowspan: 1, colwidth: [200], align: null },
+                    content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Activa' }] }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      html: '<table><tbody><tr><td><p>Unida</p></td><td><p>Activa</p></td></tr></tbody></table>',
+    });
+
+    expect(getRenderableEditorHtml(editor)).toBe(
+      '<table><tbody><tr><td colspan="2" colwidth="120,160"><p>Unida</p></td><td colwidth="200"><p>Activa</p></td></tr></tbody></table>',
+    );
   });
 
   it('creates a serializer service bound to an editor instance', () => {

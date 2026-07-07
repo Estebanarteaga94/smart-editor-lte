@@ -2,6 +2,7 @@
  * @vitest-environment jsdom
  */
 
+import type { JSONContent } from '@tiptap/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -63,6 +64,34 @@ describe('mountEditorApp', () => {
     expect(appRoot.querySelector('.editor-preview__content')?.innerHTML).toContain(
       '<h2>Restaurado</h2>',
     );
+  });
+
+  it('passes configurable placeholder text to an empty editor', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble({
+      title: 'Documento vacio',
+      contentJson: {
+        type: 'doc',
+        content: [{ type: 'paragraph' }],
+      },
+      contentHtml: '<p></p>',
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-empty-placeholder',
+      placeholder: 'Escribe una evolucion...',
+    });
+    mountedApps.add(mountedApp);
+
+    const placeholderNode = appRoot.querySelector<HTMLElement>(
+      '[data-placeholder="Escribe una evolucion..."]',
+    );
+
+    expect(placeholderNode).not.toBeNull();
+    expect(placeholderNode?.classList.contains('is-editor-empty')).toBe(true);
   });
 
   it('preserves recovered headings, paragraphs, basic marks and lists', async () => {
@@ -222,6 +251,644 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('persists strike formatting from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-strike',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Texto tachado</p>');
+    mountedApp.editor.commands.selectAll();
+
+    const strikeButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="strike"]');
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    strikeButton?.click();
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-strike',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: [
+            expect.objectContaining({
+              content: [
+                expect.objectContaining({
+                  text: 'Texto tachado',
+                  marks: [expect.objectContaining({ type: 'strike' })],
+                }),
+              ],
+            }),
+          ],
+        }),
+        contentHtml: '<p><s>Texto tachado</s></p>',
+      }),
+    );
+  });
+
+  it('persists text color from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-text-color',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Texto con color</p>');
+    mountedApp.editor.commands.selectAll();
+
+    const blueSwatch = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="text-color-swatch"][data-text-color="#4472c4"]',
+    );
+    const colorTrigger = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="text-color-trigger"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    colorTrigger?.click();
+    blueSwatch?.click();
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-text-color',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: [
+            expect.objectContaining({
+              content: [
+                expect.objectContaining({
+                  text: 'Texto con color',
+                  marks: [
+                    expect.objectContaining({
+                      type: 'textStyle',
+                      attrs: { color: '#4472c4' },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        contentHtml: '<p><span style="color: rgb(68, 114, 196);">Texto con color</span></p>',
+      }),
+    );
+  });
+
+  it('persists highlight color from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-highlight-color',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Texto resaltado</p>');
+    mountedApp.editor.commands.selectAll();
+
+    const highlightTrigger = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="highlight-color-trigger"]',
+    );
+    const yellowSwatch = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="highlight-color-swatch"][data-text-color="#ffff00"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    highlightTrigger?.click();
+    yellowSwatch?.click();
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-highlight-color',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: [
+            expect.objectContaining({
+              content: [
+                expect.objectContaining({
+                  text: 'Texto resaltado',
+                  marks: [
+                    expect.objectContaining({
+                      type: 'highlight',
+                      attrs: { color: '#ffff00' },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        contentHtml:
+          '<p><mark data-color="#ffff00" style="background-color: rgb(255, 255, 0); color: inherit;">Texto resaltado</mark></p>',
+      }),
+    );
+  });
+
+  it('persists paragraph alignment from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-alignment',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Texto centrado</p>');
+    mountedApp.editor.commands.selectAll();
+
+    const alignCenterButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="align-center"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    alignCenterButton?.click();
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-alignment',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: [
+            expect.objectContaining({
+              type: 'paragraph',
+              attrs: { textAlign: 'center' },
+              content: [expect.objectContaining({ text: 'Texto centrado' })],
+            }),
+          ],
+        }),
+        contentHtml: '<p style="text-align: center;">Texto centrado</p>',
+      }),
+    );
+  });
+
+  it('persists blockquote from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-blockquote',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Texto citado</p>');
+    mountedApp.editor.commands.setTextSelection(2);
+
+    const blockquoteButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="blockquote"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    blockquoteButton?.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+    );
+    blockquoteButton?.click();
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-blockquote',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: expect.arrayContaining([
+            expect.objectContaining({
+              type: 'blockquote',
+              content: [
+                expect.objectContaining({
+                  type: 'paragraph',
+                  content: [expect.objectContaining({ text: 'Texto citado' })],
+                }),
+              ],
+            }),
+          ]),
+        }),
+        contentHtml: expect.stringContaining('<blockquote><p>Texto citado</p></blockquote>'),
+      }),
+    );
+  });
+
+  it('persists horizontal rule from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-horizontal-rule',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Antes</p>');
+    mountedApp.editor.commands.setTextSelection(3);
+
+    const horizontalRuleButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="horizontal-rule"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    horizontalRuleButton?.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+    );
+    horizontalRuleButton?.click();
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-horizontal-rule',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: expect.arrayContaining([
+            expect.objectContaining({
+              type: 'horizontalRule',
+            }),
+          ]),
+        }),
+        contentHtml: expect.stringContaining('<hr>'),
+      }),
+    );
+  });
+
+  it('persists code block from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-code-block',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>const total = 1;</p>');
+    mountedApp.editor.commands.setTextSelection(3);
+
+    const codeBlockButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="code-block"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    codeBlockButton?.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+    );
+    codeBlockButton?.click();
+    mountedApp.editor.commands.insertContent('\nconsole.log(total);');
+    saveButton?.click();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-code-block',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: expect.arrayContaining([
+            expect.objectContaining({
+              type: 'codeBlock',
+              attrs: { language: null },
+              content: [
+                expect.objectContaining({
+                  type: 'text',
+                  text: expect.stringContaining('console.log(total);'),
+                }),
+              ],
+            }),
+          ]),
+        }),
+        contentHtml: expect.stringContaining('<pre><code>'),
+      }),
+    );
+  });
+
+  it('persists configurable links from the toolbar as canonical JSON and renderable HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-link',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Texto enlazado</p>');
+    mountedApp.editor.commands.selectAll();
+
+    const linkTrigger = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="link-trigger"]',
+    );
+    const linkInput = appRoot.querySelector<HTMLInputElement>('[data-toolbar-action="link-input"]');
+    const linkApplyButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="link-apply"]',
+    );
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+
+    expect(linkTrigger).not.toBeNull();
+    expect(linkInput).not.toBeNull();
+    expect(linkApplyButton).not.toBeNull();
+    expect(saveButton).not.toBeNull();
+    expect(saveButton?.disabled).toBe(false);
+
+    linkTrigger?.click();
+    if (linkInput) {
+      linkInput.value = 'example.com';
+    }
+    linkApplyButton?.click();
+    expect(mountedApp.editor.getAttributes('link')).toMatchObject({
+      href: 'https://example.com',
+    });
+
+    saveButton?.click();
+    await flushPromises();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-link',
+      expect.objectContaining({
+        contentJson: expect.objectContaining({
+          content: [
+            expect.objectContaining({
+              content: [
+                expect.objectContaining({
+                  text: 'Texto enlazado',
+                  marks: [
+                    expect.objectContaining({
+                      type: 'link',
+                      attrs: expect.objectContaining({
+                        href: 'https://example.com',
+                        target: '_blank',
+                        rel: 'noopener noreferrer nofollow',
+                      }),
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        contentHtml: expect.stringContaining('href="https://example.com"'),
+      }),
+    );
+  });
+
+  it('mounts the table command group inside the normal toolbar', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-table-menu',
+    });
+    mountedApps.add(mountedApp);
+
+    const tableMenu = appRoot.querySelector<HTMLElement>('.editor-table-menu');
+    const tableMenuTrigger = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-trigger="true"]',
+    );
+    const tableMenuPanel = appRoot.querySelector<HTMLElement>('.editor-table-menu__panel');
+    const addRowAfterButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="add-row-after"]',
+    );
+    const deleteRowButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="delete-row"]',
+    );
+    const addColumnAfterButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="add-column-after"]',
+    );
+    const deleteColumnButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="delete-column"]',
+    );
+    const deleteTableButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="delete-table"]',
+    );
+    const toggleHeaderRowButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="toggle-header-row"]',
+    );
+    const mergeCellsButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="merge-cells"]',
+    );
+    const splitCellButton = appRoot.querySelector<HTMLButtonElement>(
+      '.editor-table-menu [data-table-menu-action="split-cell"]',
+    );
+
+    expect(tableMenu).not.toBeNull();
+    expect(tableMenu?.closest('.editor-toolbar')).not.toBeNull();
+    expect(tableMenu?.closest('.editor-shell__toolbar')).not.toBeNull();
+    expect(tableMenu?.hidden).toBe(false);
+    expect(tableMenuTrigger).not.toBeNull();
+    expect(tableMenuTrigger?.disabled).toBe(true);
+    expect(tableMenuTrigger?.getAttribute('aria-expanded')).toBe('false');
+    expect(tableMenuTrigger?.textContent).not.toContain('Tabla');
+    expect(tableMenuTrigger?.querySelector('.editor-table-menu__trigger-label')).toBeNull();
+    expect(tableMenuPanel).not.toBeNull();
+    expect(tableMenuPanel?.hidden).toBe(true);
+    expect(addRowAfterButton).not.toBeNull();
+    expect(addRowAfterButton?.disabled).toBe(true);
+    expect(deleteRowButton).not.toBeNull();
+    expect(deleteRowButton?.disabled).toBe(true);
+    expect(addColumnAfterButton).not.toBeNull();
+    expect(addColumnAfterButton?.disabled).toBe(true);
+    expect(deleteColumnButton).not.toBeNull();
+    expect(deleteColumnButton?.disabled).toBe(true);
+    expect(deleteTableButton).not.toBeNull();
+    expect(deleteTableButton?.disabled).toBe(true);
+    expect(toggleHeaderRowButton).not.toBeNull();
+    expect(toggleHeaderRowButton?.disabled).toBe(true);
+    expect(mergeCellsButton).not.toBeNull();
+    expect(mergeCellsButton?.disabled).toBe(true);
+    expect(splitCellButton).not.toBeNull();
+    expect(splitCellButton?.disabled).toBe(true);
+
+    mountedApp.editor.commands.insertTable({ rows: 3, cols: 3, withHeaderRow: true });
+    setSelectionInFirstTableCell(mountedApp.editor);
+
+    expect(tableMenu?.hidden).toBe(false);
+    expect(tableMenuTrigger?.disabled).toBe(false);
+    expect(tableMenuTrigger?.textContent).not.toContain('Tabla');
+    expect(tableMenuTrigger?.querySelector('.editor-table-menu__trigger-label')).toBeNull();
+    tableMenuTrigger?.click();
+    expect(tableMenuPanel?.hidden).toBe(false);
+    expect(tableMenuTrigger?.getAttribute('aria-expanded')).toBe('true');
+    expect(addRowAfterButton?.disabled).toBe(false);
+    expect(deleteRowButton?.disabled).toBe(false);
+    expect(addColumnAfterButton?.disabled).toBe(false);
+    expect(deleteColumnButton?.disabled).toBe(false);
+    expect(deleteTableButton?.disabled).toBe(false);
+    expect(toggleHeaderRowButton?.disabled).toBe(false);
+    expect(mergeCellsButton?.disabled).toBe(true);
+    expect(splitCellButton?.disabled).toBe(true);
+
+    toggleHeaderRowButton?.click();
+
+    expect(getFirstRowCellTypes(mountedApp.editor.getJSON())).toEqual([
+      'tableCell',
+      'tableCell',
+      'tableCell',
+    ]);
+
+    addRowAfterButton?.click();
+
+    expect(getRows(getFirstTable(mountedApp.editor.getJSON()))).toHaveLength(4);
+
+    setSelectionInFirstTableCell(mountedApp.editor);
+    addColumnAfterButton?.click();
+
+    expect(getCells(getRows(getFirstTable(mountedApp.editor.getJSON()))[0])).toHaveLength(4);
+
+    setSelectionInFirstTableCell(mountedApp.editor);
+    deleteRowButton?.click();
+
+    expect(getRows(getFirstTable(mountedApp.editor.getJSON()))).toHaveLength(3);
+
+    setSelectionInFirstTableCell(mountedApp.editor);
+    deleteColumnButton?.click();
+
+    expect(getCells(getRows(getFirstTable(mountedApp.editor.getJSON()))[0])).toHaveLength(3);
+
+    setSelectionInFirstTwoTableCells(mountedApp.editor);
+    expect(mergeCellsButton?.disabled).toBe(false);
+    mergeCellsButton?.click();
+
+    const mergedFirstRow = getRows(getFirstTable(mountedApp.editor.getJSON()))[0];
+    const [mergedCell] = getCells(mergedFirstRow);
+
+    expect(getCells(mergedFirstRow)).toHaveLength(2);
+    expect(mergedCell).toMatchObject({
+      attrs: expect.objectContaining({ colspan: 2 }),
+    });
+    expect(splitCellButton?.disabled).toBe(false);
+
+    splitCellButton?.click();
+
+    expect(getCells(getRows(getFirstTable(mountedApp.editor.getJSON()))[0])).toHaveLength(3);
+
+    deleteTableButton?.click();
+
+    expect(getTable(mountedApp.editor.getJSON())).toBeUndefined();
+  });
+
+  it('persists and reloads table rows, columns, headers, merged cells and widths', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-table-persistence',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent(createTablePersistenceContent());
+    setSelectionInFirstTwoBodyCells(mountedApp.editor);
+
+    expect(mountedApp.editor.commands.mergeCells()).toBe(true);
+
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+    saveButton?.click();
+    await flushPromises();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-table-persistence',
+      expect.objectContaining({
+        title: 'Documento de ejemplo',
+        contentJson: expect.objectContaining({ type: 'doc' }),
+        contentHtml: expect.stringContaining('<table'),
+      }),
+    );
+
+    const savedPayload = (
+      storageDouble.saveDocument.mock.calls as unknown as [string, DocumentStoragePayload][]
+    )[0]?.[1];
+
+    if (!savedPayload) {
+      throw new Error('Expected saved document payload');
+    }
+
+    const savedTable = getFirstTable(savedPayload.contentJson);
+    const [savedHeaderRow, savedBodyRow] = getRows(savedTable);
+    const savedHeaderCells = getCells(savedHeaderRow);
+    const savedBodyCells = getCells(savedBodyRow);
+
+    expect(getRows(savedTable)).toHaveLength(2);
+    expect(savedHeaderCells).toHaveLength(3);
+    expect(savedHeaderCells.map((cell) => cell.type)).toEqual([
+      'tableHeader',
+      'tableHeader',
+      'tableHeader',
+    ]);
+    expect(savedHeaderCells.map((cell) => cell.attrs?.colwidth)).toEqual([[120], [160], [200]]);
+    expect(savedBodyCells).toHaveLength(2);
+    expect(savedBodyCells[0]).toMatchObject({
+      type: 'tableCell',
+      attrs: expect.objectContaining({
+        colspan: 2,
+        rowspan: 1,
+        colwidth: [120, 160],
+      }),
+    });
+    expect(savedBodyCells[1]).toMatchObject({
+      type: 'tableCell',
+      attrs: expect.objectContaining({
+        colspan: 1,
+        rowspan: 1,
+        colwidth: [200],
+      }),
+    });
+    expect(savedPayload.contentHtml).toContain('<colgroup>');
+    expect(savedPayload.contentHtml).toContain('<th');
+    expect(savedPayload.contentHtml).toContain('colspan="2"');
+    expect(savedPayload.contentHtml).toContain('width: 120px');
+    expect(savedPayload.contentHtml).toContain('width: 160px');
+    expect(savedPayload.contentHtml).toContain('width: 200px');
+
+    mountedApp.lifecycle.dispose();
+    mountedApps.delete(mountedApp);
+    appRoot.remove();
+
+    const reloadedRoot = document.createElement('div');
+    const reloadStorageDouble = createStorageDouble(savedPayload);
+    document.body.append(reloadedRoot);
+
+    const reloadedApp = await mountEditorApp({
+      app: reloadedRoot,
+      storage: reloadStorageDouble.service,
+      documentId: 'doc-table-persistence',
+    });
+    mountedApps.add(reloadedApp);
+
+    const reloadedTable = getFirstTable(reloadedApp.editor.getJSON());
+    const previewContent = reloadedRoot.querySelector<HTMLElement>('.editor-preview__content');
+
+    expect(reloadStorageDouble.loadDocument).toHaveBeenCalledWith('doc-table-persistence');
+    expect(reloadedTable).toEqual(savedTable);
+    expect(previewContent?.querySelectorAll('tr')).toHaveLength(2);
+    expect(previewContent?.querySelectorAll('th')).toHaveLength(3);
+    expect(previewContent?.querySelector('td[colspan="2"]')?.textContent).toContain(
+      'Total combinado',
+    );
+    expect(previewContent?.innerHTML).toContain('<colgroup>');
+    expect(previewContent?.innerHTML).toContain('width: 120px');
+    expect(previewContent?.innerHTML).toContain('width: 160px');
+    expect(previewContent?.innerHTML).toContain('width: 200px');
+  });
+
   it('shows Error and keeps editor content when saving fails', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null, {
@@ -297,4 +964,130 @@ function flushPromises(): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, 0);
   });
+}
+
+function createTablePersistenceContent(): JSONContent {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'table',
+        content: [
+          {
+            type: 'tableRow',
+            content: [
+              createTableCell('tableHeader', 'Nombre', [120]),
+              createTableCell('tableHeader', 'Cantidad', [160]),
+              createTableCell('tableHeader', 'Estado', [200]),
+            ],
+          },
+          {
+            type: 'tableRow',
+            content: [
+              createTableCell('tableCell', 'Total combinado', [120]),
+              createTableCell('tableCell', 'Detalle combinado', [160]),
+              createTableCell('tableCell', 'Activo', [200]),
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function createTableCell(
+  type: 'tableCell' | 'tableHeader',
+  text: string,
+  colwidth: number[],
+  colspan = 1,
+): JSONContent {
+  return {
+    type,
+    attrs: {
+      colspan,
+      rowspan: 1,
+      colwidth,
+      align: null,
+    },
+    content: [
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text }],
+      },
+    ],
+  };
+}
+
+function getFirstTable(content: JSONContent): JSONContent {
+  const table = getTable(content);
+
+  if (!table) {
+    throw new Error('Expected table node');
+  }
+
+  return table;
+}
+
+function getTable(content: JSONContent): JSONContent | undefined {
+  return content.content?.find((node) => node.type === 'table');
+}
+
+function getRows(table: JSONContent): JSONContent[] {
+  return table.content ?? [];
+}
+
+function getCells(row: JSONContent | undefined): JSONContent[] {
+  return row?.content ?? [];
+}
+
+function getFirstRowCellTypes(content: JSONContent): string[] {
+  return getCells(getRows(getFirstTable(content))[0]).map((cell) => cell.type ?? '');
+}
+
+function setSelectionInFirstTableCell(editor: MountedEditorApp['editor']): void {
+  const [cellPosition] = getCellPositions(editor);
+
+  if (cellPosition === undefined) {
+    throw new Error('Expected table cell position');
+  }
+
+  editor.commands.setCellSelection({ anchorCell: cellPosition });
+}
+
+function setSelectionInFirstTwoTableCells(editor: MountedEditorApp['editor']): void {
+  const [firstCellPosition, secondCellPosition] = getCellPositions(editor);
+
+  if (firstCellPosition === undefined || secondCellPosition === undefined) {
+    throw new Error('Expected two table cell positions');
+  }
+
+  editor.commands.setCellSelection({
+    anchorCell: firstCellPosition,
+    headCell: secondCellPosition,
+  });
+}
+
+function setSelectionInFirstTwoBodyCells(editor: MountedEditorApp['editor']): void {
+  const [, , , firstBodyCellPosition, secondBodyCellPosition] = getCellPositions(editor);
+
+  if (firstBodyCellPosition === undefined || secondBodyCellPosition === undefined) {
+    throw new Error('Expected two body table cell positions');
+  }
+
+  editor.commands.setCellSelection({
+    anchorCell: firstBodyCellPosition,
+    headCell: secondBodyCellPosition,
+  });
+}
+
+function getCellPositions(editor: MountedEditorApp['editor']): number[] {
+  const positions: number[] = [];
+
+  editor.state.doc.descendants((node, position) => {
+    if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+      positions.push(position);
+    }
+  });
+
+  return positions;
 }

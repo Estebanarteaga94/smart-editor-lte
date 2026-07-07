@@ -4,7 +4,11 @@ export interface SanitizerService {
   sanitizeHtml(html: string): string;
 }
 
-const allowedUriPattern = /^(?:(?:https?|mailto):|\/|#)/i;
+const allowedUriPattern = /^(?:(?:https?|mailto):|\/(?!\/)|#|\.{1,2}\/)/i;
+const tableCellSpanAttrs = new Set(['colspan', 'rowspan']);
+const tableCellWidthAttrs = new Set(['colwidth']);
+const positiveIntegerPattern = /^[1-9]\d*$/;
+const colwidthPattern = /^[1-9]\d*(?:\s*,\s*[1-9]\d*)*$/;
 
 export const editorSanitizerConfig: Config = {
   ALLOWED_TAGS: [
@@ -13,6 +17,8 @@ export const editorSanitizerConfig: Config = {
     'blockquote',
     'br',
     'code',
+    'col',
+    'colgroup',
     'del',
     'em',
     'h1',
@@ -60,9 +66,27 @@ export const editorSanitizerConfig: Config = {
     'type',
     'width',
   ],
+  ADD_ATTR: ['colspan', 'colwidth', 'rowspan'],
   ALLOWED_URI_REGEXP: allowedUriPattern,
   FORBID_TAGS: ['iframe', 'script'],
 };
+
+DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+  if (!(node instanceof HTMLTableCellElement)) {
+    return;
+  }
+
+  if (tableCellSpanAttrs.has(data.attrName) && positiveIntegerPattern.test(data.attrValue)) {
+    data.keepAttr = true;
+    data.forceKeepAttr = true;
+    return;
+  }
+
+  if (tableCellWidthAttrs.has(data.attrName) && colwidthPattern.test(data.attrValue)) {
+    data.keepAttr = true;
+    data.forceKeepAttr = true;
+  }
+});
 
 export function sanitizeHtml(html: string): string {
   return DOMPurify.sanitize(html, editorSanitizerConfig);

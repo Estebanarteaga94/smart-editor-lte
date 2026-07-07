@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { isSafeImageSource, isSafeLinkHref } from '../utils/safe-url';
+
 export const canonicalContentSchemaVersion = 1;
 
 export const allowedCanonicalNodeTypes = [
@@ -40,12 +42,12 @@ export const canonicalJsonSpecification = {
   nodes: allowedCanonicalNodeTypes,
   marks: allowedCanonicalMarkTypes,
   attributes: {
-    link: ['href', 'target', 'rel', 'class'],
+    link: ['href', 'target', 'rel', 'class', 'title'],
     image: ['src', 'alt', 'title', 'width', 'height', 'align'],
     heading: ['level', 'textAlign'],
     paragraph: ['textAlign'],
-    tableCell: ['colspan', 'rowspan', 'colwidth'],
-    tableHeader: ['colspan', 'rowspan', 'colwidth'],
+    tableCell: ['colspan', 'rowspan', 'colwidth', 'align'],
+    tableHeader: ['colspan', 'rowspan', 'colwidth', 'align'],
     taskItem: ['checked'],
     textStyle: ['color'],
     highlight: ['color'],
@@ -85,6 +87,7 @@ const tableCellAttrsSchema = z
     colspan: z.number().int().positive().optional(),
     rowspan: z.number().int().positive().optional(),
     colwidth: z.array(z.number().int().positive().nullable()).nullable().optional(),
+    align: alignSchema,
   })
   .strict();
 const imageAttrsSchema = z
@@ -110,6 +113,7 @@ const linkAttrsSchema = z
     target: z.enum(['_blank', '_self', '_parent', '_top']).nullable().optional(),
     rel: z.string().nullable().optional(),
     class: z.string().nullable().optional(),
+    title: z.string().nullable().optional(),
   })
   .strict();
 const textStyleAttrsSchema = z.object({ color: colorSchema }).strict();
@@ -327,27 +331,6 @@ function rejectContent(node: CanonicalJsonNode, ctx: z.RefinementCtx): void {
       message: `${node.type} nodes cannot contain child nodes`,
       path: ['content'],
     });
-  }
-}
-
-function isSafeLinkHref(value: string): boolean {
-  return isSafeUrl(value, ['http:', 'https:', 'mailto:']);
-}
-
-function isSafeImageSource(value: string): boolean {
-  return isSafeUrl(value, ['http:', 'https:']);
-}
-
-function isSafeUrl(value: string, protocols: string[]): boolean {
-  if (value.startsWith('/') || value.startsWith('./') || value.startsWith('../')) {
-    return true;
-  }
-
-  try {
-    const parsedUrl = new URL(value);
-    return protocols.includes(parsedUrl.protocol);
-  } catch {
-    return false;
   }
 }
 

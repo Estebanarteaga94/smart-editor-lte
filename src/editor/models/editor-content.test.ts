@@ -101,6 +101,7 @@ const validContent: CanonicalEditorContent = {
                 colspan: 1,
                 rowspan: 1,
                 colwidth: null,
+                align: null,
               },
               content: [{ type: 'paragraph' }],
             },
@@ -110,6 +111,7 @@ const validContent: CanonicalEditorContent = {
                 colspan: 1,
                 rowspan: 1,
                 colwidth: [120],
+                align: null,
               },
               content: [{ type: 'paragraph' }],
             },
@@ -204,6 +206,31 @@ describe('canonical editor content schema', () => {
         ],
       }),
     ).toThrow();
+
+    for (const href of [
+      'data:text/html,alert(1)',
+      'tel:123456',
+      '//evil.example/payload',
+      'java\nscript:alert(1)',
+    ]) {
+      expect(() =>
+        parseCanonicalEditorContent({
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: 'Link',
+                  marks: [{ type: 'link', attrs: { href } }],
+                },
+              ],
+            },
+          ],
+        }),
+      ).toThrow();
+    }
   });
 
   it('rejects unsafe or unknown attributes', () => {

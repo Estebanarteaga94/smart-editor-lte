@@ -235,27 +235,28 @@ Objetivo medible: el editor soporta marcas y bloques frecuentes sin romper seria
 
 > Dependencia: requiere Fase 1.4 completa y toolbar base de Fase 1.6 disponible.
 
-- [ ] Agregar tachado.
+- [x] Agregar tachado.
   - Criterio: toolbar permite activar/desactivar tachado y el estado se persiste.
-- [ ] Agregar color de texto.
+- [x] Agregar color de texto.
   - Criterio: se puede seleccionar color, aplicarlo, removerlo y persistirlo.
-- [ ] Agregar resaltado.
+  - Nota: el selector de color quedo extraido como componente `text-color-picker.ts` y se muestra como popover tipo Office con `Automatico`, `Colores de tema`, `Colores estandar` y `Mas colores...` basado en input nativo `type="color"`.
+- [x] Agregar resaltado.
   - Criterio: se puede aplicar resaltado multicolor y eliminarlo.
-- [ ] Agregar alineacion izquierda, centro, derecha y justificada.
+- [x] Agregar alineacion izquierda, centro, derecha y justificada.
   - Criterio: funciona sobre parrafos y encabezados.
-- [ ] Agregar citas.
+- [x] Agregar citas.
   - Criterio: se puede convertir un bloque en cita y volver a parrafo.
-- [ ] Agregar separador horizontal.
+- [x] Agregar separador horizontal.
   - Criterio: toolbar inserta separador y se persiste en JSON/HTML.
-- [ ] Agregar bloques de codigo.
+- [x] Agregar bloques de codigo.
   - Criterio: se puede insertar y editar bloque de codigo sin perder formato.
-- [ ] Configurar placeholder.
+- [x] Configurar placeholder.
   - Criterio: el editor vacio muestra texto de ayuda configurable.
-- [ ] Implementar links configurables.
+- [x] Implementar links configurables.
   - Criterio: crear, editar y eliminar link con validacion de URL/protocolo.
-- [ ] Impedir protocolos inseguros en enlaces.
+- [x] Impedir protocolos inseguros en enlaces.
   - Criterio: `javascript:` y protocolos no permitidos no quedan persistidos.
-- [ ] Validar build despues de formato avanzado.
+- [x] Validar build despues de formato avanzado.
   - Criterio: `npm run build` termina correctamente.
 
 ## Fase 3 - Tablas
@@ -264,32 +265,48 @@ Objetivo medible: el usuario puede crear y modificar tablas completas desde la U
 
 > Dependencia: requiere Fase 1.4, Fase 1.6 y Fase 1.7 completas para validar comandos, UI y persistencia.
 
-- [ ] Implementar `table-commands.ts`.
+- [x] Implementar `table-commands.ts`.
   - Criterio: expone funciones tipadas para insertar tabla, filas, columnas, encabezados, combinar, separar y eliminar.
-- [ ] Agregar boton para insertar tabla 3x3 con encabezado.
+- [x] Agregar boton para insertar tabla 3x3 con encabezado.
   - Criterio: se inserta tabla funcional en la posicion del cursor; JSON contiene `table`, `tableRow`, `tableHeader` y `tableCell`, y HTML renderiza una tabla.
-- [ ] Agregar controles para agregar fila antes y despues.
+- [x] Agregar controles para agregar fila antes y despues.
   - Criterio: funcionan dentro de una tabla y se deshabilitan fuera de tabla.
-- [ ] Agregar controles para eliminar fila.
+  - Nota: por decision de UI, estos controles no deben quedar como botones individuales de toolbar; deben implementarse en `table-menu.ts` o en un unico control agrupado de comandos de tabla.
+  - Nota: implementado en `table-menu.ts` como menu contextual parcial para filas.
+- [x] Agregar controles para eliminar fila.
   - Criterio: elimina la fila actual y maneja ultima fila sin error.
-- [ ] Agregar controles para agregar columna antes y despues.
+  - Nota: por decision de UI, este control no debe quedar como boton individual de toolbar; debe implementarse en `table-menu.ts` o en un unico control agrupado de comandos de tabla.
+  - Nota: implementado en `table-menu.ts`; el boton se deshabilita cuando la tabla actual solo tiene una fila.
+- [x] Agregar controles para agregar columna antes y despues.
   - Criterio: funcionan dentro de una tabla y se deshabilitan fuera de tabla.
-- [ ] Agregar controles para eliminar columna.
+  - Nota: implementado en `table-menu.ts` como controles contextuales de tabla.
+- [x] Agregar controles para eliminar columna.
   - Criterio: elimina la columna actual y maneja ultima columna sin error.
-- [ ] Agregar control para eliminar tabla.
+  - Nota: implementado en `table-menu.ts`; el boton se deshabilita cuando la tabla actual solo tiene una columna.
+- [x] Agregar control para eliminar tabla.
   - Criterio: remueve la tabla completa sin afectar bloques externos.
-- [ ] Agregar control para alternar fila de encabezado.
+  - Nota: implementado en `table-menu.ts`; el boton aparece en el menu contextual y usa `tableCommands.deleteTable`.
+- [x] Agregar control para alternar fila de encabezado.
   - Criterio: la primera fila cambia entre header y fila normal.
-- [ ] Agregar combinar celdas.
+  - Nota: implementado en `table-menu.ts` con `toggle-header-row`; alterna la fila seleccionada y queda validado sobre la primera fila.
+- [x] Agregar combinar celdas.
   - Criterio: combina seleccion rectangular valida y mantiene contenido.
-- [ ] Agregar separar celdas.
+  - Nota: implementado en `table-menu.ts` con `merge-cells`; solo se habilita con seleccion rectangular valida y conserva el texto de las celdas combinadas.
+  - Nota: las celdas seleccionadas se resaltan visualmente con la clase `selectedCell` para que el usuario vea con claridad que rango se va a combinar.
+- [x] Agregar separar celdas.
   - Criterio: divide una celda combinada sin romper la tabla.
-- [ ] Activar redimensionamiento de columnas.
+  - Nota: implementado en `table-menu.ts` con `split-cell`; solo se habilita sobre una celda combinada y restaura la estructura de la fila.
+- [x] Activar redimensionamiento de columnas.
   - Criterio: las columnas se pueden redimensionar y el resultado persiste.
-- [ ] Implementar `table-menu.ts`.
+  - Nota: `Table.configure` activa `resizable` con `handleWidth`, `cellMinWidth` y `lastColumnResizable`; el JSON conserva `colwidth` y el HTML sanitizado conserva `colgroup`/`col` para renderizar anchos.
+- [x] Implementar `table-menu.ts`.
   - Criterio: controles de tabla aparecen de forma contextual al estar dentro de una tabla.
-- [ ] Probar persistencia de tabla.
+  - Nota: cerrado por consolidacion; `table-menu.ts` muestra los comandos contextuales de tabla dentro de un grupo desplegable.
+  - Nota: por ajuste de diseño, los comandos se agruparon bajo un unico disparador de icono para evitar una segunda fila de botones.
+  - Nota: por ajuste de UI, el disparador queda siempre visible en la toolbar normal, sin texto, y se deshabilita fuera de tabla.
+- [x] Probar persistencia de tabla.
   - Criterio: guardar y recargar conserva filas, columnas, encabezados, merges y anchos.
+  - Nota: validado con prueba de integracion que guarda y recarga una tabla con encabezados, celdas combinadas y `colwidth`; el serializer completa atributos estructurales de tabla desde el JSON canonico antes y despues de sanitizar.
 
 ## Fase 4 - Imagenes y assets
 
@@ -297,12 +314,15 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 
 > Dependencia: requiere Fase 1.7 para persistencia, Fase 8 para contrato de assets y Fase 9 para reglas de seguridad.
 
-- [ ] Implementar `resizable-image.extension.ts`.
+- [x] Implementar `resizable-image.extension.ts`.
   - Criterio: soporta `src`, `alt`, `width`, `height` y `align`.
-- [ ] Implementar `file-validator.ts`.
+  - Nota: implementado extendiendo la extension `Image` de Tiptap sin cambiar el tipo canonico `image`; activa resize y conserva `src`, `alt`, `title`, `width`, `height` y `align`.
+- [x] Implementar `file-validator.ts`.
   - Criterio: acepta PNG, JPG/JPEG y WEBP, rechaza otros MIME y limita a 5 MB por defecto.
-- [ ] Implementar `media-upload.service.ts`.
+  - Nota: `validateImageFile` valida PNG, JPEG y WEBP por MIME, rechaza formatos no permitidos, aplica limite por defecto de 5 MB y permite opciones configurables para servicios futuros.
+- [x] Implementar `media-upload.service.ts`.
   - Criterio: valida archivo, hace `POST /api/documents/{documentId}/assets/images` y devuelve `id`, `url`, `altText`.
+  - Nota: `createHttpMediaUploadService` valida imagenes con `validateImageFile`, envia `FormData` por `POST`, conserva `altText` opcional, parsea la respuesta como `EditorAsset` y permite `baseUrl`/`fetch` inyectables.
 - [ ] Crear dialogo de insercion de imagen.
   - Criterio: permite seleccionar archivo, escribir texto alternativo y confirmar/cancelar.
 - [ ] Insertar imagen subida en el editor.
