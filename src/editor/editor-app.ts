@@ -113,6 +113,7 @@ export async function mountEditorApp({
   toolbar.element.append(tableMenu.element);
   shell.root.append(imageDialog.element);
   registerImageDropUpload();
+  registerImagePasteUpload();
   lifecycle.addEventListener(window, 'beforeunload', () => {
     lifecycle.dispose();
   });
@@ -238,6 +239,27 @@ export async function mountEditorApp({
       return null;
     }
   }
+
+  function registerImagePasteUpload(): void {
+    lifecycle.addEventListener(shell.editable, 'paste', handleImagePaste, {
+      capture: true,
+    });
+  }
+
+  function handleImagePaste(event: ClipboardEvent): void {
+    const file = getFirstPastedImageFile(event);
+
+    if (!file) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { from, to } = editor.state.selection;
+    preservedImageSelection = { from, to };
+    void insertUploadedImage(file, '');
+  }
 }
 
 function hasDraggedFiles(event: DragEvent): boolean {
@@ -258,6 +280,28 @@ function getFirstDroppedFile(event: DragEvent): File | null {
   }
 
   return files[0] ?? null;
+}
+
+function getFirstPastedImageFile(event: ClipboardEvent): File | null {
+  const items = event.clipboardData?.items;
+
+  if (!items) {
+    return null;
+  }
+
+  for (const item of Array.from(items)) {
+    if (item.kind !== 'file' || !item.type.startsWith('image/')) {
+      continue;
+    }
+
+    const file = item.getAsFile();
+
+    if (file) {
+      return file;
+    }
+  }
+
+  return null;
 }
 
 function createDefaultDocumentContent(title: string): JSONContent {

@@ -333,8 +333,9 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Soportar drag and drop de imagenes.
   - Criterio: soltar una imagen valida la sube e inserta; archivos invalidos muestran error.
   - Nota: el area editable acepta archivos soltados, valida/sube mediante `MediaUploadService`, inserta el nodo `image` con la URL retornada y muestra `Error` sin insertar imagen cuando el archivo no es valido.
-- [ ] Soportar pegado desde portapapeles.
+- [x] Soportar pegado desde portapapeles.
   - Criterio: pegar una imagen valida la sube e inserta sin bloquear texto pegado normal.
+  - Nota: el area editable intercepta `paste` solo cuando el portapapeles trae un archivo de imagen, lo sube mediante `MediaUploadService`, inserta el nodo `image` y deja pasar el pegado normal cuando no hay imagen.
 - [ ] Agregar alineacion de imagen.
   - Criterio: izquierda, centro y derecha se reflejan visualmente y en atributos.
 - [ ] Agregar ancho y alto editables.

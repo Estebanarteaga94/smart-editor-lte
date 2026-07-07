@@ -871,6 +871,108 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('uploads an image pasted from the clipboard and inserts the returned URL', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble({
+      url: 'https://cdn.example.com/assets/pasted.png',
+    });
+    const file = createImageFile('pasted.png', 'image/png');
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-image-paste',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Antes del pegado</p>');
+
+    const pasteEvent = dispatchClipboardEvent(getImageDropTarget(appRoot), [createFileItem(file)]);
+    await flushPromises();
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(mediaUploadDouble.uploadImage).toHaveBeenCalledWith('doc-image-paste', file, '');
+    expect(mountedApp.editor.getJSON().content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'image',
+          attrs: expect.objectContaining({
+            src: 'https://cdn.example.com/assets/pasted.png',
+            alt: '',
+          }),
+        }),
+      ]),
+    );
+    expect(mountedApp.editor.getHTML()).toContain(
+      '<img src="https://cdn.example.com/assets/pasted.png" alt="">',
+    );
+    expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
+      src: 'https://cdn.example.com/assets/pasted.png',
+    });
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+  });
+
+  it('does not block normal text paste when the clipboard has no image files', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble({
+      url: 'https://cdn.example.com/assets/unused.png',
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-text-paste',
+    });
+    mountedApps.add(mountedApp);
+
+    const pasteEvent = dispatchClipboardEvent(getImageDropTarget(appRoot), [
+      createTextItem('Texto normal'),
+    ]);
+
+    expect(pasteEvent.defaultPrevented).toBe(false);
+    expect(mediaUploadDouble.uploadImage).not.toHaveBeenCalled();
+  });
+
+  it('shows Error and does not insert an image when the pasted image is invalid', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const invalidFile = new File([new Uint8Array(128)], 'animation.gif', {
+      type: 'image/gif',
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-invalid-image-paste',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Sin imagen pegada</p>');
+
+    const pasteEvent = dispatchClipboardEvent(getImageDropTarget(appRoot), [
+      createFileItem(invalidFile),
+    ]);
+    await flushPromises();
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Error');
+    expect(mountedApp.editor.getHTML()).toBe('<p>Sin imagen pegada</p>');
+    expect(mountedApp.editor.getJSON().content).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'image',
+        }),
+      ]),
+    );
+  });
+
   it('mounts the table command group inside the normal toolbar', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
@@ -1265,6 +1367,49 @@ function dispatchFileDragEvent(
   target.dispatchEvent(event);
 
   return event;
+}
+
+interface ClipboardItemDouble {
+  kind: 'file' | 'string';
+  type: string;
+  getAsFile: () => File | null;
+}
+
+function dispatchClipboardEvent(target: HTMLElement, items: readonly ClipboardItemDouble[]): Event {
+  const event = new Event('paste', {
+    bubbles: true,
+    cancelable: true,
+  });
+
+  Object.defineProperty(event, 'clipboardData', {
+    configurable: true,
+    value: {
+      items,
+    },
+  });
+
+  target.dispatchEvent(event);
+
+  return event;
+}
+
+function createFileItem(file: File): ClipboardItemDouble {
+  return {
+    kind: 'file',
+    type: file.type,
+    getAsFile: () => file,
+  };
+}
+
+function createTextItem(text: string): ClipboardItemDouble {
+  return {
+    kind: 'string',
+    type: 'text/plain',
+    getAsFile: () => {
+      void text;
+      return null;
+    },
+  };
 }
 
 function deleteUrlCreateObjectUrl(): void {

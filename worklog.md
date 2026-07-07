@@ -3701,6 +3701,52 @@ Pendientes inmediatos:
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Pegado de imagenes desde portapapeles
+
+Objetivo:
+
+- Cerrar la tarea de Fase 4: soportar pegado desde portapapeles.
+
+Acciones realizadas:
+
+- Se agrego un listener `paste` sobre el area editable usando `EditorLifecycle`.
+- El listener intercepta el evento solo cuando `clipboardData.items` contiene un archivo de imagen.
+- Al pegar una imagen, se conserva la seleccion actual y se reutiliza `MediaUploadService` junto con `editorCommands.insertImage`.
+- El pegado normal de texto queda sin interceptar cuando el portapapeles no trae imagenes.
+- Las imagenes no permitidas muestran estado `Error` y no insertan nodos rotos.
+- Se agregaron pruebas de integracion para imagen pegada valida, pegado normal de texto e imagen pegada invalida.
+- Se marco la tarea `Soportar pegado desde portapapeles` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 23 pruebas correctas.
+- Se ejecuto `npx prettier --write src/editor/editor-app.ts src/editor/editor-app.test.ts`.
+- Resultado: `editor-app.test.ts` quedo formateado; `editor-app.ts` ya estaba en formato.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 19 archivos de prueba correctos, 141 pruebas correctas.
+- Se levanto `npm run dev -- --host 127.0.0.1 --port 4174` y se ejecuto una prueba Playwright manual automatizada disparando un `ClipboardEvent` con PNG.
+- Resultado Playwright: el editor inserto un `img` con `src="blob:http://127.0.0.1:4174/..."`, `complete: true`, `naturalWidth: 1`, `naturalHeight: 1` y estado `Guardado`.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit obligatorio porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar alineacion de imagen.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Correccion de insercion visible de imagen local
 
 Objetivo:
