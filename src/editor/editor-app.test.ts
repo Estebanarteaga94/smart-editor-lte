@@ -87,15 +87,48 @@ describe('mountEditorApp', () => {
       }),
     );
   });
+
+  it('shows Error and keeps editor content when saving fails', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null, {
+      saveError: new Error('Network error'),
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-failing-save',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Contenido no guardado</p>');
+    const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
+    saveButton?.click();
+
+    await flushPromises();
+
+    const statusBar = appRoot.querySelector<HTMLElement>('.editor-shell__status');
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledOnce();
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Error');
+    expect(statusBar?.dataset.saveStatus).toBe('error');
+    expect(mountedApp.editor.getHTML()).toBe('<p>Contenido no guardado</p>');
+  });
 });
 
-function createStorageDouble(loadedDocument: DocumentStoragePayload | null): {
+function createStorageDouble(
+  loadedDocument: DocumentStoragePayload | null,
+  options: { saveError?: Error } = {},
+): {
   service: DocumentStorageService;
   loadDocument: ReturnType<typeof vi.fn<() => Promise<DocumentStoragePayload | null>>>;
   saveDocument: ReturnType<typeof vi.fn<() => Promise<void>>>;
 } {
   const loadDocument = vi.fn(() => Promise.resolve(loadedDocument));
-  const saveDocument = vi.fn(() => Promise.resolve());
+  const saveDocument = vi.fn(() =>
+    options.saveError ? Promise.reject(options.saveError) : Promise.resolve(),
+  );
 
   return {
     service: {
@@ -105,4 +138,10 @@ function createStorageDouble(loadedDocument: DocumentStoragePayload | null): {
     loadDocument,
     saveDocument,
   };
+}
+
+function flushPromises(): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, 0);
+  });
 }

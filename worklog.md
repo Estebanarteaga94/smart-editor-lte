@@ -1680,3 +1680,45 @@ Pendientes inmediatos:
 
 - Manejar error de guardado.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-07 - Manejo de error de guardado
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 1.7: manejar error de guardado.
+
+Acciones realizadas:
+
+- Se verifico el flujo existente de `mountEditorApp`: el guardado manual envuelve `storage.saveDocument` en `try/catch`.
+- El estado visual cambia a `Guardando` antes del intento y a `Error` cuando `saveDocument` rechaza.
+- Se agrego prueba unitaria para simular un fallo de red, respuesta no OK o excepcion mediante un storage que rechaza el guardado.
+- La prueba confirma que el estado visible queda en `Error`.
+- La prueba confirma que `data-save-status` queda en `error`.
+- La prueba confirma que el contenido actual del editor no se pierde despues del fallo.
+- Se marco la tarea como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 11 archivos de prueba correctos, 55 pruebas correctas.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio completa Fase 1.7 y esta cubierto por pruebas y check.
+
+Pendientes inmediatos:
+
+- Implementar vista de renderizado basica.
+- Continuar con Fase 1.8 en orden.

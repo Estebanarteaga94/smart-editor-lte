@@ -215,7 +215,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
   - Criterio: ningun guardado persiste solo HTML.
 - [x] Implementar carga de documento existente.
   - Criterio: al recargar la pagina se restaura contenido guardado.
-- [ ] Manejar error de guardado.
+- [x] Manejar error de guardado.
   - Criterio: fallo de red, respuesta no OK o excepcion muestra estado `Error` sin perder contenido local.
 
 ### 1.8 Renderizado de contenido guardado
