@@ -389,8 +389,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Manejar errores de formateo HTML.
   - Criterio: HTML que Prettier no puede formatear muestra mensaje amigable y conserva intacto el contenido de CodeMirror.
   - Nota: `formatActiveSourceHtml` muestra un mensaje accionable en la barra de estado, no reemplaza `SourceView` cuando el resultado es `ok: false` y tambien conserva el contenido si el servicio rechaza inesperadamente.
-- [ ] Probar formateo de HTML fuente.
+- [x] Probar formateo de HTML fuente.
   - Criterio: una prueba automatizada cubre HTML desordenado -> HTML formateado, y otra cubre error de formato sin perdida de contenido.
+  - Nota: `html-format.service.test.ts` cubre el servicio con HTML desordenado y error sin modificar el original; `editor-app.test.ts` cubre el flujo de `source-html`, reemplazo de CodeMirror y preservacion del contenido ante error.
 - [ ] Agregar modo `source-json`.
   - Criterio: muestra JSON formateado actual y permite editarlo.
 - [ ] Implementar validacion de JSON.

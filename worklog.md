@@ -4793,3 +4793,45 @@ Decision Git:
 Pendientes inmediatos:
 
 - Probar formateo de HTML fuente.
+
+## 2026-07-07 - Pruebas de formateo HTML fuente
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: probar formateo de HTML fuente.
+
+Acciones realizadas:
+
+- Se reviso la cobertura existente de `src/editor/services/html-format.service.test.ts`.
+- La prueba del servicio cubre HTML desordenado convertido a HTML formateado mediante Prettier.
+- La prueba del servicio cubre error de formato y confirma que el HTML original no se modifica.
+- Se reviso la cobertura existente de `src/editor/editor-app.test.ts`.
+- Las pruebas de integracion cubren el boton `format-html` en `source-html`, reemplazo del contenido de CodeMirror y preservacion del contenido ante error de formato.
+- No se agrego codigo nuevo porque el criterio de esta tarea ya estaba cubierto por las pruebas creadas en las tareas previas y quedo verificado de nuevo en esta sesion.
+- Se marco `Probar formateo de HTML fuente` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/html-format.service.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 32 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 24 archivos de prueba correctos, 173 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; Prettier sigue en chunks diferidos `standalone` y `html`, y el bundle principal reportado fue 1,051.99 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar modo `source-json`.
