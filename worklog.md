@@ -1289,3 +1289,52 @@ Pendientes inmediatos:
 
 - Implementar `serializer.service.ts` como tarea formal de Fase 1.7.
 - Continuar con Fase 1.7 en orden.
+
+## 2026-07-06 - Implementacion formal de serializer.service.ts
+
+Objetivo:
+
+- Cerrar la primera tarea pendiente de Fase 1.7: implementar `serializer.service.ts`.
+
+Acciones realizadas:
+
+- Se amplio `serializer.service.ts` con funciones explicitas para obtener JSON canonico y HTML renderizable desde una instancia de Tiptap.
+- Se agrego `getCanonicalEditorJson(editor)` para validar `editor.getJSON()` con el schema canonico antes de devolverlo.
+- Se agrego `getRenderableEditorHtml(editor)` para devolver el HTML renderizable generado por Tiptap.
+- Se mantuvo `serializeEditorContent(editor)` como funcion combinada usada por el guardado actual.
+- Se agrego `createSerializerService(editor)` para exponer las operaciones como servicio ligado a una instancia de editor.
+- Se agregaron pruebas unitarias propias del serializer, incluyendo JSON valido, JSON fuera del schema, HTML renderizable, serializacion combinada y factory de servicio.
+
+Archivos creados:
+
+- `src/editor/services/serializer.service.test.ts`
+
+Archivos modificados:
+
+- `src/editor/services/serializer.service.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test`.
+- Resultado: 10 archivos de prueba correctos, 40 pruebas correctas.
+- Se ejecuto `npm run lint`.
+- Resultado: ESLint termino correctamente.
+- Se ejecuto `npm run build`.
+- Resultado: build correcto con Vite y TypeScript estricto.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+
+Decision Git:
+
+- Se evaluo crear commit al cerrar la tarea.
+- Se creo commit porque el cambio cierra una tarea formal de Fase 1.7 y esta cubierto por pruebas, lint, build y check.
+
+Pendientes inmediatos:
+
+- Implementar `document-storage.service.ts` con `saveDocument(documentId, payload)` usando `PUT /api/documents/{id}`.
+- Continuar con Fase 1.7 en orden.

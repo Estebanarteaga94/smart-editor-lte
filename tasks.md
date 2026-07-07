@@ -202,7 +202,7 @@ Objetivo medible: montar, cambiar vista y desmontar el editor no deja instancias
 
 ### 1.7 Persistencia MVP
 
-- [ ] Implementar `serializer.service.ts`.
+- [x] Implementar `serializer.service.ts`.
   - Criterio: expone funciones para obtener JSON canonico y HTML renderizable desde el editor.
 - [ ] Implementar `document-storage.service.ts`.
   - Criterio: contiene `saveDocument(documentId, payload)` con `PUT /api/documents/{id}`.
