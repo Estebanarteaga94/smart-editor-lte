@@ -3808,7 +3808,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque el ajuste de UI queda verificado y documentado.
-- Commit creado: pendiente de registrar tras crear el commit.
+- Commit creado: `3fc93f2` Evitar solape del dialogo de imagen.
 
 Pendientes inmediatos:
 
