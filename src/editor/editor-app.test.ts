@@ -1584,12 +1584,97 @@ describe('mountEditorApp', () => {
     expect(htmlFormatDouble.formatHtml).toHaveBeenCalledWith('<ul><li>Uno</li><li>Dos</li></ul>');
     expect(sourceView?.getValue()).toBe('<ul>\n  <li>Uno</li>\n  <li>Dos</li>\n</ul>\n');
     expect(mountedApp.getSourceHtmlValue()).toBe('<ul>\n  <li>Uno</li>\n  <li>Dos</li>\n</ul>\n');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('HTML formateado');
 
     sourceHtmlButton?.click();
     await flushPromises();
 
     expect(formatHtmlButton?.hidden).toBe(true);
     expect(formatHtmlButton?.disabled).toBe(true);
+  });
+
+  it('shows a friendly source-html format error and keeps CodeMirror content intact', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const htmlFormatDouble = createHtmlFormatDouble('', {
+      formatError: 'Unexpected closing tag "div"',
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      htmlFormat: htmlFormatDouble.service,
+      documentId: 'doc-source-html-format-error',
+    });
+    mountedApps.add(mountedApp);
+
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const formatHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="format-html"]',
+    );
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+    const invalidHtml = '<div><span></div></span>';
+    sourceView?.setValue(invalidHtml);
+
+    formatHtmlButton?.click();
+    await flushPromises();
+
+    expect(htmlFormatDouble.formatHtml).toHaveBeenCalledWith(invalidHtml);
+    expect(sourceView?.getValue()).toBe(invalidHtml);
+    expect(mountedApp.getSourceHtmlValue()).toBe(invalidHtml);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'No se pudo formatear el HTML. Corrige la estructura de etiquetas e intenta de nuevo.',
+    );
+    expect(appRoot.querySelector('.editor-shell__status')?.getAttribute('data-save-status')).toBe(
+      'error',
+    );
+  });
+
+  it('keeps source-html content intact when the formatter service rejects unexpectedly', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const htmlFormatDouble = createHtmlFormatDouble('', {
+      rejectError: new Error('Formatter unavailable'),
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      htmlFormat: htmlFormatDouble.service,
+      documentId: 'doc-source-html-format-reject',
+    });
+    mountedApps.add(mountedApp);
+
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const formatHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="format-html"]',
+    );
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+    const currentHtml = '<p>Contenido sin cambios</p>';
+    sourceView?.setValue(currentHtml);
+
+    formatHtmlButton?.click();
+    await flushPromises();
+
+    expect(sourceView?.getValue()).toBe(currentHtml);
+    expect(mountedApp.getSourceHtmlValue()).toBe(currentHtml);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'No se pudo formatear el HTML. Corrige la estructura de etiquetas e intenta de nuevo.',
+    );
   });
 });
 
@@ -1648,19 +1733,34 @@ function createMediaUploadDouble(
   };
 }
 
-function createHtmlFormatDouble(formattedHtml: string): {
+function createHtmlFormatDouble(
+  formattedHtml: string,
+  options: { formatError?: string; rejectError?: Error } = {},
+): {
   service: HtmlFormatService;
   formatHtml: ReturnType<
     typeof vi.fn<(html: string) => Promise<Awaited<ReturnType<HtmlFormatService['formatHtml']>>>>
   >;
 } {
-  const formatHtml = vi.fn((_html: string) =>
-    Promise.resolve({
+  const formatHtml = vi.fn((_html: string) => {
+    if (options.rejectError) {
+      return Promise.reject(options.rejectError);
+    }
+
+    if (options.formatError) {
+      return Promise.resolve({
+        ok: false,
+        html: _html,
+        error: options.formatError,
+      } satisfies Awaited<ReturnType<HtmlFormatService['formatHtml']>>);
+    }
+
+    return Promise.resolve({
       ok: true,
       html: formattedHtml,
       error: null,
-    } satisfies Awaited<ReturnType<HtmlFormatService['formatHtml']>>),
-  );
+    } satisfies Awaited<ReturnType<HtmlFormatService['formatHtml']>>);
+  });
 
   return {
     service: {

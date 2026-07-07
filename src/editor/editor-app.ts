@@ -190,14 +190,20 @@ export async function mountEditorApp({
       return;
     }
 
-    const result = await htmlFormat.formatHtml(sourceView.getValue());
+    try {
+      const result = await htmlFormat.formatHtml(sourceView.getValue());
 
-    if (!result.ok) {
-      return;
+      if (!result.ok) {
+        shell.setSaveStatus('error', formatHtmlSourceError());
+        return;
+      }
+
+      sourceView.setValue(result.html);
+      sourceHtmlValue = result.html;
+      shell.setSaveStatus('unchanged', 'HTML formateado');
+    } catch {
+      shell.setSaveStatus('error', formatHtmlSourceError());
     }
-
-    sourceView.setValue(result.html);
-    sourceHtmlValue = result.html;
   }
 
   async function insertUploadedImage(file: File, altText: string): Promise<void> {
@@ -423,6 +429,10 @@ function formatImageUploadError(error: unknown): string {
   }
 
   return 'No se pudo subir la imagen. Revisa la conexion e intenta de nuevo.';
+}
+
+function formatHtmlSourceError(): string {
+  return 'No se pudo formatear el HTML. Corrige la estructura de etiquetas e intenta de nuevo.';
 }
 
 function isImageValidationError(message: string): boolean {

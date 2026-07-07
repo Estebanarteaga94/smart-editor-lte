@@ -4749,3 +4749,47 @@ Decision Git:
 Pendientes inmediatos:
 
 - Manejar errores de formateo HTML.
+
+## 2026-07-07 - Errores de formateo HTML fuente
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: manejar errores de formateo HTML.
+
+Acciones realizadas:
+
+- `formatActiveSourceHtml` ahora maneja respuestas `ok: false` de `HtmlFormatService`.
+- Si Prettier no puede formatear el HTML, la barra de estado muestra un mensaje amigable y accionable.
+- En error de formato no se llama a `SourceView.setValue`, por lo que el contenido de CodeMirror queda intacto.
+- Se agrego manejo de excepciones inesperadas del servicio para conservar el contenido fuente y mostrar el mismo mensaje controlado.
+- En formato exitoso se limpia el posible error previo con el mensaje `HTML formateado`.
+- Se agregaron pruebas de integracion para error `ok: false`, rechazo inesperado del servicio y preservacion del contenido fuente.
+- Se marco `Manejar errores de formateo HTML` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 29 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 24 archivos de prueba correctos, 173 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; Prettier sigue en chunks diferidos `standalone` y `html`, y el bundle principal reportado fue 1,051.99 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Probar formateo de HTML fuente.
