@@ -12,11 +12,19 @@ export type EditorImageCommand = (editor: Editor, attrs: EditorImageAttributes) 
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 export type TextAlignment = 'left' | 'center' | 'right' | 'justify';
 export type ImageAlignment = 'left' | 'center' | 'right';
+export type ImageDimensionValue = number | null;
 
 export interface EditorImageAttributes {
   src: string;
   alt?: string;
   title?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface EditorImageDimensionAttributes {
+  width?: ImageDimensionValue;
+  height?: ImageDimensionValue;
 }
 
 export interface EditorCommandRegistry {
@@ -38,6 +46,7 @@ export interface EditorCommandRegistry {
   setLink: EditorLinkCommand;
   unsetLink: EditorCommand;
   insertImage: EditorImageCommand;
+  setImageDimensions: (editor: Editor, attrs: EditorImageDimensionAttributes) => boolean;
   setImageAlignLeft: EditorCommand;
   setImageAlignCenter: EditorCommand;
   setImageAlignRight: EditorCommand;
@@ -73,6 +82,7 @@ export const editorCommands: EditorCommandRegistry = {
   setLink,
   unsetLink,
   insertImage,
+  setImageDimensions,
   setImageAlignLeft,
   setImageAlignCenter,
   setImageAlignRight,
@@ -180,6 +190,16 @@ export function insertImage(editor: Editor, attrs: EditorImageAttributes): boole
   return editor.chain().focus().setImage(attrs).run();
 }
 
+export function setImageDimensions(editor: Editor, attrs: EditorImageDimensionAttributes): boolean {
+  const dimensions = normalizeImageDimensions(attrs);
+
+  if (!dimensions) {
+    return false;
+  }
+
+  return editor.chain().focus().updateAttributes('image', dimensions).run();
+}
+
 export function setImageAlign(editor: Editor, alignment: ImageAlignment): boolean {
   return editor.chain().focus().updateAttributes('image', { align: alignment }).run();
 }
@@ -242,4 +262,32 @@ export function undo(editor: Editor): boolean {
 
 export function redo(editor: Editor): boolean {
   return editor.chain().focus().redo().run();
+}
+
+function normalizeImageDimensions(
+  attrs: EditorImageDimensionAttributes,
+): EditorImageDimensionAttributes | null {
+  const dimensions: EditorImageDimensionAttributes = {};
+
+  if ('width' in attrs) {
+    if (!isValidImageDimensionValue(attrs.width)) {
+      return null;
+    }
+
+    dimensions.width = attrs.width;
+  }
+
+  if ('height' in attrs) {
+    if (!isValidImageDimensionValue(attrs.height)) {
+      return null;
+    }
+
+    dimensions.height = attrs.height;
+  }
+
+  return Object.keys(dimensions).length > 0 ? dimensions : null;
+}
+
+function isValidImageDimensionValue(value: ImageDimensionValue | undefined): boolean {
+  return value === undefined || value === null || (Number.isFinite(value) && value > 0);
 }

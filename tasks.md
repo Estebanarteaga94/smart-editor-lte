@@ -339,8 +339,9 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
 - [x] Agregar alineacion de imagen.
   - Criterio: izquierda, centro y derecha se reflejan visualmente y en atributos.
   - Nota: los controles existentes de alineacion aplican sobre la imagen seleccionada; el JSON canonico conserva `attrs.align`, el HTML/preview conserva `align` sanitizado y el NodeView redimensionable refleja izquierda, centro y derecha visualmente.
-- [ ] Agregar ancho y alto editables.
+- [x] Agregar ancho y alto editables.
   - Criterio: el usuario puede cambiar dimensiones y estas se persisten.
+  - Nota: la toolbar muestra controles numericos de ancho y alto cuando hay una imagen seleccionada; los valores actualizan `width` y `height` en JSON canonico y HTML renderizable.
 - [ ] Evaluar caption opcional.
   - Criterio: decision documentada en `tasks.md` o documento tecnico; si se implementa, se crea tarea separada de implementacion.
 - [ ] Manejar errores de subida.

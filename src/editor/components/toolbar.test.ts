@@ -110,6 +110,12 @@ describe('createToolbar', () => {
     const insertImageButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="insert-image"]',
     );
+    const imageWidthInput = toolbar.element.querySelector<HTMLInputElement>(
+      '[data-toolbar-action="image-width"]',
+    );
+    const imageHeightInput = toolbar.element.querySelector<HTMLInputElement>(
+      '[data-toolbar-action="image-height"]',
+    );
 
     expect(blockFormatSelect).not.toBeNull();
     expect(blockFormatSelect?.getAttribute('aria-label')).toBe('Seleccionar formato de bloque');
@@ -168,6 +174,14 @@ describe('createToolbar', () => {
       '\ue80d',
     );
     expect(insertImageButton?.disabled).toBe(true);
+    expect(imageWidthInput).not.toBeNull();
+    expect(imageWidthInput?.type).toBe('number');
+    expect(imageWidthInput?.getAttribute('aria-label')).toBe('Ancho de imagen en pixeles');
+    expect(imageWidthInput?.disabled).toBe(true);
+    expect(imageHeightInput).not.toBeNull();
+    expect(imageHeightInput?.type).toBe('number');
+    expect(imageHeightInput?.getAttribute('aria-label')).toBe('Alto de imagen en pixeles');
+    expect(imageHeightInput?.disabled).toBe(true);
 
     linkTrigger?.click();
 
@@ -427,6 +441,12 @@ describe('createToolbar', () => {
     const alignJustifyButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="align-justify"]',
     );
+    const imageWidthInput = toolbar.element.querySelector<HTMLInputElement>(
+      '[data-toolbar-action="image-width"]',
+    );
+    const imageHeightInput = toolbar.element.querySelector<HTMLInputElement>(
+      '[data-toolbar-action="image-height"]',
+    );
 
     editor.commands.setContent({
       type: 'doc',
@@ -444,6 +464,42 @@ describe('createToolbar', () => {
     toolbar.updateState();
 
     expect(alignJustifyButton?.disabled).toBe(true);
+    expect(imageWidthInput?.disabled).toBe(false);
+    expect(imageHeightInput?.disabled).toBe(false);
+    expect(imageWidthInput?.value).toBe('');
+    expect(imageHeightInput?.value).toBe('');
+
+    if (imageWidthInput && imageHeightInput) {
+      imageWidthInput.value = '360';
+      imageHeightInput.value = '240';
+      imageWidthInput.dispatchEvent(new Event('change'));
+    }
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        width: 360,
+        height: 240,
+      },
+    });
+    expect(editor.getHTML()).toContain('width="360"');
+    expect(editor.getHTML()).toContain('height="240"');
+    expect(imageWidthInput?.value).toBe('360');
+    expect(imageHeightInput?.value).toBe('240');
+
+    if (imageWidthInput) {
+      imageWidthInput.value = '0';
+      imageWidthInput.dispatchEvent(new Event('change'));
+    }
+
+    expect(imageWidthInput?.getAttribute('aria-invalid')).toBe('true');
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        width: 360,
+        height: 240,
+      },
+    });
 
     alignCenterButton?.click();
     expect(editor.getJSON().content?.[0]).toMatchObject({

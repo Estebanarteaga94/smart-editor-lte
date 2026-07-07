@@ -3701,6 +3701,56 @@ Pendientes inmediatos:
 - Soportar pegado desde portapapeles.
 - Continuar con Fase 4 en orden.
 
+## 2026-07-07 - Ancho y alto editables para imagenes
+
+Objetivo:
+
+- Cerrar la tarea pendiente de Fase 4: agregar ancho y alto editables para imagenes.
+
+Acciones realizadas:
+
+- Se agrego el comando `setImageDimensions` para actualizar `width` y `height` de la imagen seleccionada.
+- Se mantuvo `insertImage` compatible con el tipo esperado por Tiptap, sin permitir `null` en la insercion inicial.
+- Se agrego en la toolbar un control compacto con dos inputs numericos para ancho y alto.
+- Los controles se habilitan solo cuando hay una imagen seleccionada y conservan la seleccion de nodo antes de aplicar cambios.
+- Los valores invalidos se marcan con `aria-invalid` y no reemplazan dimensiones previas.
+- Se agregaron estilos estables para los inputs dentro de la toolbar.
+- Se agregaron pruebas de comandos y toolbar para demostrar persistencia en JSON canonico y HTML renderizable.
+- Se marco la tarea correspondiente en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/core/editor-commands.ts`
+- `src/editor/components/toolbar.ts`
+- `src/style.css`
+- `src/editor/core/editor-commands.test.ts`
+- `src/editor/components/toolbar.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/core/editor-commands.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 15 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 9 pruebas correctas.
+- Se ejecuto `npm run check`.
+- Primer resultado: fallo de TypeScript porque `EditorImageAttributes` permitia `null` en `width`/`height` para `setImage`.
+- Se ajusto `EditorImageAttributes` para que la insercion inicial acepte solo numeros en dimensiones, y el comando de edicion conserve `null` para limpiar atributos existentes.
+- Se ejecuto nuevamente `npm run check`.
+- Resultado final: build, lint y tests terminaron correctamente; 19 archivos de prueba correctos, 147 pruebas correctas.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB ya documentada previamente.
+
+Decision Git:
+
+- Se crea commit porque la tarea queda completada, verificada y marcada como `[x]`.
+- Commit creado: pendiente de registrar tras crear el commit.
+
+Pendientes inmediatos:
+
+- Evaluar caption opcional.
+- Continuar con Fase 4 en orden.
+
 ## 2026-07-07 - Correccion de icono de insertar imagen
 
 Objetivo:

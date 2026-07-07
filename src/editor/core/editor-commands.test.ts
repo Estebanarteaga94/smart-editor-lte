@@ -22,6 +22,7 @@ import {
   setImageAlignCenter,
   setImageAlignLeft,
   setImageAlignRight,
+  setImageDimensions,
   setLink,
   setParagraph,
   setTextColor,
@@ -332,6 +333,53 @@ describe('editorCommands', () => {
     expect(editor.getJSON().content?.[0]).toMatchObject({
       type: 'image',
       attrs: { align: 'center' },
+    });
+  });
+
+  it('sets selected image dimensions in canonical JSON and renderable HTML', () => {
+    const editor = mountEditor();
+    editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: '/assets/image.png',
+            alt: 'Imagen',
+          },
+        },
+      ],
+    });
+    editor.commands.setNodeSelection(0);
+
+    expect(setImageDimensions(editor, { width: 360, height: 240 })).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        src: '/assets/image.png',
+        width: 360,
+        height: 240,
+      },
+    });
+    expect(editor.getHTML()).toContain('width="360"');
+    expect(editor.getHTML()).toContain('height="240"');
+
+    expect(setImageDimensions(editor, { width: -1 })).toBe(false);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        width: 360,
+        height: 240,
+      },
+    });
+
+    expect(setImageDimensions(editor, { width: null, height: null })).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'image',
+      attrs: {
+        width: null,
+        height: null,
+      },
     });
   });
 

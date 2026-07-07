@@ -5,6 +5,7 @@ import {
   setHeading,
   type EditorCommand,
   type HeadingLevel,
+  type ImageDimensionValue,
 } from '../core/editor-commands';
 import type { EditorLifecycle } from '../core/editor-lifecycle';
 import { tableCommands } from '../core/table-commands';
@@ -281,7 +282,20 @@ export function createToolbar({
       updateState();
     },
   });
+  const imageDimensionsControl = createImageDimensionsControl({
+    lifecycle,
+    onApply: ({ width, height }) => {
+      restorePreservedImageSelection();
+      const applied = editorCommands.setImageDimensions(editor, { width, height });
+      updateState();
+      return applied;
+    },
+    onFocus: () => {
+      preserveImageSelection();
+    },
+  });
   let preservedLinkSelection: { from: number; to: number } | null = null;
+  let preservedImageSelectionPosition: number | null = null;
   const linkPopover = createLinkPopover({
     lifecycle,
     onOpen: () => {
@@ -323,6 +337,10 @@ export function createToolbar({
         element.append(linkPopover.element);
       }
 
+      if (config.id === 'insert-image') {
+        element.append(imageDimensionsControl.element);
+      }
+
       element.append(createToolbarSeparator());
     }
 
@@ -355,6 +373,7 @@ export function createToolbar({
     const activeTextColor = getActiveTextColor(editor);
     const activeHighlightColor = getActiveHighlightColor(editor);
     const activeLinkHref = getActiveLinkHref(editor);
+    const activeImageDimensions = getActiveImageDimensions(editor);
 
     blockFormatSelect.disabled = controlsDisabled;
     blockFormatSelect.value = getActiveBlockFormat(editor);
@@ -365,6 +384,12 @@ export function createToolbar({
     linkPopover.setDisabled(controlsDisabled);
     linkPopover.setHref(activeLinkHref);
     linkPopover.setActive(editor.isActive('link'));
+    imageDimensionsControl.setDisabled(controlsDisabled || !activeImageDimensions);
+    imageDimensionsControl.setDimensions(activeImageDimensions);
+
+    if (activeImageDimensions) {
+      preserveImageSelection();
+    }
 
     for (const config of toolbarButtons) {
       const button = buttons.get(config.id);
@@ -414,6 +439,24 @@ export function createToolbar({
     }
 
     editor.commands.setTextSelection(preservedLinkSelection);
+  }
+
+  function preserveImageSelection(): void {
+    const imageSelectionPosition = getSelectedImagePosition(editor);
+
+    if (imageSelectionPosition === null) {
+      return;
+    }
+
+    preservedImageSelectionPosition = imageSelectionPosition;
+  }
+
+  function restorePreservedImageSelection(): void {
+    if (preservedImageSelectionPosition === null || editor.isDestroyed) {
+      return;
+    }
+
+    editor.commands.setNodeSelection(preservedImageSelectionPosition);
   }
 }
 
@@ -474,6 +517,129 @@ function createBlockFormatSelect(): HTMLSelectElement {
   return select;
 }
 
+interface ImageDimensionsControlOptions {
+  lifecycle: EditorLifecycle;
+  onApply: (dimensions: { width: ImageDimensionValue; height: ImageDimensionValue }) => boolean;
+  onFocus: () => void;
+}
+
+interface ImageDimensionsControl {
+  element: HTMLElement;
+  setDisabled: (disabled: boolean) => void;
+  setDimensions: (dimensions: ImageDimensions | null) => void;
+}
+
+interface ImageDimensions {
+  width: ImageDimensionValue;
+  height: ImageDimensionValue;
+}
+
+function createImageDimensionsControl({
+  lifecycle,
+  onApply,
+  onFocus,
+}: ImageDimensionsControlOptions): ImageDimensionsControl {
+  const element = document.createElement('div');
+  const widthInput = createImageDimensionInput('image-width', 'Ancho de imagen en pixeles', 'W');
+  const heightInput = createImageDimensionInput('image-height', 'Alto de imagen en pixeles', 'H');
+
+  element.className = 'editor-image-dimensions';
+  element.dataset.toolbarAction = 'image-dimensions';
+  element.append(widthInput, heightInput);
+
+  const applyDimensions = (): void => {
+    const width = parseImageDimensionInput(widthInput);
+    const height = parseImageDimensionInput(heightInput);
+
+    if (width === undefined || height === undefined) {
+      return;
+    }
+
+    onApply({ width, height });
+  };
+
+  for (const input of [widthInput, heightInput]) {
+    lifecycle.addEventListener(input, 'focus', onFocus);
+    lifecycle.addEventListener(input, 'change', applyDimensions);
+    lifecycle.addEventListener(input, 'keydown', (event) => {
+      if (event.key !== 'Enter') {
+        return;
+      }
+
+      event.preventDefault();
+      applyDimensions();
+    });
+  }
+
+  return {
+    element,
+    setDisabled: (disabled) => {
+      widthInput.disabled = disabled;
+      heightInput.disabled = disabled;
+      element.dataset.disabled = String(disabled);
+    },
+    setDimensions: (dimensions) => {
+      widthInput.value = formatImageDimensionInput(dimensions?.width);
+      heightInput.value = formatImageDimensionInput(dimensions?.height);
+      widthInput.removeAttribute('aria-invalid');
+      heightInput.removeAttribute('aria-invalid');
+    },
+  };
+}
+
+function createImageDimensionInput(
+  action: string,
+  ariaLabel: string,
+  placeholder: string,
+): HTMLInputElement {
+  const input = document.createElement('input');
+
+  input.type = 'number';
+  input.className = 'editor-image-dimensions__input';
+  input.dataset.toolbarAction = action;
+  input.min = '1';
+  input.step = '1';
+  input.inputMode = 'numeric';
+  input.placeholder = placeholder;
+  input.title = ariaLabel;
+  input.setAttribute('aria-label', ariaLabel);
+
+  return input;
+}
+
+function parseImageDimensionInput(input: HTMLInputElement): ImageDimensionValue | undefined {
+  const value = input.value.trim();
+
+  if (value.length === 0) {
+    input.removeAttribute('aria-invalid');
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    input.setAttribute('aria-invalid', 'true');
+    return undefined;
+  }
+
+  input.removeAttribute('aria-invalid');
+  return Math.round(numericValue);
+}
+
+function formatImageDimensionInput(value: ImageDimensionValue | string | undefined): string {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return String(Math.round(value));
+  }
+
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const numericValue = Number.parseFloat(value);
+
+  return Number.isFinite(numericValue) && numericValue > 0 ? String(Math.round(numericValue)) : '';
+}
+
 function applyBlockFormat(editor: Editor, value: BlockFormatValue): void {
   if (value === 'paragraph') {
     editorCommands.setParagraph(editor);
@@ -514,6 +680,49 @@ function getActiveLinkHref(editor: Editor): string | null {
 
 function isImageSelectionActive(editor: Editor): boolean {
   return editor.isActive('image');
+}
+
+function getActiveImageDimensions(editor: Editor): ImageDimensions | null {
+  if (!isImageSelectionActive(editor)) {
+    return null;
+  }
+
+  const attrs = editor.getAttributes('image') as {
+    width?: ImageDimensionValue | string;
+    height?: ImageDimensionValue | string;
+  };
+
+  return {
+    width: normalizeImageDimensionAttribute(attrs.width),
+    height: normalizeImageDimensionAttribute(attrs.height),
+  };
+}
+
+function normalizeImageDimensionAttribute(
+  value: ImageDimensionValue | string | undefined,
+): ImageDimensionValue {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+  }
+
+  const numericValue = Number.parseFloat(value);
+
+  return Number.isFinite(numericValue) && numericValue > 0 ? Math.round(numericValue) : null;
+}
+
+function getSelectedImagePosition(editor: Editor): number | null {
+  if (!isImageSelectionActive(editor)) {
+    return null;
+  }
+
+  const { selection } = editor.state;
+  const selectedNode = selection.$from.nodeAfter;
+
+  return selectedNode?.type.name === 'image' ? selection.from : null;
 }
 
 function isActiveImageAlignment(editor: Editor, alignment: 'left' | 'center' | 'right'): boolean {
