@@ -24,6 +24,7 @@ import {
   createLocalMediaUploadService,
   type MediaUploadService,
 } from './services/media-upload.service';
+import { createSanitizerService, type SanitizerService } from './services/sanitizer.service';
 import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
 import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
 
@@ -32,6 +33,7 @@ export interface MountEditorAppOptions {
   storage?: DocumentStorageService;
   mediaUpload?: MediaUploadService;
   htmlFormat?: HtmlFormatService;
+  sanitizer?: SanitizerService;
   documentId?: string;
   documentTitle?: string;
   placeholder?: string;
@@ -53,6 +55,7 @@ export async function mountEditorApp({
   storage = createLocalDocumentStorageService(),
   mediaUpload = createLocalMediaUploadService(),
   htmlFormat = createHtmlFormatService(),
+  sanitizer = createSanitizerService(),
   documentId = defaultEditorConfig.documentId,
   documentTitle = defaultDocumentTitle,
   placeholder = defaultEditorConfig.placeholder,
@@ -65,6 +68,7 @@ export async function mountEditorApp({
   const activeDocumentTitle = loadedDocument?.title ?? documentTitle;
   const preview = createPreviewView({
     html: loadedDocument?.contentHtml ?? '',
+    sanitizer,
   });
   let preservedImageSelection: { from: number; to: number } | null = null;
   let activeMode: EditorMode = 'wysiwyg';
@@ -123,7 +127,9 @@ export async function mountEditorApp({
     },
     onToggleSourceHtml: () => {
       if (activeMode === 'source-html') {
+        sanitizeActiveSourceHtml();
         showWysiwygMode();
+        shell.setSaveStatus('unchanged', 'HTML sanitizado');
         return;
       }
 
@@ -139,6 +145,7 @@ export async function mountEditorApp({
         return;
       }
 
+      sanitizeActiveSourceHtml();
       showSourceJsonMode();
     },
     onFormatHtml: () => {
@@ -243,6 +250,20 @@ export async function mountEditorApp({
       shell.setSaveStatus('unchanged', 'HTML formateado');
     } catch {
       shell.setSaveStatus('error', formatHtmlSourceError());
+    }
+  }
+
+  function sanitizeActiveSourceHtml(): void {
+    if (activeMode !== 'source-html') {
+      return;
+    }
+
+    const source = sourceView?.getValue() ?? sourceHtmlValue ?? '';
+    const sanitizedHtml = sanitizer.sanitizeHtml(source);
+    sourceHtmlValue = sanitizedHtml;
+
+    if (sourceView && sourceView.getValue() !== sanitizedHtml) {
+      sourceView.setValue(sanitizedHtml);
     }
   }
 

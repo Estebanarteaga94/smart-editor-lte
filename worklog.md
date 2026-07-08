@@ -4927,3 +4927,47 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar sanitizacion de HTML.
+
+## 2026-07-08 - Sanitizacion de HTML fuente
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: implementar sanitizacion de HTML en `source-html`.
+
+Acciones realizadas:
+
+- Se inyecto `SanitizerService` en `mountEditorApp` y se reutiliza tambien para `preview`.
+- Al salir de `source-html`, el valor actual de CodeMirror pasa por DOMPurify mediante `sanitizer.sanitizeHtml`.
+- El HTML sanitizado queda guardado en `sourceHtmlValue` antes de destruir la vista fuente o cambiar de modo.
+- El retorno a WYSIWYG muestra el estado `HTML sanitizado`.
+- No se sincronizo todavia el HTML editado hacia Tiptap porque esa es la siguiente tarea separada de Fase 5.
+- Se agrego prueba de integracion para HTML editado con `<script>`, eventos inline y `javascript:` antes de volver al editor visual.
+- Se marco `Implementar sanitizacion de HTML` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 32 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 24 archivos de prueba correctos, 176 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar validacion de HTML permitido.

@@ -1542,6 +1542,53 @@ describe('mountEditorApp', () => {
     expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
   });
 
+  it('sanitizes edited source-html before returning to the visual editor', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-source-html-sanitized',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Contenido original</p>');
+
+    const originalJson = mountedApp.editor.getJSON();
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const editableSlot = appRoot.querySelector<HTMLElement>('.editor-shell__editable');
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+    sourceView?.setValue(
+      '<p onclick="alert(1)">Seguro</p><img src="/ok.png" onerror="alert(1)"><script>alert(1)</script><a href="javascript:alert(1)">Link</a>',
+    );
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    const sanitizedHtml = mountedApp.getSourceHtmlValue() ?? '';
+
+    expect(mountedApp.getActiveMode()).toBe('wysiwyg');
+    expect(mountedApp.getSourceView()).toBeNull();
+    expect(editableSlot?.hidden).toBe(false);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('HTML sanitizado');
+    expect(sanitizedHtml).toContain('<p>Seguro</p>');
+    expect(sanitizedHtml).toContain('<img src="/ok.png">');
+    expect(sanitizedHtml).toContain('<a>Link</a>');
+    expect(sanitizedHtml).not.toContain('<script');
+    expect(sanitizedHtml).not.toContain('onclick');
+    expect(sanitizedHtml).not.toContain('onerror');
+    expect(sanitizedHtml).not.toContain('javascript:');
+    expect(mountedApp.editor.getJSON()).toEqual(originalJson);
+  });
+
   it('shows formatted JSON in source-json mode and allows editing it', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

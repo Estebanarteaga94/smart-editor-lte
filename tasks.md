@@ -398,8 +398,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Implementar validacion de JSON.
   - Criterio: JSON invalido o fuera del schema permitido muestra error y no reemplaza el documento.
   - Nota: `source-json` valida cada cambio y antes de salir de la vista; si hay JSON mal formado o fuera del schema permitido, muestra el error en la barra de estado, conserva el modo JSON y no reemplaza el documento actual.
-- [ ] Implementar sanitizacion de HTML.
+- [x] Implementar sanitizacion de HTML.
   - Criterio: HTML editado pasa por DOMPurify antes de volver a Tiptap.
+  - Nota: al salir de `source-html`, el valor editado pasa por `SanitizerService`/DOMPurify, se conserva como HTML sanitizado y se vuelve al editor visual sin sincronizar todavia el contenido hacia Tiptap.
 - [ ] Implementar validacion de HTML permitido.
   - Criterio: scripts, eventos inline, iframes no permitidos y protocolos inseguros se eliminan o bloquean.
 - [ ] Sincronizar HTML editado hacia WYSIWYG.
