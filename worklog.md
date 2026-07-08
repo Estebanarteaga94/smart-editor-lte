@@ -4972,3 +4972,39 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar validacion de HTML permitido.
+
+## 2026-07-08 - Tareas para normalizacion de pegado Word/Excel
+
+Objetivo:
+
+- Corregir el backlog porque el contenido copiado desde Word y Excel sera un flujo comun y no estaba representado como tarea explicita.
+
+Acciones realizadas:
+
+- Se agrego `Normalizacion de contenido pegado desde Word y Excel` al alcance funcional de `context.md`.
+- Se agrego la Fase 5.1 en `context.md` para documentar que Word/Excel requiere deteccion, normalizacion y conversion hacia JSON canonico.
+- Se agrego una subfase `5.1 Normalizacion de contenido pegado desde Word/Excel` en `tasks.md`.
+- La nueva subfase incluye contrato de normalizador, servicio `paste-normalizer.service.ts`, deteccion de Word, normalizacion de HTML de Word, deteccion de Excel, normalizacion de tablas de Excel, texto tabulado, integracion con el pipeline de pegado de Tiptap, sanitizacion/validacion posterior y pruebas especificas.
+- Se agrego el criterio de aceptacion `Normaliza contenido pegado desde Word y Excel`.
+- No se marco ninguna tarea como completada; el cambio solo corrige el plan operativo.
+
+Archivos modificados:
+
+- `context.md`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+
+Decision Git:
+
+- Se crea commit porque el backlog fue corregido por solicitud del usuario y el cambio documental quedo verificado.
+
+Pendientes inmediatos:
+
+- Retomar la primera tarea pendiente segun `tasks.md`; despues de este ajuste, corresponde iniciar `Definir contrato del normalizador de pegado` antes de continuar con la validacion HTML permitida.

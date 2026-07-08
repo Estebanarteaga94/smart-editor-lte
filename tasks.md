@@ -401,6 +401,36 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Implementar sanitizacion de HTML.
   - Criterio: HTML editado pasa por DOMPurify antes de volver a Tiptap.
   - Nota: al salir de `source-html`, el valor editado pasa por `SanitizerService`/DOMPurify, se conserva como HTML sanitizado y se vuelve al editor visual sin sincronizar todavia el contenido hacia Tiptap.
+
+### 5.1 Normalizacion de contenido pegado desde Word/Excel
+
+Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office similares se convierte a una estructura limpia y compatible con el schema canonico antes de insertarse o sincronizarse en Tiptap.
+
+> Dependencia: requiere sanitizacion HTML, schema canonico y extensiones de tablas/listas activas.
+
+- [ ] Definir contrato del normalizador de pegado.
+  - Criterio: queda tipado un servicio que reciba HTML/texto del portapapeles y devuelva HTML normalizado, advertencias y modo de origen detectado.
+- [ ] Implementar `paste-normalizer.service.ts`.
+  - Criterio: existe un servicio reutilizable, testeable y sin dependencia directa del DOM de la toolbar.
+- [ ] Detectar contenido pegado desde Word.
+  - Criterio: identifica marcadores como clases `Mso*`, estilos `mso-*`, comentarios condicionales, namespaces de Office y etiquetas auxiliares como `o:p`.
+- [ ] Normalizar HTML de Word.
+  - Criterio: elimina metadata, comentarios, namespaces, estilos `mso-*`, clases de Office, spans vacios y atributos no permitidos, preservando parrafos, encabezados, listas, tablas simples, links seguros y formato basico.
+- [ ] Detectar contenido pegado desde Excel.
+  - Criterio: identifica tablas HTML de Excel, estilos `mso-number-format`, clases de workbook y pegado tabulado cuando el portapapeles no trae HTML confiable.
+- [ ] Normalizar tablas pegadas desde Excel.
+  - Criterio: filas y celdas quedan como tablas compatibles con Tiptap; se preservan textos, encabezados cuando sean inferibles, `colspan`/`rowspan` seguros y anchos permitidos sin conservar formulas ejecutables ni estilos propietarios.
+- [ ] Normalizar texto tabulado pegado desde Excel.
+  - Criterio: texto plano con tabs y saltos de linea se convierte en tabla cuando corresponde, sin romper el pegado normal de parrafos.
+- [ ] Integrar normalizacion con el pipeline de pegado de Tiptap.
+  - Criterio: el pegado usa `transformPastedHTML`, `handlePaste` o extension equivalente de ProseMirror/Tiptap antes de insertar contenido.
+- [ ] Sanitizar y validar despues de normalizar.
+  - Criterio: el resultado pasa por DOMPurify y por validacion de HTML/schema antes de afectar el documento actual.
+- [ ] Probar pegado desde Word.
+  - Criterio: pruebas cubren HTML realista de Word con estilos `mso-*`, listas, negrita/cursiva/subrayado y links; el JSON/HTML final queda limpio.
+- [ ] Probar pegado desde Excel.
+  - Criterio: pruebas cubren tabla HTML y texto tabulado; el JSON/HTML final conserva estructura de tabla sin scripts, eventos inline ni estilos propietarios.
+
 - [ ] Implementar validacion de HTML permitido.
   - Criterio: scripts, eventos inline, iframes no permitidos y protocolos inseguros se eliminan o bloquean.
 - [ ] Sincronizar HTML editado hacia WYSIWYG.
@@ -623,6 +653,7 @@ Estas tareas no bloquean la primera version, pero deben quedar visibles para no 
 - [ ] Soporta titulos, listas, formato basico y enlaces.
 - [ ] Soporta tablas.
 - [ ] Soporta imagenes.
+- [ ] Normaliza contenido pegado desde Word y Excel.
 - [ ] Tiene vista de codigo HTML/JSON funcional.
 - [ ] Tiene vista previa.
 - [ ] `EditorMode` solo contiene modos de contenido.

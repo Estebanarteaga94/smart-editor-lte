@@ -12,6 +12,7 @@ El editor debe cubrir:
 - Tablas.
 - Imagenes.
 - Enlaces.
+- Normalizacion de contenido pegado desde Word y Excel.
 - Vista de codigo.
 - Vista previa.
 - Pantalla completa.
@@ -272,6 +273,10 @@ Decision sobre captions:
 ### Fase 5 - Vista de codigo
 
 Incluye HTML, JSON, CodeMirror, validacion JSON, sanitizacion HTML, sincronizacion con WYSIWYG y errores amigables.
+
+### Fase 5.1 - Pegado desde Word y Excel
+
+Incluye deteccion y normalizacion de contenido copiado desde Microsoft Word, Excel y fuentes equivalentes de Office. El objetivo es convertir HTML ruidoso, estilos `mso-*`, comentarios, namespaces, tablas y texto tabulado en contenido permitido por Tiptap/ProseMirror, sin convertir HTML en la fuente canonica. El resultado debe terminar como JSON canonico y HTML renderizable sanitizado.
 
 ### Fase 6 - Preview y fullscreen
 
