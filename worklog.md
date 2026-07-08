@@ -4883,3 +4883,46 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar validacion de JSON.
+
+## 2026-07-08 - Validacion de JSON fuente
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: implementar validacion de JSON en `source-json`.
+
+Acciones realizadas:
+
+- Se integro la validacion existente de JSON canonico en el flujo de `source-json`.
+- Al editar JSON fuente, la app valida sintaxis y schema permitido.
+- Antes de salir de `source-json`, la app vuelve a validar el contenido actual de CodeMirror.
+- Si el JSON es invalido o queda fuera del schema permitido, la barra de estado muestra el error, la app permanece en `source-json` y el documento actual de Tiptap no se reemplaza.
+- Se agrego una prueba de integracion que cubre JSON mal formado, JSON fuera del schema por atributo inseguro y conservacion del documento original.
+- Se marco `Implementar validacion de JSON` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 31 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 24 archivos de prueba correctos, 175 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.58 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar sanitizacion de HTML.

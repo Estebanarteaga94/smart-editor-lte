@@ -1628,6 +1628,63 @@ describe('mountEditorApp', () => {
     expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('false');
   });
 
+  it('validates source-json content before leaving the JSON view', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-source-json-validation',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<h2>JSON valido</h2><p>Contenido intacto</p>');
+    const originalJson = mountedApp.editor.getJSON();
+    const sourceJsonButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-json"]',
+    );
+
+    sourceJsonButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+
+    sourceView?.setValue('{');
+
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'JSON invalido. Corrige la sintaxis antes de aplicar cambios.',
+    );
+
+    sourceJsonButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getActiveMode()).toBe('source-json');
+    expect(mountedApp.getSourceView()).toBe(sourceView);
+    expect(mountedApp.editor.getJSON()).toEqual(originalJson);
+
+    sourceView?.setValue(
+      JSON.stringify({
+        type: 'doc',
+        content: [{ type: 'paragraph', attrs: { onclick: 'alert(1)' } }],
+      }),
+    );
+
+    expect(appRoot.querySelector('#editor-status')?.textContent).toContain(
+      'JSON fuera del schema permitido',
+    );
+
+    sourceJsonButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getActiveMode()).toBe('source-json');
+    expect(appRoot.querySelector('.editor-shell__status')?.getAttribute('data-save-status')).toBe(
+      'error',
+    );
+    expect(mountedApp.editor.getJSON()).toEqual(originalJson);
+  });
+
   it('formats the source-html CodeMirror content from the toolbar', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

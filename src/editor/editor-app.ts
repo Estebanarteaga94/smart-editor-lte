@@ -4,7 +4,11 @@ import { createEditorShell } from './components/editor-shell';
 import { createImageDialog } from './components/image-dialog';
 import { createImageOptionsDialog } from './components/image-options-dialog';
 import { createPreviewView } from './components/preview-view';
-import { createSourceView, type SourceView } from './components/source-view';
+import {
+  createSourceView,
+  resolveSourceJsonUpdate,
+  type SourceView,
+} from './components/source-view';
 import { createTableMenu } from './components/table-menu';
 import { createToolbar } from './components/toolbar';
 import { createWysiwygEditor } from './core/create-editor';
@@ -21,7 +25,7 @@ import {
   type MediaUploadService,
 } from './services/media-upload.service';
 import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
-import { serializeEditorContent } from './services/serializer.service';
+import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
 
 export interface MountEditorAppOptions {
   app: HTMLElement;
@@ -127,6 +131,10 @@ export async function mountEditorApp({
     },
     onToggleSourceJson: () => {
       if (activeMode === 'source-json') {
+        if (!validateActiveSourceJson()) {
+          return;
+        }
+
         showWysiwygMode();
         return;
       }
@@ -195,6 +203,7 @@ export async function mountEditorApp({
       language: 'json',
       onChange: (value) => {
         sourceJsonValue = value;
+        validateActiveSourceJson();
       },
     });
     lifecycle.registerSourceView(sourceView);
@@ -235,6 +244,23 @@ export async function mountEditorApp({
     } catch {
       shell.setSaveStatus('error', formatHtmlSourceError());
     }
+  }
+
+  function validateActiveSourceJson(): boolean {
+    if (activeMode !== 'source-json') {
+      return true;
+    }
+
+    const source = sourceView?.getValue() ?? sourceJsonValue ?? '';
+    const result = resolveSourceJsonUpdate(source, getCanonicalEditorJson(editor));
+
+    if (!result.applied) {
+      shell.setSaveStatus('error', result.error ?? 'JSON invalido.');
+      return false;
+    }
+
+    shell.setSaveStatus('unchanged', 'JSON valido');
+    return true;
   }
 
   async function insertUploadedImage(file: File, altText: string): Promise<void> {

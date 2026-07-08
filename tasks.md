@@ -395,8 +395,9 @@ Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el 
 - [x] Agregar modo `source-json`.
   - Criterio: muestra JSON formateado actual y permite editarlo.
   - Nota: la toolbar incluye `source-json`; al activarlo se oculta WYSIWYG, se monta `SourceView` con el JSON canonico actual formateado y se permite editarlo en CodeMirror sin sincronizar todavia hacia Tiptap.
-- [ ] Implementar validacion de JSON.
+- [x] Implementar validacion de JSON.
   - Criterio: JSON invalido o fuera del schema permitido muestra error y no reemplaza el documento.
+  - Nota: `source-json` valida cada cambio y antes de salir de la vista; si hay JSON mal formado o fuera del schema permitido, muestra el error en la barra de estado, conserva el modo JSON y no reemplaza el documento actual.
 - [ ] Implementar sanitizacion de HTML.
   - Criterio: HTML editado pasa por DOMPurify antes de volver a Tiptap.
 - [ ] Implementar validacion de HTML permitido.
