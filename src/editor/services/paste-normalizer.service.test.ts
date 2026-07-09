@@ -175,6 +175,57 @@ describe('normalizePaste', () => {
     ).toBe('plain-text');
   });
 
+  it('normalizes Excel tables to Tiptap-compatible table markup', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><body>',
+          '<table class="Workbook" style="mso-displayed-decimal-separator:&quot;.&quot;">',
+          '<tr><td class="header" style="font-weight:bold;width:72pt">Nombre</td><td class="header" style="font-weight:bold;width:80px">Total</td></tr>',
+          '<tr><td style="mso-number-format:&quot;@&quot;">Cafe</td><td style="mso-number-format:&quot;0.00&quot;" x:fmla="=SUM(A1:A2)">12.5</td></tr>',
+          '</table></body></html>',
+        ].join(''),
+      }),
+    ).toEqual({
+      normalizedHtml:
+        '<table><tbody><tr><th colwidth="96">Nombre</th><th colwidth="80">Total</th></tr><tr><td>Cafe</td><td>12.5</td></tr></tbody></table>',
+      warnings: [],
+      detectedSource: 'excel',
+    });
+  });
+
+  it('preserves safe colspan and rowspan in Excel tables', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<table><tr><td class="xl65" colspan="2">Grupo</td></tr>',
+          '<tr><td rowspan="2">A</td><td>B</td></tr></table>',
+        ].join(''),
+      }),
+    ).toEqual({
+      normalizedHtml:
+        '<table><tbody><tr><td colspan="2">Grupo</td></tr><tr><td rowspan="2">A</td><td>B</td></tr></tbody></table>',
+      warnings: [],
+      detectedSource: 'excel',
+    });
+  });
+
+  it('drops unsafe Excel formulas, scripts and proprietary styles while keeping cell text', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<table class="Workbook"><tr>',
+          '<td style="mso-number-format:&quot;0&quot;" onclick="alert(1)" x:fmla="=cmd|evil">42<script>alert(1)</script></td>',
+          '</tr></table>',
+        ].join(''),
+      }),
+    ).toEqual({
+      normalizedHtml: '<table><tbody><tr><td>42</td></tr></tbody></table>',
+      warnings: [],
+      detectedSource: 'excel',
+    });
+  });
+
   it('converts plain text to escaped paragraph HTML', () => {
     expect(
       normalizePaste({

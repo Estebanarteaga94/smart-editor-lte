@@ -5244,3 +5244,50 @@ Decision Git:
 Pendientes inmediatos:
 
 - Normalizar tablas pegadas desde Excel.
+
+## 2026-07-09 - Normalizacion de tablas pegadas desde Excel
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: normalizar tablas HTML pegadas desde Excel para dejarlas compatibles con Tiptap.
+
+Acciones realizadas:
+
+- Se implemento `normalizeExcelHtml` en `paste-normalizer.service.ts` para procesar HTML detectado como Excel.
+- El normalizador reconstruye tablas Excel como `table`, `tbody`, `tr`, `td` y `th`.
+- Se preserva el texto visible de las celdas y se omiten scripts, metadata, namespaces y nodos propietarios.
+- Se infieren encabezados cuando la primera fila contiene celdas con clase/header o estilo de negrita.
+- Se conservan `colspan` y `rowspan` solo cuando son enteros positivos.
+- Se conserva ancho permitido como `colwidth`, convirtiendo `pt` a pixeles aproximados y aceptando `px` o `width` numerico.
+- Se descartan formulas ejecutables como `x:fmla`, estilos propietarios `mso-*`, eventos inline y atributos no permitidos al reconstruir la tabla.
+- Se agregaron pruebas unitarias para tablas Excel, encabezados inferibles, anchos, spans seguros y descarte de formulas/scripts/estilos propietarios.
+- Se marco `Normalizar tablas pegadas desde Excel` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 22 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 198 pruebas correctas.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+- No se ejecuto `npm run test:e2e` porque esta tarea solo cambia el servicio de normalizacion y no integra aun el pipeline de pegado en navegador.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Normalizar texto tabulado pegado desde Excel.

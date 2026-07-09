@@ -423,8 +423,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Detectar contenido pegado desde Excel.
   - Criterio: identifica tablas HTML de Excel, estilos `mso-number-format`, clases de workbook y pegado tabulado cuando el portapapeles no trae HTML confiable.
   - Nota: `paste-normalizer.service.ts` detecta Excel por clases `xl*`/Workbook, estilos `mso-number-format` y separadores de Excel, namespaces `office:excel`, nodos `x:ExcelWorkbook` y atributos `x:str`; el pegado tabulado queda identificado como pendiente de la tarea especifica de texto tabulado.
-- [ ] Normalizar tablas pegadas desde Excel.
+- [x] Normalizar tablas pegadas desde Excel.
   - Criterio: filas y celdas quedan como tablas compatibles con Tiptap; se preservan textos, encabezados cuando sean inferibles, `colspan`/`rowspan` seguros y anchos permitidos sin conservar formulas ejecutables ni estilos propietarios.
+  - Nota: `paste-normalizer.service.ts` reconstruye tablas Excel con `table/tbody/tr/td/th`, infiere encabezados en la primera fila con celdas tipo header, conserva `colspan`, `rowspan` y `colwidth` seguros, y descarta formulas, scripts, estilos propietarios y atributos no permitidos.
 - [ ] Normalizar texto tabulado pegado desde Excel.
   - Criterio: texto plano con tabs y saltos de linea se convierte en tabla cuando corresponde, sin romper el pegado normal de parrafos.
 - [ ] Integrar normalizacion con el pipeline de pegado de Tiptap.

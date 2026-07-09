@@ -45,7 +45,7 @@ export function normalizePaste(input: PasteNormalizerInput): PasteNormalizationR
     const detectedSource = detectHtmlSource(inputHtml);
 
     return {
-      normalizedHtml: detectedSource === 'word' ? normalizeWordHtml(inputHtml) : inputHtml,
+      normalizedHtml: normalizeDetectedHtml(inputHtml, detectedSource),
       warnings: [],
       detectedSource,
     };
@@ -106,6 +106,178 @@ function isWordHtml(html: string): boolean {
 
 function isExcelHtml(html: string): boolean {
   return excelHtmlMarkers.some((marker) => marker.test(html));
+}
+
+function normalizeDetectedHtml(html: string, detectedSource: PasteNormalizationSource): string {
+  switch (detectedSource) {
+    case 'word':
+      return normalizeWordHtml(html);
+    case 'excel':
+      return normalizeExcelHtml(html);
+    case 'html':
+    case 'plain-text':
+    case 'unknown':
+      return html;
+  }
+}
+
+function normalizeExcelHtml(html: string): string {
+  if (typeof DOMParser === 'undefined') {
+    return fallbackNormalizeExcelHtml(html);
+  }
+
+  const document = new DOMParser().parseFromString(html, 'text/html');
+  const tables = Array.from(document.body.querySelectorAll('table'));
+
+  if (tables.length === 0) {
+    return normalizeWordHtml(html);
+  }
+
+  return tables.map(serializeExcelTable).join('').trim();
+}
+
+function serializeExcelTable(table: HTMLTableElement): string {
+  const rows = Array.from(table.querySelectorAll('tr'))
+    .map(serializeExcelRow)
+    .filter((row) => row.length > 0)
+    .join('');
+
+  return rows.length > 0 ? `<table><tbody>${rows}</tbody></table>` : '';
+}
+
+function serializeExcelRow(row: HTMLTableRowElement, rowIndex: number): string {
+  const cells = Array.from(row.children).filter(isTableCellElement);
+
+  if (cells.length === 0) {
+    return '';
+  }
+
+  const useHeaders = shouldSerializeExcelRowAsHeader(rowIndex, cells);
+  const serializedCells = cells
+    .map((cell) => serializeExcelCell(cell, useHeaders ? 'th' : normalizeTableCellTag(cell)))
+    .filter((cell) => cell.length > 0)
+    .join('');
+
+  return serializedCells.length > 0 ? `<tr>${serializedCells}</tr>` : '';
+}
+
+function serializeExcelCell(cell: HTMLTableCellElement, tagName: 'td' | 'th'): string {
+  const text = normalizeExcelCellText(getExcelCellText(cell));
+
+  if (text.length === 0) {
+    return `<${tagName}${serializeExcelCellAttributes(cell)}></${tagName}>`;
+  }
+
+  return `<${tagName}${serializeExcelCellAttributes(cell)}>${escapeHtml(text)}</${tagName}>`;
+}
+
+function serializeExcelCellAttributes(cell: HTMLTableCellElement): string {
+  const attributes: string[] = [];
+
+  for (const attributeName of tableCellSpanAttributes) {
+    const value = cell.getAttribute(attributeName)?.trim();
+
+    if (value && positiveIntegerPattern.test(value)) {
+      attributes.push(`${attributeName}="${value}"`);
+    }
+  }
+
+  const colwidth = getExcelCellWidth(cell);
+
+  if (colwidth !== null) {
+    attributes.push(`colwidth="${colwidth}"`);
+  }
+
+  return attributes.length > 0 ? ` ${attributes.join(' ')}` : '';
+}
+
+function shouldSerializeExcelRowAsHeader(rowIndex: number, cells: HTMLTableCellElement[]): boolean {
+  if (cells.some((cell) => normalizeTableCellTag(cell) === 'th')) {
+    return true;
+  }
+
+  if (rowIndex !== 0) {
+    return false;
+  }
+
+  const nonEmptyCells = cells.filter(
+    (cell) => normalizeExcelCellText(getExcelCellText(cell)).length > 0,
+  );
+
+  return nonEmptyCells.length > 0 && nonEmptyCells.every(isExcelHeaderLikeCell);
+}
+
+function isExcelHeaderLikeCell(cell: HTMLTableCellElement): boolean {
+  const className = cell.getAttribute('class') ?? '';
+  const style = cell.getAttribute('style') ?? '';
+
+  return (
+    /\b(?:header|heading)\b/i.test(className) ||
+    /\bfont-weight\s*:\s*(?:bold|[6-9]00)\b/i.test(style)
+  );
+}
+
+function normalizeTableCellTag(cell: HTMLTableCellElement): 'td' | 'th' {
+  return cell.tagName.toLowerCase() === 'th' ? 'th' : 'td';
+}
+
+function isTableCellElement(element: Element): element is HTMLTableCellElement {
+  const tagName = element.tagName.toLowerCase();
+
+  return tagName === 'td' || tagName === 'th';
+}
+
+function getExcelCellWidth(cell: HTMLTableCellElement): number | null {
+  const widthAttribute = cell.getAttribute('width')?.trim();
+
+  if (widthAttribute && positiveIntegerPattern.test(widthAttribute)) {
+    return Number(widthAttribute);
+  }
+
+  const styleWidth = /\bwidth\s*:\s*([0-9]+(?:\.[0-9]+)?)(px|pt)?\b/i.exec(
+    cell.getAttribute('style') ?? '',
+  );
+
+  if (!styleWidth) {
+    return null;
+  }
+
+  const value = Number(styleWidth[1]);
+
+  if (!Number.isFinite(value) || value <= 0) {
+    return null;
+  }
+
+  const unit = styleWidth[2]?.toLowerCase();
+  const width = unit === 'pt' ? Math.round(value * (4 / 3)) : Math.round(value);
+
+  return width > 0 ? width : null;
+}
+
+function normalizeExcelCellText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function getExcelCellText(cell: HTMLTableCellElement): string {
+  return Array.from(cell.childNodes).map(getExcelTextNodeValue).join('');
+}
+
+function getExcelTextNodeValue(node: ChildNode): string {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node.textContent ?? '';
+  }
+
+  if (!(node instanceof HTMLElement)) {
+    return '';
+  }
+
+  const tagName = node.tagName.toLowerCase();
+
+  if (metadataTags.has(tagName) || tagName.includes(':')) {
+    return '';
+  }
+
+  return Array.from(node.childNodes).map(getExcelTextNodeValue).join('');
 }
 
 function normalizeWordHtml(html: string): string {
@@ -282,6 +454,13 @@ function fallbackNormalizeWordHtml(html: string): string {
     .replace(/\s+xmlns:(?:o|w|v|m)=["'][^"']*["']/gi, '')
     .replace(/\s+class=["'][^"']*\bMso[\w-]*[^"']*["']/gi, '')
     .replace(/\s+style=["'][^"']*\bmso-[^"']*["']/gi, '')
+    .trim();
+}
+
+function fallbackNormalizeExcelHtml(html: string): string {
+  return fallbackNormalizeWordHtml(html)
+    .replace(/\s+x:fmla=["'][^"']*["']/gi, '')
+    .replace(/\s+style=["'][^"']*\bmso-number-format[^"']*["']/gi, '')
     .trim();
 }
 
