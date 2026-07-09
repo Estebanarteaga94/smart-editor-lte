@@ -301,7 +301,37 @@ function normalizeWordHtml(html: string): string {
 
   const document = new DOMParser().parseFromString(html, 'text/html');
 
-  return Array.from(document.body.childNodes).map(serializeWordNode).join('').trim();
+  return serializeWordNodes(Array.from(document.body.childNodes)).trim();
+}
+
+function serializeWordNodes(nodes: ChildNode[]): string {
+  const fragments: string[] = [];
+  let listGroup: WordListGroup | null = null;
+
+  for (const node of nodes) {
+    const listItem = getWordListItem(node);
+
+    if (listItem) {
+      if (!listGroup || listGroup.tagName !== listItem.tagName) {
+        flushWordListGroup(fragments, listGroup);
+        listGroup = {
+          tagName: listItem.tagName,
+          items: [],
+        };
+      }
+
+      listGroup.items.push(listItem.html);
+      continue;
+    }
+
+    flushWordListGroup(fragments, listGroup);
+    listGroup = null;
+    fragments.push(serializeWordNode(node));
+  }
+
+  flushWordListGroup(fragments, listGroup);
+
+  return fragments.join('');
 }
 
 function serializeWordNode(node: ChildNode): string {
@@ -346,6 +376,84 @@ function serializeWordNode(node: ChildNode): string {
 
 function serializeWordChildren(element: HTMLElement): string {
   return Array.from(element.childNodes).map(serializeWordNode).join('');
+}
+
+interface WordListGroup {
+  tagName: 'ul' | 'ol';
+  items: string[];
+}
+
+interface WordListItem {
+  tagName: 'ul' | 'ol';
+  html: string;
+}
+
+function getWordListItem(node: ChildNode): WordListItem | null {
+  if (!(node instanceof HTMLElement) || node.tagName.toLowerCase() !== 'p') {
+    return null;
+  }
+
+  const className = node.getAttribute('class') ?? '';
+  const style = node.getAttribute('style') ?? '';
+
+  if (!/\bMsoListParagraph/i.test(className) && !/\bmso-list\s*:/i.test(style)) {
+    return null;
+  }
+
+  const html = serializeWordListItemChildren(node);
+
+  if (isEmptyHtmlFragment(html)) {
+    return null;
+  }
+
+  return {
+    tagName: getWordListTagName(node),
+    html,
+  };
+}
+
+function serializeWordListItemChildren(element: HTMLElement): string {
+  const children = Array.from(element.childNodes)
+    .filter((node) => !isWordListMarkerNode(node))
+    .map(serializeWordNode)
+    .join('');
+
+  return removeLeadingWordListMarker(children);
+}
+
+function isWordListMarkerNode(node: ChildNode): boolean {
+  if (!(node instanceof HTMLElement)) {
+    return false;
+  }
+
+  return /\bmso-list\s*:\s*Ignore\b/i.test(node.getAttribute('style') ?? '');
+}
+
+function getWordListTagName(element: HTMLElement): 'ul' | 'ol' {
+  const markerText = Array.from(element.childNodes)
+    .filter(isWordListMarkerNode)
+    .map((node) => node.textContent ?? '')
+    .join(' ')
+    .trim();
+
+  return /^(?:\d+|[a-z])[.)]/i.test(markerText) ? 'ol' : 'ul';
+}
+
+function removeLeadingWordListMarker(html: string): string {
+  return html.replace(
+    /^(?:\s|&nbsp;|&#160;)*(?:[•·*o]|\d+[.)]|[a-z][.)])(?:\s|&nbsp;|&#160;)*/i,
+    '',
+  );
+}
+
+function flushWordListGroup(fragments: string[], group: WordListGroup | null): void {
+  if (!group || group.items.length === 0) {
+    return;
+  }
+
+  fragments.push(
+    `<${group.tagName}>${group.items.map((item) => `<li>${item}</li>`).join('')}</${group.tagName}>`,
+  );
 }
 
 function normalizeWordInlineElement(

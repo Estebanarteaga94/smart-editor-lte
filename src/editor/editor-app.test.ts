@@ -1176,6 +1176,121 @@ describe('mountEditorApp', () => {
     expect(mountedApp.editor.getHTML()).toContain('<td colspan="1" rowspan="1"><p>Cafe</p></td>');
   });
 
+  it('normalizes realistic Word HTML paste into clean canonical content', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-word-paste',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p></p>');
+
+    const pasteEvent = dispatchClipboardDataEvent(getEditorPasteTarget(appRoot), {
+      html: [
+        '<html xmlns:o="urn:schemas-microsoft-com:office:office"><body>',
+        '<p class="MsoNormal" style="mso-margin-top-alt:auto">',
+        '<span style="font-weight:bold">Negrita</span> ',
+        '<span style="font-style:italic">cursiva</span> ',
+        '<span style="text-decoration:underline">subrayado</span> ',
+        '<a href="javascript:alert(1)" onclick="alert(1)">Inseguro</a>',
+        '<a href="https://example.com" title="Seguro">Seguro</a>',
+        '</p>',
+        '<p class="MsoListParagraphCxSpFirst" style="mso-list:l0 level1 lfo1">',
+        '<span style="mso-list:Ignore">·<span style="font:7.0pt Times New Roman">&nbsp;&nbsp;</span></span>',
+        '<span style="font-weight:bold">Primer item</span>',
+        '</p>',
+        '<p class="MsoListParagraphCxSpLast" style="mso-list:l0 level1 lfo1">',
+        '<span style="mso-list:Ignore">·<span style="font:7.0pt Times New Roman">&nbsp;&nbsp;</span></span>',
+        '<span style="font-style:italic">Segundo item</span>',
+        '</p>',
+        '</body></html>',
+      ].join(''),
+      text: 'Negrita cursiva subrayado',
+    });
+    const html = mountedApp.editor.getHTML();
+    const json = mountedApp.editor.getJSON();
+    const paragraph = json.content?.find((node) => node.type === 'paragraph');
+    const list = json.content?.find((node) => node.type === 'bulletList');
+    const safeLinkText = paragraph?.content?.find(
+      (node) => node.type === 'text' && 'text' in node && node.text === 'Seguro',
+    );
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(html).toContain('<strong>Negrita</strong>');
+    expect(html).toContain('<em>cursiva</em>');
+    expect(html).toContain('<u>subrayado</u>');
+    expect(html).toContain('<ul>');
+    expect(html).toContain('<strong>Primer item</strong>');
+    expect(html).toContain('<em>Segundo item</em>');
+    expect(html).toContain('href="https://example.com"');
+    expect(html).not.toContain('Mso');
+    expect(html).not.toContain('mso-');
+    expect(html).not.toContain('onclick');
+    expect(html).not.toContain('javascript:');
+    expect(paragraph?.content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Negrita',
+          marks: [expect.objectContaining({ type: 'bold' })],
+        }),
+        expect.objectContaining({
+          text: 'cursiva',
+          marks: [expect.objectContaining({ type: 'italic' })],
+        }),
+        expect.objectContaining({
+          text: 'subrayado',
+          marks: [expect.objectContaining({ type: 'underline' })],
+        }),
+      ]),
+    );
+    expect(safeLinkText).toMatchObject({
+      marks: [
+        expect.objectContaining({
+          type: 'link',
+          attrs: expect.objectContaining({ href: 'https://example.com' }),
+        }),
+      ],
+    });
+    expect(list).toMatchObject({
+      type: 'bulletList',
+      content: [
+        {
+          type: 'listItem',
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                expect.objectContaining({
+                  text: 'Primer item',
+                  marks: [expect.objectContaining({ type: 'bold' })],
+                }),
+              ],
+            },
+          ],
+        },
+        {
+          type: 'listItem',
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                expect.objectContaining({
+                  text: 'Segundo item',
+                  marks: [expect.objectContaining({ type: 'italic' })],
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it('shows Error and does not insert an image when the pasted image is invalid', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

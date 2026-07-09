@@ -127,6 +127,37 @@ describe('normalizePaste', () => {
     });
   });
 
+  it('converts Word list paragraphs into semantic lists while preserving marks and safe links', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<html xmlns:o="urn:schemas-microsoft-com:office:office"><body>',
+          '<p class="MsoNormal" style="mso-margin-top-alt:auto">',
+          '<span style="font-weight:bold">Negrita</span> ',
+          '<span style="font-style:italic">cursiva</span> ',
+          '<span style="text-decoration:underline">subrayado</span> ',
+          '<a href="javascript:alert(1)">Inseguro</a>',
+          '<a href="https://example.com" title="Seguro">Seguro</a>',
+          '</p>',
+          '<p class="MsoListParagraphCxSpFirst" style="mso-list:l0 level1 lfo1">',
+          '<span style="mso-list:Ignore">·<span style="font:7.0pt Times New Roman">&nbsp;&nbsp;</span></span>',
+          '<span style="font-weight:bold">Primer item</span>',
+          '</p>',
+          '<p class="MsoListParagraphCxSpLast" style="mso-list:l0 level1 lfo1">',
+          '<span style="mso-list:Ignore">·<span style="font:7.0pt Times New Roman">&nbsp;&nbsp;</span></span>',
+          '<span style="font-style:italic">Segundo item</span>',
+          '</p>',
+          '</body></html>',
+        ].join(''),
+      }),
+    ).toEqual({
+      normalizedHtml:
+        '<p><strong>Negrita</strong> <em>cursiva</em> <u>subrayado</u> <a>Inseguro</a><a href="https://example.com" title="Seguro">Seguro</a></p><ul><li><strong>Primer item</strong></li><li><em>Segundo item</em></li></ul>',
+      warnings: [],
+      detectedSource: 'word',
+    });
+  });
+
   it('unwraps empty and redundant Word spans without losing text', () => {
     expect(
       normalizePaste({

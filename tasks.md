@@ -435,8 +435,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Sanitizar y validar despues de normalizar.
   - Criterio: el resultado pasa por DOMPurify y por validacion de HTML/schema antes de afectar el documento actual.
   - Nota: `paste-content-safety.service.ts` aplica DOMPurify al HTML normalizado, lo parsea con el schema real de Tiptap/ProseMirror y valida el JSON resultante contra el schema canonico antes de permitir la insercion.
-- [ ] Probar pegado desde Word.
+- [x] Probar pegado desde Word.
   - Criterio: pruebas cubren HTML realista de Word con estilos `mso-*`, listas, negrita/cursiva/subrayado y links; el JSON/HTML final queda limpio.
+  - Nota: se agregaron pruebas del normalizador y de la app montada con HTML de Word que incluye `MsoNormal`, `MsoListParagraph`, `mso-list`, negrita, cursiva, subrayado, link seguro y link inseguro; el resultado final queda como JSON canonico y HTML sin metadata Office ni protocolos inseguros.
 - [ ] Probar pegado desde Excel.
   - Criterio: pruebas cubren tabla HTML y texto tabulado; el JSON/HTML final conserva estructura de tabla sin scripts, eventos inline ni estilos propietarios.
 

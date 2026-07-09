@@ -5447,3 +5447,52 @@ Decision Git:
 Pendientes inmediatos:
 
 - Probar pegado desde Word.
+
+## 2026-07-09 - Pruebas de pegado desde Word
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: cubrir pegado realista desde Word con estilos Office, listas, formato basico y links.
+
+Acciones realizadas:
+
+- Se agrego soporte en `paste-normalizer.service.ts` para convertir parrafos `MsoListParagraph` con estilo `mso-list` en listas HTML semanticas.
+- El normalizador agrupa items consecutivos de Word como `ul` u `ol` y elimina los marcadores auxiliares `mso-list:Ignore`.
+- Se agrego prueba unitaria del normalizador con HTML de Word que incluye `MsoNormal`, `MsoListParagraph`, estilos `mso-*`, negrita, cursiva, subrayado, link seguro y link inseguro.
+- Se agrego prueba de la app montada que dispara `paste` sobre `.tiptap` con HTML de Word realista.
+- La prueba de app verifica que el HTML final conserva formato y listas, elimina metadata Office, descarta `onclick` y bloquea `javascript:`.
+- La prueba de app verifica que el JSON final contiene marcas `bold`, `italic`, `underline`, marca `link` segura y `bulletList/listItem`.
+- Se marco `Probar pegado desde Word` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 26 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 34 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 26 archivos de prueba correctos, 211 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene avisos no bloqueantes `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,062.97 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Probar pegado desde Excel.
