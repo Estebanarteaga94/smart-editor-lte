@@ -5543,3 +5543,54 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar validacion de HTML permitido.
+
+## 2026-07-09 - Validacion de HTML permitido
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: implementar validacion de HTML permitido para bloquear scripts, eventos inline, iframes y protocolos inseguros.
+
+Acciones realizadas:
+
+- Se agrego `html-policy.ts` con la allowlist compartida de tags, atributos y tags prohibidos.
+- `sanitizer.service.ts` ahora consume la misma politica compartida para configurar DOMPurify.
+- Se implemento `validateAllowedHtml` en `html-validator.ts`.
+- El validador bloquea tags no permitidos, `script`, `iframe`, atributos desconocidos y atributos `on*`.
+- El validador bloquea protocolos inseguros en `href`, `src` y valores peligrosos dentro de `style`.
+- Se agrego `createHtmlValidator` para mantener el contrato reutilizable `HtmlValidator`.
+- Se agregaron pruebas unitarias para HTML permitido, tags prohibidos, eventos inline, atributos desconocidos y protocolos inseguros.
+- Se marco `Implementar validacion de HTML permitido` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/sanitizer.service.ts`
+- `src/editor/utils/html-policy.ts`
+- `src/editor/utils/html-validator.ts`
+- `src/editor/utils/html-validator.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/utils/html-validator.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 5 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/services/sanitizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 2 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 27 archivos de prueba correctos, 217 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene avisos no bloqueantes `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,063.00 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Sincronizar HTML editado hacia WYSIWYG.

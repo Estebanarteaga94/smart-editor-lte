@@ -1,5 +1,7 @@
 import DOMPurify, { type Config } from 'dompurify';
 
+import { allowedHtmlAttributes, allowedHtmlTags, forbiddenHtmlTags } from '../utils/html-policy';
+
 export interface SanitizerService {
   sanitizeHtml(html: string): string;
 }
@@ -13,64 +15,11 @@ const positiveIntegerPattern = /^[1-9]\d*$/;
 const colwidthPattern = /^[1-9]\d*(?:\s*,\s*[1-9]\d*)*$/;
 
 export const editorSanitizerConfig: Config = {
-  ALLOWED_TAGS: [
-    'a',
-    'b',
-    'blockquote',
-    'br',
-    'code',
-    'col',
-    'colgroup',
-    'del',
-    'em',
-    'h1',
-    'h2',
-    'h3',
-    'h4',
-    'h5',
-    'h6',
-    'hr',
-    'i',
-    'img',
-    'li',
-    'mark',
-    'ol',
-    'p',
-    'pre',
-    's',
-    'span',
-    'strike',
-    'strong',
-    'table',
-    'tbody',
-    'td',
-    'th',
-    'thead',
-    'tr',
-    'u',
-    'ul',
-  ],
-  ALLOWED_ATTR: [
-    'align',
-    'alt',
-    'checked',
-    'class',
-    'colspan',
-    'colwidth',
-    'height',
-    'href',
-    'rel',
-    'rowspan',
-    'src',
-    'style',
-    'target',
-    'title',
-    'type',
-    'width',
-  ],
+  ALLOWED_TAGS: [...allowedHtmlTags],
+  ALLOWED_ATTR: [...allowedHtmlAttributes],
   ADD_ATTR: ['colspan', 'colwidth', 'rowspan'],
   ALLOWED_URI_REGEXP: allowedUriPattern,
-  FORBID_TAGS: ['iframe', 'script'],
+  FORBID_TAGS: [...forbiddenHtmlTags],
 };
 
 DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {

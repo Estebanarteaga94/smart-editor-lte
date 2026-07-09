@@ -442,8 +442,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
   - Criterio: pruebas cubren tabla HTML y texto tabulado; el JSON/HTML final conserva estructura de tabla sin scripts, eventos inline ni estilos propietarios.
   - Nota: se agregaron pruebas de la app montada para texto tabulado y tabla HTML de Excel con `Workbook`, estilos `mso-*`, formulas `x:fmla`, script y eventos inline; el resultado final conserva `table/tableRow/tableHeader/tableCell`, `colwidth` seguro y contenido visible sin metadata propietaria.
 
-- [ ] Implementar validacion de HTML permitido.
+- [x] Implementar validacion de HTML permitido.
   - Criterio: scripts, eventos inline, iframes no permitidos y protocolos inseguros se eliminan o bloquean.
+  - Nota: `html-validator.ts` valida HTML contra la allowlist compartida de `html-policy.ts`, bloquea `script`, `iframe`, tags/atributos desconocidos, eventos inline y protocolos inseguros en `href`, `src` y `style`; DOMPurify sigue usando la misma politica para eliminar contenido no permitido.
 - [ ] Sincronizar HTML editado hacia WYSIWYG.
   - Criterio: aplicar cambios HTML actualiza el editor visual sin perder historial critico.
 - [ ] Sincronizar JSON editado hacia WYSIWYG.
