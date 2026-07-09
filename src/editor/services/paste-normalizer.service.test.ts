@@ -29,6 +29,46 @@ describe('normalizePaste', () => {
     });
   });
 
+  it('detects Word HTML by Mso classes', () => {
+    expect(
+      normalizePaste({
+        html: '<p class="MsoNormal">Texto de Word</p>',
+      }).detectedSource,
+    ).toBe('word');
+  });
+
+  it('detects Word HTML by mso styles', () => {
+    expect(
+      normalizePaste({
+        html: '<p style="mso-margin-top-alt:auto">Texto de Word</p>',
+      }).detectedSource,
+    ).toBe('word');
+  });
+
+  it('detects Word HTML by conditional comments', () => {
+    expect(
+      normalizePaste({
+        html: '<!--[if gte mso 9]><xml><w:WordDocument></w:WordDocument></xml><![endif]--><p>Texto</p>',
+      }).detectedSource,
+    ).toBe('word');
+  });
+
+  it('detects Word HTML by Office namespaces', () => {
+    expect(
+      normalizePaste({
+        html: '<html xmlns:o="urn:schemas-microsoft-com:office:office"><body><p>Texto</p></body></html>',
+      }).detectedSource,
+    ).toBe('word');
+  });
+
+  it('detects Word HTML by o:p helper tags', () => {
+    expect(
+      normalizePaste({
+        html: '<p>Texto<o:p></o:p></p>',
+      }).detectedSource,
+    ).toBe('word');
+  });
+
   it('converts plain text to escaped paragraph HTML', () => {
     expect(
       normalizePaste({

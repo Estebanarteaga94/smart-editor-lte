@@ -39,10 +39,12 @@ export function normalizePaste(input: PasteNormalizerInput): PasteNormalizationR
   const html = getNonEmptyHtml(input);
 
   if (html !== null) {
+    const normalizedHtml = normalizeHtmlInput(html);
+
     return {
-      normalizedHtml: normalizeHtmlInput(html),
+      normalizedHtml,
       warnings: [],
-      detectedSource: 'html',
+      detectedSource: detectHtmlSource(normalizedHtml),
     };
   }
 
@@ -87,6 +89,14 @@ function normalizeHtmlInput(html: string): string {
   return normalizeLineEndings(html).trim();
 }
 
+function detectHtmlSource(html: string): PasteNormalizationSource {
+  return isWordHtml(html) ? 'word' : 'html';
+}
+
+function isWordHtml(html: string): boolean {
+  return wordHtmlMarkers.some((marker) => marker.test(html));
+}
+
 function normalizePlainTextInput(text: string): string {
   return normalizeLineEndings(text)
     .split(/\n{2,}/)
@@ -108,3 +118,12 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+const wordHtmlMarkers = [
+  /\bclass\s*=\s*["'][^"']*\bMso[\w-]*/i,
+  /\bstyle\s*=\s*["'][^"']*\bmso-[^"']*/i,
+  /<!--\s*\[if\s+[^\]]*mso[^\]]*\]>/i,
+  /<!\[endif\]\s*-->/i,
+  /\bxmlns:(?:o|w|v|m)\s*=\s*["'][^"']*office/i,
+  /<\/?o:p\b/i,
+];

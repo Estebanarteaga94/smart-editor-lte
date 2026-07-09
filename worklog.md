@@ -5100,3 +5100,50 @@ Decision Git:
 Pendientes inmediatos:
 
 - Detectar contenido pegado desde Word.
+
+## 2026-07-09 - Deteccion de contenido pegado desde Word
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: detectar contenido pegado desde Word mediante marcadores caracteristicos de Office.
+
+Acciones realizadas:
+
+- Se agrego deteccion de origen HTML dentro de `paste-normalizer.service.ts`.
+- El normalizador reporta `detectedSource: 'word'` cuando encuentra clases `Mso*`.
+- El normalizador reporta `detectedSource: 'word'` cuando encuentra estilos `mso-*`.
+- El normalizador reporta `detectedSource: 'word'` cuando encuentra comentarios condicionales con `mso`.
+- El normalizador reporta `detectedSource: 'word'` cuando encuentra namespaces Office como `xmlns:o`.
+- El normalizador reporta `detectedSource: 'word'` cuando encuentra etiquetas auxiliares `o:p`.
+- El HTML detectado como Word aun se conserva sin limpieza profunda porque la normalizacion de Word es la siguiente tarea separada.
+- Se agregaron pruebas unitarias para cada marcador de Word requerido por `tasks.md`.
+- Se marco `Detectar contenido pegado desde Word` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 11 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 187 pruebas correctas.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+- No se ejecuto `npm run test:e2e` porque esta tarea solo cambia el servicio de deteccion y no integra aun el pipeline de pegado en navegador.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Normalizar HTML de Word.
