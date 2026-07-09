@@ -5052,3 +5052,50 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar `paste-normalizer.service.ts`.
+
+## 2026-07-09 - Implementacion base del normalizador de pegado
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: implementar `paste-normalizer.service.ts` como servicio reutilizable y testeable sin dependencia directa del DOM de la toolbar.
+
+Acciones realizadas:
+
+- Se implemento `normalizePaste` como funcion reutilizable sobre el contrato existente.
+- Se implemento `createPasteNormalizerService` para exponer el servicio con la misma forma usada por otros servicios del editor.
+- El servicio conserva HTML generico cuando el portapapeles entrega HTML no vacio.
+- El servicio convierte texto plano a HTML de parrafos con saltos de linea como `<br>`.
+- El texto plano se escapa antes de generar HTML para evitar interpretar etiquetas o caracteres especiales como marcado.
+- El servicio maneja contenido vacio con `detectedSource: 'unknown'` y una advertencia controlada.
+- No se agrego deteccion especifica de Word o Excel porque esas tareas siguen separadas y pendientes.
+- Se ampliaron las pruebas unitarias del normalizador con HTML generico, texto plano escapado, fallback desde HTML vacio y contenido vacio.
+- Se marco `Implementar paste-normalizer.service.ts` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 6 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 182 pruebas correctas.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+- No se ejecuto `npm run test:e2e` porque esta tarea no cambia comportamiento visible ni integra aun el pipeline de pegado en navegador.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Detectar contenido pegado desde Word.
