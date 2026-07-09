@@ -5292,3 +5292,49 @@ Decision Git:
 Pendientes inmediatos:
 
 - Normalizar texto tabulado pegado desde Excel.
+
+## 2026-07-09 - Normalizacion de texto tabulado pegado desde Excel
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: convertir texto plano tabulado de Excel en tabla cuando corresponde, sin romper pegado normal de parrafos.
+
+Acciones realizadas:
+
+- Se agrego deteccion de texto plano tabular en `paste-normalizer.service.ts`.
+- El normalizador convierte texto con varias filas tabuladas en una tabla HTML `table/tbody/tr/td/th`.
+- Se infiere la primera fila como encabezado cuando contiene celdas no numericas.
+- Se conservan celdas vacias para mantener la forma de la tabla pegada.
+- Se reporta `detectedSource: 'excel'` y una advertencia `converted-tabular-text` cuando se convierte texto tabulado.
+- El texto con tabs aislados en una sola linea se mantiene como parrafo normal para no romper contenido no tabular.
+- Se agregaron pruebas unitarias para conversion de texto tabulado, encabezados inferidos, celdas vacias y tabs aislados.
+- Se marco `Normalizar texto tabulado pegado desde Excel` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 25 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 201 pruebas correctas.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+- No se ejecuto `npm run test:e2e` porque esta tarea solo cambia el servicio de normalizacion y no integra aun el pipeline de pegado en navegador.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Integrar normalizacion con el pipeline de pegado de Tiptap.

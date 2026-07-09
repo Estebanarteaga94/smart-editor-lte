@@ -67,6 +67,20 @@ export function normalizePaste(input: PasteNormalizerInput): PasteNormalizationR
     };
   }
 
+  if (isTabularPlainText(text)) {
+    return {
+      normalizedHtml: normalizeTabularPlainText(text),
+      warnings: [
+        {
+          code: 'converted-tabular-text',
+          severity: 'info',
+          message: 'El texto tabulado se convirtio en tabla.',
+        },
+      ],
+      detectedSource: 'excel',
+    };
+  }
+
   return {
     normalizedHtml: normalizePlainTextInput(text),
     warnings: [],
@@ -428,6 +442,63 @@ function normalizePlainTextInput(text: string): string {
     .filter((block) => block.length > 0)
     .map((block) => `<p>${escapeHtml(block).replace(/\n/g, '<br>')}</p>`)
     .join('');
+}
+
+function isTabularPlainText(text: string): boolean {
+  const rows = getTabularTextRows(text);
+
+  if (rows.length < 2) {
+    return false;
+  }
+
+  const columnCounts = rows.map((row) => row.length);
+  const maxColumnCount = Math.max(...columnCounts);
+
+  return maxColumnCount > 1 && columnCounts.every((columnCount) => columnCount > 1);
+}
+
+function normalizeTabularPlainText(text: string): string {
+  const rows = getTabularTextRows(text);
+  const columnCount = Math.max(...rows.map((row) => row.length));
+
+  if (rows.length === 0 || columnCount <= 1) {
+    return normalizePlainTextInput(text);
+  }
+
+  return `<table><tbody>${rows
+    .map((row, rowIndex) => serializeTabularTextRow(row, rowIndex, columnCount))
+    .join('')}</tbody></table>`;
+}
+
+function serializeTabularTextRow(row: string[], rowIndex: number, columnCount: number): string {
+  const tagName = shouldSerializeTabularTextRowAsHeader(row, rowIndex) ? 'th' : 'td';
+  const cells = Array.from({ length: columnCount }, (_, columnIndex) => row[columnIndex] ?? '')
+    .map((cell) => `<${tagName}>${escapeHtml(cell.trim())}</${tagName}>`)
+    .join('');
+
+  return `<tr>${cells}</tr>`;
+}
+
+function shouldSerializeTabularTextRowAsHeader(row: string[], rowIndex: number): boolean {
+  if (rowIndex !== 0) {
+    return false;
+  }
+
+  const cells = row.map((cell) => cell.trim()).filter((cell) => cell.length > 0);
+
+  if (cells.length === 0) {
+    return false;
+  }
+
+  return cells.every((cell) => Number.isNaN(Number(cell)));
+}
+
+function getTabularTextRows(text: string): string[][] {
+  return normalizeLineEndings(text)
+    .split('\n')
+    .map((row) => row.replace(/\t+$/g, ''))
+    .filter((row) => row.trim().length > 0)
+    .map((row) => row.split('\t'));
 }
 
 function normalizeLineEndings(value: string): string {

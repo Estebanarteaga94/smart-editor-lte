@@ -167,12 +167,12 @@ describe('normalizePaste', () => {
     ).toBe('excel');
   });
 
-  it('keeps tabulated plain text as plain text until the tabular conversion task is implemented', () => {
+  it('detects tabulated plain text as Excel content', () => {
     expect(
       normalizePaste({
         text: 'Columna A\tColumna B\n1\t2',
       }).detectedSource,
-    ).toBe('plain-text');
+    ).toBe('excel');
   });
 
   it('normalizes Excel tables to Tiptap-compatible table markup', () => {
@@ -223,6 +223,47 @@ describe('normalizePaste', () => {
       normalizedHtml: '<table><tbody><tr><td>42</td></tr></tbody></table>',
       warnings: [],
       detectedSource: 'excel',
+    });
+  });
+
+  it('converts tabulated plain text into an Excel table', () => {
+    expect(
+      normalizePaste({
+        text: 'Producto\tCantidad\nCafe\t2\nPan\t5',
+      }),
+    ).toEqual({
+      normalizedHtml:
+        '<table><tbody><tr><th>Producto</th><th>Cantidad</th></tr><tr><td>Cafe</td><td>2</td></tr><tr><td>Pan</td><td>5</td></tr></tbody></table>',
+      warnings: [
+        {
+          code: 'converted-tabular-text',
+          severity: 'info',
+          message: 'El texto tabulado se convirtio en tabla.',
+        },
+      ],
+      detectedSource: 'excel',
+    });
+  });
+
+  it('preserves empty cells in tabulated plain text tables', () => {
+    expect(
+      normalizePaste({
+        text: 'A\tB\tC\n1\t\t3',
+      }).normalizedHtml,
+    ).toBe(
+      '<table><tbody><tr><th>A</th><th>B</th><th>C</th></tr><tr><td>1</td><td></td><td>3</td></tr></tbody></table>',
+    );
+  });
+
+  it('keeps a single tabbed plain-text line as a paragraph', () => {
+    expect(
+      normalizePaste({
+        text: 'Parrafo con\tindentacion',
+      }),
+    ).toEqual({
+      normalizedHtml: '<p>Parrafo con\tindentacion</p>',
+      warnings: [],
+      detectedSource: 'plain-text',
     });
   });
 
