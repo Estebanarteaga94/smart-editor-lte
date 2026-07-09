@@ -26,6 +26,7 @@ import {
 } from './services/media-upload.service';
 import { createSanitizerService, type SanitizerService } from './services/sanitizer.service';
 import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
+import { sanitizeAndValidateHtmlAgainstSchema } from './services/paste-content-safety.service';
 import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
 
 export interface MountEditorAppOptions {
@@ -127,9 +128,11 @@ export async function mountEditorApp({
     },
     onToggleSourceHtml: () => {
       if (activeMode === 'source-html') {
-        sanitizeActiveSourceHtml();
+        if (!applyActiveSourceHtml()) {
+          return;
+        }
+
         showWysiwygMode();
-        shell.setSaveStatus('unchanged', 'HTML sanitizado');
         return;
       }
 
@@ -145,7 +148,10 @@ export async function mountEditorApp({
         return;
       }
 
-      sanitizeActiveSourceHtml();
+      if (!applyActiveSourceHtml()) {
+        return;
+      }
+
       showSourceJsonMode();
     },
     onFormatHtml: () => {
@@ -253,18 +259,32 @@ export async function mountEditorApp({
     }
   }
 
-  function sanitizeActiveSourceHtml(): void {
+  function applyActiveSourceHtml(): boolean {
     if (activeMode !== 'source-html') {
-      return;
+      return true;
     }
 
     const source = sourceView?.getValue() ?? sourceHtmlValue ?? '';
-    const sanitizedHtml = sanitizer.sanitizeHtml(source);
-    sourceHtmlValue = sanitizedHtml;
+    const result = sanitizeAndValidateHtmlAgainstSchema(source, editor.state.schema, sanitizer);
 
-    if (sourceView && sourceView.getValue() !== sanitizedHtml) {
-      sourceView.setValue(sanitizedHtml);
+    if (!result.ok) {
+      shell.setSaveStatus('error', result.error ?? 'HTML invalido.');
+      return false;
     }
+
+    sourceHtmlValue = result.html;
+
+    if (sourceView && sourceView.getValue() !== result.html) {
+      sourceView.setValue(result.html);
+    }
+
+    editor.commands.setContent(result.html);
+    shell.setSaveStatus('unchanged', 'HTML aplicado');
+    window.setTimeout(() => {
+      shell.setSaveStatus('unchanged', 'HTML aplicado');
+    }, 0);
+
+    return true;
   }
 
   function validateActiveSourceJson(): boolean {

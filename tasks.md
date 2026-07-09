@@ -445,8 +445,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Implementar validacion de HTML permitido.
   - Criterio: scripts, eventos inline, iframes no permitidos y protocolos inseguros se eliminan o bloquean.
   - Nota: `html-validator.ts` valida HTML contra la allowlist compartida de `html-policy.ts`, bloquea `script`, `iframe`, tags/atributos desconocidos, eventos inline y protocolos inseguros en `href`, `src` y `style`; DOMPurify sigue usando la misma politica para eliminar contenido no permitido.
-- [ ] Sincronizar HTML editado hacia WYSIWYG.
+- [x] Sincronizar HTML editado hacia WYSIWYG.
   - Criterio: aplicar cambios HTML actualiza el editor visual sin perder historial critico.
+  - Nota: al salir de `source-html`, el HTML editado se sanitiza, se valida contra el schema real de Tiptap/ProseMirror y contra el JSON canonico, y solo entonces se aplica con `setContent`; si el HTML queda fuera del schema permitido, se conserva el documento visual actual y se mantiene la vista fuente con error.
 - [ ] Sincronizar JSON editado hacia WYSIWYG.
   - Criterio: aplicar JSON valido y permitido por schema actualiza el editor visual; JSON invalido conserva el contenido anterior.
 - [ ] Agregar mensajes de error amigables.

@@ -5595,3 +5595,54 @@ Decision Git:
 Pendientes inmediatos:
 
 - Sincronizar HTML editado hacia WYSIWYG.
+
+## 2026-07-09 - Sincronizacion de HTML editado hacia WYSIWYG
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: aplicar el HTML editado desde `source-html` al editor visual sin corromper el documento.
+
+Acciones realizadas:
+
+- Se reemplazo el flujo que solo sanitizaba el HTML fuente por un flujo de aplicacion controlada.
+- `source-html` ahora sanitiza el contenido editado, lo valida contra el schema real de Tiptap/ProseMirror y lo valida como JSON canonico antes de aplicarlo.
+- El HTML fuente valido se aplica al WYSIWYG mediante `editor.commands.setContent`.
+- Si el HTML editado queda fuera del schema canonico permitido, se conserva el documento visual actual, se mantiene la vista `source-html` activa y se muestra un error accionable.
+- Al alternar desde `source-html` hacia `source-json`, primero se intenta aplicar el HTML editado; si falla, no se descartan los cambios de la vista fuente.
+- Se agrego `sanitizeAndValidateHtmlAgainstSchema` como helper generico y se mantuvo el alias de pegado existente.
+- Se agregaron pruebas para HTML fuente valido aplicado al editor, sanitizacion previa a la aplicacion, bloqueo de HTML incompatible y continuidad basica del historial de Tiptap.
+- Se marco `Sincronizar HTML editado hacia WYSIWYG` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/editor/services/paste-content-safety.service.ts`
+- `src/editor/services/paste-content-safety.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 36 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/services/paste-content-safety.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 2 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 27 archivos de prueba correctos, 218 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene avisos no bloqueantes `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,063.20 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Sincronizar JSON editado hacia WYSIWYG.

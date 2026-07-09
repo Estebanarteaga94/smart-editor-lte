@@ -13,19 +13,26 @@ export interface PasteContentSafetyService {
   sanitizeAndValidateHtml(html: string, schema: Schema): SafePastedHtmlResult;
 }
 
-const invalidPasteHtmlMessage = 'El contenido pegado no cumple el schema permitido.';
+const invalidHtmlMessage = 'El contenido HTML no cumple el schema permitido.';
 
 export function createPasteContentSafetyService(
   sanitizer: SanitizerService = createSanitizerService(),
 ): PasteContentSafetyService {
   return {
-    sanitizeAndValidateHtml(html, schema) {
-      return sanitizeAndValidatePastedHtml(html, schema, sanitizer);
-    },
+    sanitizeAndValidateHtml: (html, schema) =>
+      sanitizeAndValidateHtmlAgainstSchema(html, schema, sanitizer),
   };
 }
 
 export function sanitizeAndValidatePastedHtml(
+  html: string,
+  schema: Schema,
+  sanitizer: SanitizerService = createSanitizerService(),
+): SafePastedHtmlResult {
+  return sanitizeAndValidateHtmlAgainstSchema(html, schema, sanitizer);
+}
+
+export function sanitizeAndValidateHtmlAgainstSchema(
   html: string,
   schema: Schema,
   sanitizer: SanitizerService = createSanitizerService(),
@@ -61,7 +68,7 @@ export function sanitizeAndValidatePastedHtml(
       return {
         ok: false,
         html: '',
-        error: invalidPasteHtmlMessage,
+        error: invalidHtmlMessage,
       };
     }
 
@@ -73,7 +80,7 @@ export function sanitizeAndValidatePastedHtml(
     return {
       ok: false,
       html: '',
-      error: invalidPasteHtmlMessage,
+      error: invalidHtmlMessage,
     };
   }
 }

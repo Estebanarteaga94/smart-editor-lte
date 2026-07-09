@@ -42,7 +42,7 @@ describe('sanitizeAndValidatePastedHtml', () => {
     expect(result).toEqual({
       ok: false,
       html: '',
-      error: 'El contenido pegado no cumple el schema permitido.',
+      error: 'El contenido HTML no cumple el schema permitido.',
     });
   });
 });

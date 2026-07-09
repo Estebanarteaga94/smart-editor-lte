@@ -1763,9 +1763,14 @@ describe('mountEditorApp', () => {
     expect(editableSlot?.hidden).toBe(false);
     expect(mountedApp.editor.isEditable).toBe(true);
     expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(mountedApp.editor.getHTML()).toBe('<p>Editado desde HTML</p>');
+
+    mountedApp.editor.commands.undo();
+
+    expect(mountedApp.editor.getHTML()).not.toContain('<p>Editado desde HTML</p>');
   });
 
-  it('sanitizes edited source-html before returning to the visual editor', async () => {
+  it('sanitizes edited source-html and applies it to the visual editor', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
     document.body.append(appRoot);
@@ -1779,7 +1784,6 @@ describe('mountEditorApp', () => {
 
     mountedApp.editor.commands.setContent('<p>Contenido original</p>');
 
-    const originalJson = mountedApp.editor.getJSON();
     const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="source-html"]',
     );
@@ -1801,7 +1805,7 @@ describe('mountEditorApp', () => {
     expect(mountedApp.getActiveMode()).toBe('wysiwyg');
     expect(mountedApp.getSourceView()).toBeNull();
     expect(editableSlot?.hidden).toBe(false);
-    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('HTML sanitizado');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('HTML aplicado');
     expect(sanitizedHtml).toContain('<p>Seguro</p>');
     expect(sanitizedHtml).toContain('<img src="/ok.png">');
     expect(sanitizedHtml).toContain('<a>Link</a>');
@@ -1809,6 +1813,51 @@ describe('mountEditorApp', () => {
     expect(sanitizedHtml).not.toContain('onclick');
     expect(sanitizedHtml).not.toContain('onerror');
     expect(sanitizedHtml).not.toContain('javascript:');
+    expect(mountedApp.editor.getHTML()).toContain('<p>Seguro</p>');
+    expect(mountedApp.editor.getHTML()).toContain('<img src="/ok.png">');
+    expect(mountedApp.editor.getHTML()).toContain('<p>Link</p>');
+    expect(mountedApp.editor.getHTML()).not.toContain('javascript:');
+  });
+
+  it('keeps the current visual document when edited source-html is outside the canonical schema', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-source-html-invalid-schema',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Contenido original</p>');
+
+    const originalHtml = mountedApp.editor.getHTML();
+    const originalJson = mountedApp.editor.getJSON();
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const editableSlot = appRoot.querySelector<HTMLElement>('.editor-shell__editable');
+    const sourceSlot = appRoot.querySelector<HTMLElement>('.editor-shell__source');
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    const sourceView = mountedApp.getSourceView();
+    sourceView?.setValue('<p>Linea uno<br>Linea dos</p>');
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getActiveMode()).toBe('source-html');
+    expect(mountedApp.getSourceView()).toBe(sourceView);
+    expect(editableSlot?.hidden).toBe(true);
+    expect(sourceSlot?.hidden).toBe(false);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'El contenido HTML no cumple el schema permitido.',
+    );
+    expect(mountedApp.editor.getHTML()).toBe(originalHtml);
     expect(mountedApp.editor.getJSON()).toEqual(originalJson);
   });
 
