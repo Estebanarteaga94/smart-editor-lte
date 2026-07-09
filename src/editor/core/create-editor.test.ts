@@ -3,9 +3,11 @@
  */
 
 import type { JSONContent } from '@tiptap/core';
+import { Slice } from '@tiptap/pm/model';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createWysiwygEditor } from './create-editor';
+import type { PasteNormalizerService } from '../services/paste-normalizer.service';
 
 const mountedEditors = new Set<ReturnType<typeof createWysiwygEditor>>();
 
@@ -268,4 +270,94 @@ describe('createWysiwygEditor', () => {
     });
     expect(editor.getHTML()).not.toContain('javascript:');
   });
+
+  it('normalizes pasted HTML through the Tiptap paste pipeline', () => {
+    const element = document.createElement('div');
+    const normalizePaste = vi.fn<PasteNormalizerService['normalizePaste']>(() => ({
+      normalizedHtml: '<p>HTML normalizado</p>',
+      warnings: [],
+      detectedSource: 'word',
+    }));
+    document.body.append(element);
+
+    const editor = mountEditor({
+      element,
+      pasteNormalizer: {
+        normalizePaste,
+      },
+    });
+    const transformedHtml = editor.view.props.transformPastedHTML?.(
+      '<p class="MsoNormal">HTML de Word</p>',
+      editor.view,
+    );
+
+    expect(transformedHtml).toBe('<p>HTML normalizado</p>');
+    expect(normalizePaste).toHaveBeenCalledWith({
+      html: '<p class="MsoNormal">HTML de Word</p>',
+    });
+  });
+
+  it('inserts tabulated plain-text paste as a table through handlePaste', () => {
+    const element = document.createElement('div');
+    document.body.append(element);
+
+    const editor = mountEditor({
+      element,
+      initialContent: '<p></p>',
+    });
+    const pasteEvent = createPasteEvent({
+      text: 'Producto\tCantidad\nCafe\t2',
+    });
+    const handled = editor.view.props.handlePaste?.(editor.view, pasteEvent, Slice.empty);
+
+    expect(handled).toBe(true);
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(editor.getHTML()).toContain('<table');
+    expect(editor.getHTML()).toContain('<th colspan="1" rowspan="1"><p>Producto</p></th>');
+    expect(editor.getHTML()).toContain('<td colspan="1" rowspan="1"><p>Cafe</p></td>');
+  });
+
+  it('does not intercept normal plain-text paste in handlePaste', () => {
+    const element = document.createElement('div');
+    document.body.append(element);
+
+    const editor = mountEditor({
+      element,
+      initialContent: '<p>Base</p>',
+    });
+    const pasteEvent = createPasteEvent({
+      text: 'Texto normal',
+    });
+    const handled = editor.view.props.handlePaste?.(editor.view, pasteEvent, Slice.empty);
+
+    expect(handled).toBe(false);
+    expect(pasteEvent.defaultPrevented).toBe(false);
+    expect(editor.getHTML()).toBe('<p>Base</p>');
+  });
 });
+
+function createPasteEvent(options: { html?: string; text?: string }): ClipboardEvent {
+  const event = new Event('paste', {
+    bubbles: true,
+    cancelable: true,
+  });
+
+  Object.defineProperty(event, 'clipboardData', {
+    configurable: true,
+    value: {
+      getData: (type: string) => {
+        if (type === 'text/html') {
+          return options.html ?? '';
+        }
+
+        if (type === 'text/plain') {
+          return options.text ?? '';
+        }
+
+        return '';
+      },
+    },
+  });
+
+  return event as ClipboardEvent;
+}

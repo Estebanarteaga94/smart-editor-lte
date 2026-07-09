@@ -1150,6 +1150,32 @@ describe('mountEditorApp', () => {
     expect(mediaUploadDouble.uploadImage).not.toHaveBeenCalled();
   });
 
+  it('normalizes tabulated text paste through the mounted Tiptap editor', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-tabular-paste',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p></p>');
+
+    const pasteEvent = dispatchClipboardDataEvent(getEditorPasteTarget(appRoot), {
+      text: 'Producto\tCantidad\nCafe\t2',
+    });
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(mountedApp.editor.getHTML()).toContain('<table');
+    expect(mountedApp.editor.getHTML()).toContain(
+      '<th colspan="1" rowspan="1"><p>Producto</p></th>',
+    );
+    expect(mountedApp.editor.getHTML()).toContain('<td colspan="1" rowspan="1"><p>Cafe</p></td>');
+  });
+
   it('shows Error and does not insert an image when the pasted image is invalid', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
@@ -2002,6 +2028,16 @@ function getImageDropTarget(root: ParentNode): HTMLElement {
   return dropTarget;
 }
 
+function getEditorPasteTarget(root: ParentNode): HTMLElement {
+  const pasteTarget = root.querySelector<HTMLElement>('.tiptap');
+
+  if (!pasteTarget) {
+    throw new Error('Expected editor paste target');
+  }
+
+  return pasteTarget;
+}
+
 function dispatchFileDragEvent(
   target: HTMLElement,
   type: 'dragover' | 'drop',
@@ -2043,6 +2079,38 @@ function dispatchClipboardEvent(target: HTMLElement, items: readonly ClipboardIt
     configurable: true,
     value: {
       items,
+    },
+  });
+
+  target.dispatchEvent(event);
+
+  return event;
+}
+
+function dispatchClipboardDataEvent(
+  target: HTMLElement,
+  options: { html?: string; text?: string },
+): Event {
+  const event = new Event('paste', {
+    bubbles: true,
+    cancelable: true,
+  });
+
+  Object.defineProperty(event, 'clipboardData', {
+    configurable: true,
+    value: {
+      items: [],
+      getData: (type: string) => {
+        if (type === 'text/html') {
+          return options.html ?? '';
+        }
+
+        if (type === 'text/plain') {
+          return options.text ?? '';
+        }
+
+        return '';
+      },
     },
   });
 

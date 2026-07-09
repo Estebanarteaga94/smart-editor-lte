@@ -4474,7 +4474,6 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque la tarea quedo completada y verificada.
-- Commit creado: `325988d Normalizar texto tabulado desde Excel`.
 
 Pendientes inmediatos:
 
@@ -5335,7 +5334,60 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque la tarea quedo completada y verificada.
+- Commit creado: `325988d Normalizar texto tabulado desde Excel`.
 
 Pendientes inmediatos:
 
 - Integrar normalizacion con el pipeline de pegado de Tiptap.
+
+## 2026-07-09 - Integracion del normalizador con el pipeline de pegado de Tiptap
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: hacer que el pegado pase por el normalizador antes de insertar contenido en Tiptap.
+
+Acciones realizadas:
+
+- Se agrego `pasteNormalizer` como dependencia inyectable de `createWysiwygEditor`.
+- Se conecto `paste-normalizer.service.ts` al pipeline de Tiptap mediante `editorProps.transformPastedHTML` para contenido HTML.
+- Se agrego `editorProps.handlePaste` para convertir texto plano tabulado en tabla antes de insertarlo en el documento.
+- El pegado HTML se deja al flujo nativo de ProseMirror despues de normalizarse.
+- El pegado de texto normal no se intercepta, para conservar el comportamiento nativo del editor.
+- El pegado de imagenes conserva el listener existente de la app y no queda reemplazado por el normalizador de texto/HTML.
+- Se agregaron pruebas unitarias del factory para HTML normalizado, texto tabulado y texto normal.
+- Se agrego una prueba de la app montada que dispara `paste` sobre el nodo real `.tiptap` y verifica insercion de tabla.
+- Se marco `Integrar normalizacion con el pipeline de pegado de Tiptap` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/core/create-editor.ts`
+- `src/editor/core/create-editor.test.ts`
+- `src/editor/core/editor-types.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/core/create-editor.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 11 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 33 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 205 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,061.16 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Sanitizar y validar despues de normalizar.

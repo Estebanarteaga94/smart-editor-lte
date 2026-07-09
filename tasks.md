@@ -429,8 +429,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Normalizar texto tabulado pegado desde Excel.
   - Criterio: texto plano con tabs y saltos de linea se convierte en tabla cuando corresponde, sin romper el pegado normal de parrafos.
   - Nota: `paste-normalizer.service.ts` convierte texto plano con varias filas tabuladas en tabla HTML con encabezados inferidos en la primera fila, conserva celdas vacias y deja como parrafo el texto con tabs aislados en una sola linea.
-- [ ] Integrar normalizacion con el pipeline de pegado de Tiptap.
+- [x] Integrar normalizacion con el pipeline de pegado de Tiptap.
   - Criterio: el pegado usa `transformPastedHTML`, `handlePaste` o extension equivalente de ProseMirror/Tiptap antes de insertar contenido.
+  - Nota: `createWysiwygEditor` conecta `paste-normalizer.service.ts` al pipeline de Tiptap con `transformPastedHTML` para HTML y `handlePaste` para texto tabulado convertido a tabla; el pegado normal de texto y el pegado de imagenes conservan su flujo actual.
 - [ ] Sanitizar y validar despues de normalizar.
   - Criterio: el resultado pasa por DOMPurify y por validacion de HTML/schema antes de afectar el documento actual.
 - [ ] Probar pegado desde Word.
