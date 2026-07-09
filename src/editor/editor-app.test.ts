@@ -1167,6 +1167,8 @@ describe('mountEditorApp', () => {
     const pasteEvent = dispatchClipboardDataEvent(getEditorPasteTarget(appRoot), {
       text: 'Producto\tCantidad\nCafe\t2',
     });
+    const table = mountedApp.editor.getJSON().content?.find((node) => node.type === 'table');
+    const [headerRow, bodyRow] = getJsonContent(table);
 
     expect(pasteEvent.defaultPrevented).toBe(true);
     expect(mountedApp.editor.getHTML()).toContain('<table');
@@ -1174,6 +1176,86 @@ describe('mountEditorApp', () => {
       '<th colspan="1" rowspan="1"><p>Producto</p></th>',
     );
     expect(mountedApp.editor.getHTML()).toContain('<td colspan="1" rowspan="1"><p>Cafe</p></td>');
+    expect(getJsonContent(headerRow).map((cell) => cell.type)).toEqual([
+      'tableHeader',
+      'tableHeader',
+    ]);
+    expect(getJsonContent(bodyRow).map((cell) => cell.type)).toEqual(['tableCell', 'tableCell']);
+    expect(getJsonContent(bodyRow)[0]).toMatchObject({
+      type: 'tableCell',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Cafe' }],
+        },
+      ],
+    });
+  });
+
+  it('normalizes realistic Excel HTML paste into clean canonical table content', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-excel-html-paste',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p></p>');
+
+    const pasteEvent = dispatchClipboardDataEvent(getEditorPasteTarget(appRoot), {
+      html: [
+        '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><body>',
+        '<x:ExcelWorkbook><x:Worksheet></x:Worksheet></x:ExcelWorkbook>',
+        '<table class="Workbook" style="mso-displayed-decimal-separator:&quot;.&quot;">',
+        '<tr>',
+        '<td class="header" style="font-weight:bold;width:72pt" onclick="alert(1)">Producto</td>',
+        '<td class="header" style="font-weight:bold;width:80px">Cantidad</td>',
+        '</tr>',
+        '<tr>',
+        '<td style="mso-number-format:&quot;@&quot;">Cafe<script>alert(1)</script></td>',
+        '<td style="mso-number-format:&quot;0&quot;" x:fmla="=SUM(A1:A2)">2</td>',
+        '</tr>',
+        '</table>',
+        '</body></html>',
+      ].join(''),
+      text: 'Producto\tCantidad\nCafe\t2',
+    });
+    const html = mountedApp.editor.getHTML();
+    const table = mountedApp.editor.getJSON().content?.find((node) => node.type === 'table');
+    const [headerRow, bodyRow] = getJsonContent(table);
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(html).toContain('<table');
+    expect(html).toContain('<th colspan="1" rowspan="1" colwidth="96"><p>Producto</p></th>');
+    expect(html).toContain('<td colspan="1" rowspan="1" colwidth="96"><p>Cafe</p></td>');
+    expect(html).toContain('<td colspan="1" rowspan="1" colwidth="80"><p>2</p></td>');
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('onclick');
+    expect(html).not.toContain('x:fmla');
+    expect(html).not.toContain('mso-');
+    expect(html).not.toContain('Workbook');
+    expect(html).not.toContain('SUM(');
+    expect(getJsonContent(headerRow).map((cell) => cell.type)).toEqual([
+      'tableHeader',
+      'tableHeader',
+    ]);
+    expect(getJsonContent(bodyRow).map((cell) => cell.type)).toEqual(['tableCell', 'tableCell']);
+    expect(getJsonContent(headerRow)[0]?.attrs).toMatchObject({
+      colwidth: [96],
+    });
+    expect(getJsonContent(bodyRow)[0]).toMatchObject({
+      type: 'tableCell',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Cafe' }],
+        },
+      ],
+    });
   });
 
   it('normalizes realistic Word HTML paste into clean canonical content', async () => {
@@ -2105,6 +2187,10 @@ function flushPromises(): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, 0);
   });
+}
+
+function getJsonContent(node: JSONContent | undefined): JSONContent[] {
+  return node?.content ?? [];
 }
 
 function createRect(rect: {
