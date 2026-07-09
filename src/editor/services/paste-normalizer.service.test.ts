@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import { describe, expect, it } from 'vitest';
 
 import { createPasteNormalizerService, normalizePaste } from './paste-normalizer.service';
@@ -67,6 +71,72 @@ describe('normalizePaste', () => {
         html: '<p>Texto<o:p></o:p></p>',
       }).detectedSource,
     ).toBe('word');
+  });
+
+  it('normalizes Word metadata, comments, namespaces, mso styles and helper tags', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<html xmlns:o="urn:schemas-microsoft-com:office:office">',
+          '<head><meta name="Generator" content="Microsoft Word"><style>.MsoNormal{}</style></head>',
+          '<body><!--[if gte mso 9]><xml><o:OfficeDocumentSettings></o:OfficeDocumentSettings></xml><![endif]-->',
+          '<p class="MsoNormal" style="mso-margin-top-alt:auto;font-weight:bold">Texto<span> </span><o:p>&nbsp;</o:p></p>',
+          '</body></html>',
+        ].join(''),
+      }),
+    ).toEqual({
+      normalizedHtml: '<p><strong>Texto</strong></p>',
+      warnings: [],
+      detectedSource: 'word',
+    });
+  });
+
+  it('removes unsupported attributes and keeps safe links', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<p class="MsoNormal" id="x" data-id="1" onclick="alert(1)">',
+          '<a href="javascript:alert(1)" title="Malo" onclick="alert(1)">Malo</a>',
+          '<a href="https://example.com" title="Seguro" target="_blank">Seguro</a>',
+          '</p>',
+        ].join(''),
+      }),
+    ).toEqual({
+      normalizedHtml:
+        '<p><a title="Malo">Malo</a><a href="https://example.com" title="Seguro">Seguro</a></p>',
+      warnings: [],
+      detectedSource: 'word',
+    });
+  });
+
+  it('preserves simple tables and safe cell spans from Word HTML', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<table class="MsoTableGrid" style="mso-yfti-tbllook:1184">',
+          '<tr><th colspan="2" style="mso-style-name:Header">Cabecera</th></tr>',
+          '<tr><td rowspan="2">A</td><td>B</td></tr>',
+          '</table>',
+        ].join(''),
+      }),
+    ).toEqual({
+      normalizedHtml:
+        '<table><tbody><tr><th colspan="2">Cabecera</th></tr><tr><td rowspan="2">A</td><td>B</td></tr></tbody></table>',
+      warnings: [],
+      detectedSource: 'word',
+    });
+  });
+
+  it('unwraps empty and redundant Word spans without losing text', () => {
+    expect(
+      normalizePaste({
+        html: '<p class="MsoNormal"><span><span>Texto</span></span><span> </span></p>',
+      }),
+    ).toEqual({
+      normalizedHtml: '<p>Texto</p>',
+      warnings: [],
+      detectedSource: 'word',
+    });
   });
 
   it('converts plain text to escaped paragraph HTML', () => {

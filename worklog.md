@@ -5148,3 +5148,51 @@ Decision Git:
 Pendientes inmediatos:
 
 - Normalizar HTML de Word.
+
+## 2026-07-09 - Normalizacion de HTML pegado desde Word
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: normalizar HTML de Word removiendo ruido de Office y conservando estructura compatible con Tiptap.
+
+Acciones realizadas:
+
+- Se implemento normalizacion especifica para HTML detectado como Word dentro de `paste-normalizer.service.ts`.
+- El normalizador usa `DOMParser` para reconstruir el HTML desde nodos permitidos, sin depender de la toolbar ni de componentes visuales.
+- Se descartan comentarios, metadata, namespaces Office y etiquetas auxiliares como `o:p`.
+- Se eliminan clases `Mso*`, estilos `mso-*` y atributos no permitidos al reconstruir el HTML.
+- Se eliminan `span` vacios y se desenvuelven `span` redundantes sin perder texto.
+- Se conserva formato basico desde estilos de Word cuando aplica: negrita, cursiva, subrayado y tachado.
+- Se preservan parrafos, encabezados, listas, tablas simples, celdas con `colspan`/`rowspan` seguros y links con `href` seguro.
+- Se mantiene DOMPurify como capa posterior de sanitizacion; esta tarea solo normaliza estructura Word.
+- Se agregaron pruebas unitarias para metadata/comentarios/namespaces, atributos no permitidos, links seguros, tablas simples y spans redundantes.
+- Se marco `Normalizar HTML de Word` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 15 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 191 pruebas correctas.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+- No se ejecuto `npm run test:e2e` porque esta tarea sigue siendo de servicio y aun no integra el pipeline de pegado en navegador.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Detectar contenido pegado desde Excel.

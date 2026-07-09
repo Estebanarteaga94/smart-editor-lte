@@ -417,8 +417,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Detectar contenido pegado desde Word.
   - Criterio: identifica marcadores como clases `Mso*`, estilos `mso-*`, comentarios condicionales, namespaces de Office y etiquetas auxiliares como `o:p`.
   - Nota: `paste-normalizer.service.ts` detecta Word mediante clases `Mso*`, estilos `mso-*`, comentarios condicionales `mso`, namespaces Office y etiquetas `o:p`, y reporta `detectedSource: 'word'` sin aplicar todavia la limpieza profunda.
-- [ ] Normalizar HTML de Word.
+- [x] Normalizar HTML de Word.
   - Criterio: elimina metadata, comentarios, namespaces, estilos `mso-*`, clases de Office, spans vacios y atributos no permitidos, preservando parrafos, encabezados, listas, tablas simples, links seguros y formato basico.
+  - Nota: `paste-normalizer.service.ts` reconstruye el HTML de Word con `DOMParser`, descarta metadata/comentarios/namespaces/atributos no permitidos, elimina `span` vacios y redundantes, preserva tablas simples, links seguros y formato basico, y mantiene DOMPurify como sanitizacion posterior.
 - [ ] Detectar contenido pegado desde Excel.
   - Criterio: identifica tablas HTML de Excel, estilos `mso-number-format`, clases de workbook y pegado tabulado cuando el portapapeles no trae HTML confiable.
 - [ ] Normalizar tablas pegadas desde Excel.
