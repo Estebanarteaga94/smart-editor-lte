@@ -140,7 +140,7 @@ export async function mountEditorApp({
     },
     onToggleSourceJson: () => {
       if (activeMode === 'source-json') {
-        if (!validateActiveSourceJson()) {
+        if (!applyActiveSourceJson()) {
           return;
         }
 
@@ -216,7 +216,7 @@ export async function mountEditorApp({
       language: 'json',
       onChange: (value) => {
         sourceJsonValue = value;
-        validateActiveSourceJson();
+        validateActiveSourceJsonInput();
       },
     });
     lifecycle.registerSourceView(sourceView);
@@ -287,7 +287,7 @@ export async function mountEditorApp({
     return true;
   }
 
-  function validateActiveSourceJson(): boolean {
+  function validateActiveSourceJsonInput(): boolean {
     if (activeMode !== 'source-json') {
       return true;
     }
@@ -301,6 +301,46 @@ export async function mountEditorApp({
     }
 
     shell.setSaveStatus('unchanged', 'JSON valido');
+    return true;
+  }
+
+  function applyActiveSourceJson(): boolean {
+    if (activeMode !== 'source-json') {
+      return true;
+    }
+
+    const source = sourceView?.getValue() ?? sourceJsonValue ?? '';
+    const result = resolveSourceJsonUpdate(source, getCanonicalEditorJson(editor));
+
+    if (!result.applied) {
+      shell.setSaveStatus('error', result.error ?? 'JSON invalido.');
+      return false;
+    }
+
+    const formattedJson = JSON.stringify(result.content, null, 2);
+    sourceJsonValue = formattedJson;
+
+    if (sourceView && sourceView.getValue() !== formattedJson) {
+      sourceView.setValue(formattedJson);
+    }
+
+    try {
+      const applied = editor.commands.setContent(result.content);
+
+      if (!applied) {
+        shell.setSaveStatus('error', 'No se pudo aplicar el JSON al editor visual.');
+        return false;
+      }
+    } catch {
+      shell.setSaveStatus('error', 'No se pudo aplicar el JSON al editor visual.');
+      return false;
+    }
+
+    shell.setSaveStatus('unchanged', 'JSON aplicado');
+    window.setTimeout(() => {
+      shell.setSaveStatus('unchanged', 'JSON aplicado');
+    }, 0);
+
     return true;
   }
 

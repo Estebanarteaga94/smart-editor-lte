@@ -5647,3 +5647,52 @@ Decision Git:
 Pendientes inmediatos:
 
 - Sincronizar JSON editado hacia WYSIWYG.
+
+## 2026-07-09 - Sincronizacion de JSON editado hacia WYSIWYG
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: aplicar JSON valido editado desde `source-json` al editor visual sin reemplazar el documento cuando el JSON sea invalido.
+
+Acciones realizadas:
+
+- Se separo la validacion en vivo de `source-json` de la aplicacion final hacia Tiptap.
+- La vista `source-json` sigue validando sintaxis y schema mientras se edita, pero no modifica el WYSIWYG hasta que el usuario sale de la vista.
+- Al salir de `source-json`, el JSON valido y permitido por schema se aplica al editor visual mediante `editor.commands.setContent`.
+- El JSON aplicado se normaliza en `sourceJsonValue` con formato estable de dos espacios.
+- Si el JSON es invalido o queda fuera del schema canonico, se mantiene activa la vista `source-json`, se muestra error y se conserva el documento visual previo.
+- Se agrego cobertura de integracion para JSON valido aplicado al editor, HTML resultante, estado visible `JSON aplicado` y continuidad basica del historial.
+- Se mantuvo la cobertura existente para JSON mal formado y JSON fuera de schema sin reemplazar el documento.
+- Se marco `Sincronizar JSON editado hacia WYSIWYG` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 36 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/models/editor-content.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 11 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 27 archivos de prueba correctos, 218 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene avisos no bloqueantes `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,063.77 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar mensajes de error amigables.

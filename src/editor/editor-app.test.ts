@@ -1931,9 +1931,30 @@ describe('mountEditorApp', () => {
     expect(codeMirrorContent).toBeInstanceOf(HTMLElement);
     expect(codeMirrorContent?.getAttribute('contenteditable')).toBe('true');
 
-    sourceView?.setValue('{"type":"doc","content":[]}');
+    sourceView?.setValue(
+      JSON.stringify({
+        type: 'doc',
+        content: [
+          {
+            type: 'heading',
+            attrs: { level: 3 },
+            content: [{ type: 'text', text: 'Aplicado desde JSON' }],
+          },
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: 'Contenido sincronizado',
+                marks: [{ type: 'bold' }],
+              },
+            ],
+          },
+        ],
+      }),
+    );
 
-    expect(mountedApp.getSourceJsonValue()).toBe('{"type":"doc","content":[]}');
+    expect(mountedApp.getSourceJsonValue()).toContain('Aplicado desde JSON');
 
     sourceJsonButton?.click();
     await flushPromises();
@@ -1945,6 +1966,13 @@ describe('mountEditorApp', () => {
     expect(editableSlot?.hidden).toBe(false);
     expect(mountedApp.editor.isEditable).toBe(true);
     expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('JSON aplicado');
+    expect(mountedApp.editor.getHTML()).toContain('<h3>Aplicado desde JSON</h3>');
+    expect(mountedApp.editor.getHTML()).toContain('<p><strong>Contenido sincronizado</strong></p>');
+
+    mountedApp.editor.commands.undo();
+
+    expect(mountedApp.editor.getHTML()).not.toContain('<h3>Aplicado desde JSON</h3>');
   });
 
   it('validates source-json content before leaving the JSON view', async () => {
