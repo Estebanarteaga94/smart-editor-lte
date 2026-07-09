@@ -93,11 +93,19 @@ function normalizeHtmlInput(html: string): string {
 }
 
 function detectHtmlSource(html: string): PasteNormalizationSource {
+  if (isExcelHtml(html)) {
+    return 'excel';
+  }
+
   return isWordHtml(html) ? 'word' : 'html';
 }
 
 function isWordHtml(html: string): boolean {
   return wordHtmlMarkers.some((marker) => marker.test(html));
+}
+
+function isExcelHtml(html: string): boolean {
+  return excelHtmlMarkers.some((marker) => marker.test(html));
 }
 
 function normalizeWordHtml(html: string): string {
@@ -284,6 +292,16 @@ const wordHtmlMarkers = [
   /<!\[endif\]\s*-->/i,
   /\bxmlns:(?:o|w|v|m)\s*=\s*["'][^"']*office/i,
   /<\/?o:p\b/i,
+];
+
+const excelHtmlMarkers = [
+  /\bclass\s*=\s*["'][^"']*\b(?:xl\d+|xl[\w-]*|Excel[\w-]*|Workbook|Worksheet)\b/i,
+  /\bstyle\s*=\s*["'][^"']*\bmso-number-format\s*:/i,
+  /\bstyle\s*=\s*["'][^"']*\bmso-displayed-decimal-separator\s*:/i,
+  /\bstyle\s*=\s*["'][^"']*\bmso-displayed-thousand-separator\s*:/i,
+  /\bxmlns:x\s*=\s*["'][^"']*office:excel/i,
+  /<x:(?:ExcelWorkbook|WorksheetOptions|Worksheet|Workbook)\b/i,
+  /<(?:table|td|th)\b[^>]*\bx:str\s*=/i,
 ];
 
 const allowedWordTags = new Set([

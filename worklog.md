@@ -5197,3 +5197,49 @@ Decision Git:
 Pendientes inmediatos:
 
 - Detectar contenido pegado desde Excel.
+
+## 2026-07-09 - Deteccion de contenido pegado desde Excel
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: detectar contenido pegado desde Excel sin implementar todavia la normalizacion de tablas ni conversion de texto tabulado.
+
+Acciones realizadas:
+
+- Se agrego deteccion de origen Excel en `paste-normalizer.service.ts`.
+- La deteccion de Excel tiene precedencia sobre Word cuando aparecen marcadores claros de hoja o libro.
+- El normalizador reporta `detectedSource: 'excel'` cuando encuentra clases de celdas o workbook como `xl65` o `Workbook`.
+- El normalizador reporta `detectedSource: 'excel'` cuando encuentra estilos `mso-number-format` o separadores numericos de Excel.
+- El normalizador reporta `detectedSource: 'excel'` cuando encuentra namespace `office:excel`, nodos `x:ExcelWorkbook`/`x:Worksheet` o atributos `x:str`.
+- El texto plano con tabs permanece como `plain-text` porque la conversion de texto tabulado es una tarea posterior e independiente.
+- Se agregaron pruebas unitarias para clases de celdas, estilos numericos, metadata/namespaces de workbook y texto tabulado aun diferido.
+- Se marco `Detectar contenido pegado desde Excel` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 19 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 195 pruebas correctas.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+- No se ejecuto `npm run test:e2e` porque esta tarea solo cambia el servicio de deteccion y no integra aun el pipeline de pegado en navegador.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Normalizar tablas pegadas desde Excel.

@@ -420,8 +420,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Normalizar HTML de Word.
   - Criterio: elimina metadata, comentarios, namespaces, estilos `mso-*`, clases de Office, spans vacios y atributos no permitidos, preservando parrafos, encabezados, listas, tablas simples, links seguros y formato basico.
   - Nota: `paste-normalizer.service.ts` reconstruye el HTML de Word con `DOMParser`, descarta metadata/comentarios/namespaces/atributos no permitidos, elimina `span` vacios y redundantes, preserva tablas simples, links seguros y formato basico, y mantiene DOMPurify como sanitizacion posterior.
-- [ ] Detectar contenido pegado desde Excel.
+- [x] Detectar contenido pegado desde Excel.
   - Criterio: identifica tablas HTML de Excel, estilos `mso-number-format`, clases de workbook y pegado tabulado cuando el portapapeles no trae HTML confiable.
+  - Nota: `paste-normalizer.service.ts` detecta Excel por clases `xl*`/Workbook, estilos `mso-number-format` y separadores de Excel, namespaces `office:excel`, nodos `x:ExcelWorkbook` y atributos `x:str`; el pegado tabulado queda identificado como pendiente de la tarea especifica de texto tabulado.
 - [ ] Normalizar tablas pegadas desde Excel.
   - Criterio: filas y celdas quedan como tablas compatibles con Tiptap; se preservan textos, encabezados cuando sean inferibles, `colspan`/`rowspan` seguros y anchos permitidos sin conservar formulas ejecutables ni estilos propietarios.
 - [ ] Normalizar texto tabulado pegado desde Excel.

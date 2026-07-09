@@ -139,6 +139,42 @@ describe('normalizePaste', () => {
     });
   });
 
+  it('detects Excel HTML by table cell workbook classes', () => {
+    expect(
+      normalizePaste({
+        html: '<table><tr><td class="xl65">100</td></tr></table>',
+      }).detectedSource,
+    ).toBe('excel');
+  });
+
+  it('detects Excel HTML by mso number format styles', () => {
+    expect(
+      normalizePaste({
+        html: '<table><tr><td style="mso-number-format:&quot;0.00&quot;">12.50</td></tr></table>',
+      }).detectedSource,
+    ).toBe('excel');
+  });
+
+  it('detects Excel HTML by workbook metadata and namespaces', () => {
+    expect(
+      normalizePaste({
+        html: [
+          '<html xmlns:x="urn:schemas-microsoft-com:office:excel">',
+          '<body><x:ExcelWorkbook><x:Worksheet></x:Worksheet></x:ExcelWorkbook>',
+          '<table class="Workbook"><tr><td>Dato</td></tr></table></body></html>',
+        ].join(''),
+      }).detectedSource,
+    ).toBe('excel');
+  });
+
+  it('keeps tabulated plain text as plain text until the tabular conversion task is implemented', () => {
+    expect(
+      normalizePaste({
+        text: 'Columna A\tColumna B\n1\t2',
+      }).detectedSource,
+    ).toBe('plain-text');
+  });
+
   it('converts plain text to escaped paragraph HTML', () => {
     expect(
       normalizePaste({
