@@ -5009,3 +5009,45 @@ Decision Git:
 Pendientes inmediatos:
 
 - Retomar la primera tarea pendiente segun `tasks.md`; despues de este ajuste, corresponde iniciar `Definir contrato del normalizador de pegado` antes de continuar con la validacion HTML permitida.
+
+## 2026-07-09 - Contrato del normalizador de pegado
+
+Objetivo:
+
+- Cerrar la primera tarea pendiente de Fase 5.1: definir el contrato del normalizador de pegado para contenido copiado desde Word, Excel, HTML o texto plano.
+
+Acciones realizadas:
+
+- Se creo `paste-normalizer.service.ts` como contrato tipado del servicio de normalizacion.
+- El contrato recibe contenido HTML o texto del portapapeles mediante `PasteNormalizerInput`.
+- El resultado expone `normalizedHtml`, `warnings` y `detectedSource`.
+- Se definieron origenes detectables iniciales: `word`, `excel`, `html`, `plain-text` y `unknown`.
+- Se definieron codigos de advertencia para conversion de texto tabulado, estilos descartados, metadata Office removida, contenido inseguro removido y origen desconocido.
+- Se agrego una prueba de contrato con un doble tipado como `PasteNormalizerService`.
+- Se marco `Definir contrato del normalizador de pegado` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/services/paste-normalizer.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 1 prueba correcta.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 25 archivos de prueba correctos, 177 pruebas correctas.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante las pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,053.80 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `paste-normalizer.service.ts`.
