@@ -297,6 +297,30 @@ describe('createWysiwygEditor', () => {
     });
   });
 
+  it('sanitizes normalized pasted HTML before Tiptap parses it', () => {
+    const element = document.createElement('div');
+    const normalizePaste = vi.fn<PasteNormalizerService['normalizePaste']>(() => ({
+      normalizedHtml:
+        '<p onclick="alert(1)">Seguro<script>alert(1)</script><a href="javascript:alert(1)">Link</a></p>',
+      warnings: [],
+      detectedSource: 'word',
+    }));
+    document.body.append(element);
+
+    const editor = mountEditor({
+      element,
+      pasteNormalizer: {
+        normalizePaste,
+      },
+    });
+    const transformedHtml = editor.view.props.transformPastedHTML?.(
+      '<p class="MsoNormal">HTML de Word</p>',
+      editor.view,
+    );
+
+    expect(transformedHtml).toBe('<p>Seguro<a>Link</a></p>');
+  });
+
   it('inserts tabulated plain-text paste as a table through handlePaste', () => {
     const element = document.createElement('div');
     document.body.append(element);
@@ -315,6 +339,32 @@ describe('createWysiwygEditor', () => {
     expect(editor.getHTML()).toContain('<table');
     expect(editor.getHTML()).toContain('<th colspan="1" rowspan="1"><p>Producto</p></th>');
     expect(editor.getHTML()).toContain('<td colspan="1" rowspan="1"><p>Cafe</p></td>');
+  });
+
+  it('blocks normalized tabulated paste when it does not pass canonical validation', () => {
+    const element = document.createElement('div');
+    const normalizePaste = vi.fn<PasteNormalizerService['normalizePaste']>(() => ({
+      normalizedHtml: '<p>Linea uno<br>Linea dos</p>',
+      warnings: [],
+      detectedSource: 'excel',
+    }));
+    document.body.append(element);
+
+    const editor = mountEditor({
+      element,
+      initialContent: '<p>Base</p>',
+      pasteNormalizer: {
+        normalizePaste,
+      },
+    });
+    const pasteEvent = createPasteEvent({
+      text: 'A\tB\n1\t2',
+    });
+    const handled = editor.view.props.handlePaste?.(editor.view, pasteEvent, Slice.empty);
+
+    expect(handled).toBe(true);
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(editor.getHTML()).toBe('<p>Base</p>');
   });
 
   it('does not intercept normal plain-text paste in handlePaste', () => {

@@ -2,6 +2,7 @@ import { Editor } from '@tiptap/core';
 
 import type { CreateWysiwygEditorOptions } from './editor-types';
 import { createEditorExtensions } from './editor-extensions';
+import { createPasteContentSafetyService } from '../services/paste-content-safety.service';
 import { createPasteNormalizerService } from '../services/paste-normalizer.service';
 
 export type WysiwygEditorFactory = (options: CreateWysiwygEditorOptions) => Editor;
@@ -11,6 +12,7 @@ export const createWysiwygEditor: WysiwygEditorFactory = ({
   initialContent = '',
   placeholder,
   pasteNormalizer = createPasteNormalizerService(),
+  pasteContentSafety = createPasteContentSafetyService(),
   onChange,
 }) => {
   const editorRef: { current: Editor | null } = { current: null };
@@ -22,8 +24,15 @@ export const createWysiwygEditor: WysiwygEditorFactory = ({
       placeholder,
     }),
     editorProps: {
-      transformPastedHTML: (html): string =>
-        pasteNormalizer.normalizePaste({ html }).normalizedHtml,
+      transformPastedHTML: (html, view): string => {
+        const normalizedHtml = pasteNormalizer.normalizePaste({ html }).normalizedHtml;
+        const safeHtml = pasteContentSafety.sanitizeAndValidateHtml(
+          normalizedHtml,
+          view.state.schema,
+        );
+
+        return safeHtml.ok ? safeHtml.html : '';
+      },
       handlePaste: (_view, event): boolean => {
         const clipboardData = event.clipboardData;
 
@@ -39,8 +48,24 @@ export const createWysiwygEditor: WysiwygEditorFactory = ({
         }
 
         event.preventDefault();
+
+        const editor = editorRef.current;
+
+        if (!editor) {
+          return true;
+        }
+
+        const safeHtml = pasteContentSafety.sanitizeAndValidateHtml(
+          result.normalizedHtml,
+          editor.state.schema,
+        );
+
+        if (!safeHtml.ok || safeHtml.html.trim().length === 0) {
+          return true;
+        }
+
         return (
-          editorRef.current?.commands.insertContent(result.normalizedHtml, {
+          editor.commands.insertContent(safeHtml.html, {
             applyPasteRules: false,
           }) ?? false
         );

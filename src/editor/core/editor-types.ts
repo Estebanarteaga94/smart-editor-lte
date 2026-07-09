@@ -1,5 +1,6 @@
 import type { JSONContent } from '@tiptap/core';
 
+import type { PasteContentSafetyService } from '../services/paste-content-safety.service';
 import type { PasteNormalizerService } from '../services/paste-normalizer.service';
 
 export interface EditorChangePayload {
@@ -14,5 +15,6 @@ export interface CreateWysiwygEditorOptions {
   initialContent?: JSONContent | string;
   placeholder?: string;
   pasteNormalizer?: PasteNormalizerService;
+  pasteContentSafety?: PasteContentSafetyService;
   onChange?: EditorChangeHandler;
 }

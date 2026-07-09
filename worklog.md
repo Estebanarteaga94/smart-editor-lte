@@ -5392,3 +5392,57 @@ Decision Git:
 Pendientes inmediatos:
 
 - Sanitizar y validar despues de normalizar.
+
+## 2026-07-09 - Sanitizacion y validacion despues de normalizar pegado
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5.1: sanitizar y validar el HTML normalizado antes de que afecte el documento actual.
+
+Acciones realizadas:
+
+- Se agrego `paste-content-safety.service.ts` para centralizar la seguridad posterior a la normalizacion.
+- El servicio aplica `SanitizerService`/DOMPurify al HTML normalizado.
+- El HTML sanitizado se parsea con el schema real de Tiptap/ProseMirror antes de insertarse.
+- El JSON parseado se valida contra el schema canonico de `editor-content.ts`.
+- `createWysiwygEditor` ahora usa el servicio de seguridad en `transformPastedHTML` y en `handlePaste` para texto tabulado.
+- Si el resultado normalizado no pasa la validacion canonica, el pegado se consume sin modificar el documento actual.
+- Se agregaron pruebas unitarias para sanitizacion, rechazo de contenido fuera del schema canonico y bloqueo del paste invalido.
+- Se marco `Sanitizar y validar despues de normalizar` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/core/create-editor.ts`
+- `src/editor/core/create-editor.test.ts`
+- `src/editor/core/editor-types.ts`
+- `src/editor/services/paste-content-safety.service.ts`
+- `src/editor/services/paste-content-safety.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/core/create-editor.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 13 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/services/paste-content-safety.service.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 2 pruebas correctas.
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 33 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 26 archivos de prueba correctos, 209 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene avisos no bloqueantes `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,061.90 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Probar pegado desde Word.

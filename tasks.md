@@ -432,8 +432,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Integrar normalizacion con el pipeline de pegado de Tiptap.
   - Criterio: el pegado usa `transformPastedHTML`, `handlePaste` o extension equivalente de ProseMirror/Tiptap antes de insertar contenido.
   - Nota: `createWysiwygEditor` conecta `paste-normalizer.service.ts` al pipeline de Tiptap con `transformPastedHTML` para HTML y `handlePaste` para texto tabulado convertido a tabla; el pegado normal de texto y el pegado de imagenes conservan su flujo actual.
-- [ ] Sanitizar y validar despues de normalizar.
+- [x] Sanitizar y validar despues de normalizar.
   - Criterio: el resultado pasa por DOMPurify y por validacion de HTML/schema antes de afectar el documento actual.
+  - Nota: `paste-content-safety.service.ts` aplica DOMPurify al HTML normalizado, lo parsea con el schema real de Tiptap/ProseMirror y valida el JSON resultante contra el schema canonico antes de permitir la insercion.
 - [ ] Probar pegado desde Word.
   - Criterio: pruebas cubren HTML realista de Word con estilos `mso-*`, listas, negrita/cursiva/subrayado y links; el JSON/HTML final queda limpio.
 - [ ] Probar pegado desde Excel.
