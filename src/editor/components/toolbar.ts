@@ -27,6 +27,7 @@ export type ToolbarButtonId =
   | 'insert-image'
   | 'source-html'
   | 'source-json'
+  | 'preview'
   | 'format-html'
   | 'bullet-list'
   | 'ordered-list'
@@ -54,9 +55,11 @@ export interface EditorToolbarOptions {
   onInsertImage?: () => void;
   onToggleSourceHtml?: () => void;
   onToggleSourceJson?: () => void;
+  onTogglePreview?: () => void;
   onFormatHtml?: () => Promise<void> | void;
   isSourceHtmlActive?: () => boolean;
   isSourceJsonActive?: () => boolean;
+  isPreviewActive?: () => boolean;
 }
 
 export interface EditorToolbar {
@@ -245,6 +248,13 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     pressed: true,
   },
   {
+    id: 'preview',
+    label: 'Preview',
+    icon: '\ue825',
+    ariaLabel: 'Alternar vista previa',
+    pressed: true,
+  },
+  {
     id: 'format-html',
     label: 'Formatear',
     icon: '{}',
@@ -265,9 +275,11 @@ export function createToolbar({
   onInsertImage,
   onToggleSourceHtml,
   onToggleSourceJson,
+  onTogglePreview,
   onFormatHtml,
   isSourceHtmlActive,
   isSourceJsonActive,
+  isPreviewActive,
 }: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
   const blockFormatSelect = createBlockFormatSelect();
@@ -375,6 +387,12 @@ export function createToolbar({
         return;
       }
 
+      if (config.id === 'preview') {
+        onTogglePreview?.();
+        updateState();
+        return;
+      }
+
       if (config.id === 'format-html') {
         void onFormatHtml?.();
         updateState();
@@ -393,6 +411,7 @@ export function createToolbar({
     const activeLinkHref = getActiveLinkHref(editor);
     const sourceHtmlActive = isSourceHtmlActive?.() ?? false;
     const sourceJsonActive = isSourceJsonActive?.() ?? false;
+    const previewActive = isPreviewActive?.() ?? false;
 
     blockFormatSelect.disabled = controlsDisabled;
     blockFormatSelect.value = getActiveBlockFormat(editor);
@@ -415,13 +434,16 @@ export function createToolbar({
         hasInsertImageAction: Boolean(onInsertImage),
         hasToggleSourceHtmlAction: Boolean(onToggleSourceHtml),
         hasToggleSourceJsonAction: Boolean(onToggleSourceJson),
+        hasTogglePreviewAction: Boolean(onTogglePreview),
         hasFormatHtmlAction: Boolean(onFormatHtml),
         sourceHtmlActive,
         sourceJsonActive,
+        previewActive,
       });
       const isActive = getToolbarButtonActiveState(config, editor, {
         sourceHtmlActive,
         sourceJsonActive,
+        previewActive,
       });
 
       button.disabled = isDisabled;
@@ -470,9 +492,11 @@ function isToolbarButtonDisabled(
     hasInsertImageAction: boolean;
     hasToggleSourceHtmlAction: boolean;
     hasToggleSourceJsonAction: boolean;
+    hasTogglePreviewAction: boolean;
     hasFormatHtmlAction: boolean;
     sourceHtmlActive: boolean;
     sourceJsonActive: boolean;
+    previewActive: boolean;
   },
 ): boolean {
   if (editor.isDestroyed) {
@@ -485,6 +509,10 @@ function isToolbarButtonDisabled(
 
   if (config.id === 'source-json') {
     return !actions.hasToggleSourceJsonAction;
+  }
+
+  if (config.id === 'preview') {
+    return !actions.hasTogglePreviewAction;
   }
 
   if (config.id === 'format-html') {
@@ -504,6 +532,7 @@ function getToolbarButtonActiveState(
   sourceState: {
     sourceHtmlActive: boolean;
     sourceJsonActive: boolean;
+    previewActive: boolean;
   },
 ): boolean {
   if (config.id === 'source-html') {
@@ -512,6 +541,10 @@ function getToolbarButtonActiveState(
 
   if (config.id === 'source-json') {
     return sourceState.sourceJsonActive;
+  }
+
+  if (config.id === 'preview') {
+    return sourceState.previewActive;
   }
 
   return config.isActive?.(editor) ?? false;

@@ -83,7 +83,8 @@ export async function mountEditorApp({
   let sourceJsonValue: string | null = null;
 
   lifecycle.mountRoot(app, shell.root);
-  shell.root.append(preview.element);
+  preview.element.hidden = true;
+  shell.source.after(preview.element);
 
   const editor = createWysiwygEditor({
     element: shell.editable,
@@ -133,7 +134,7 @@ export async function mountEditorApp({
     },
     onToggleSourceHtml: () => {
       if (activeMode === 'source-html') {
-        if (!applyActiveSourceHtml()) {
+        if (!applyActiveSourceMode()) {
           return;
         }
 
@@ -141,11 +142,13 @@ export async function mountEditorApp({
         return;
       }
 
-      showSourceHtmlMode();
+      if (applyActiveSourceMode()) {
+        showSourceHtmlMode();
+      }
     },
     onToggleSourceJson: () => {
       if (activeMode === 'source-json') {
-        if (!applyActiveSourceJson()) {
+        if (!applyActiveSourceMode()) {
           return;
         }
 
@@ -153,17 +156,26 @@ export async function mountEditorApp({
         return;
       }
 
-      if (!applyActiveSourceHtml()) {
+      if (applyActiveSourceMode()) {
+        showSourceJsonMode();
+      }
+    },
+    onTogglePreview: () => {
+      if (activeMode === 'preview') {
+        showWysiwygMode();
         return;
       }
 
-      showSourceJsonMode();
+      if (applyActiveSourceMode()) {
+        showPreviewMode();
+      }
     },
     onFormatHtml: () => {
       void formatActiveSourceHtml();
     },
     isSourceHtmlActive: () => activeMode === 'source-html',
     isSourceJsonActive: () => activeMode === 'source-json',
+    isPreviewActive: () => activeMode === 'preview',
   });
   const tableMenu = createTableMenu({
     editor,
@@ -208,6 +220,7 @@ export async function mountEditorApp({
     shell.source.replaceChildren(sourceView.element);
     shell.source.hidden = false;
     shell.editable.hidden = true;
+    preview.element.hidden = true;
     editor.setEditable(false);
     toolbar.updateState();
   }
@@ -228,6 +241,7 @@ export async function mountEditorApp({
     shell.source.replaceChildren(sourceView.element);
     shell.source.hidden = false;
     shell.editable.hidden = true;
+    preview.element.hidden = true;
     editor.setEditable(false);
     toolbar.updateState();
   }
@@ -239,8 +253,26 @@ export async function mountEditorApp({
     shell.source.replaceChildren();
     shell.source.hidden = true;
     shell.editable.hidden = false;
+    preview.element.hidden = true;
     editor.setEditable(true);
     toolbar.updateState();
+  }
+
+  function showPreviewMode(): void {
+    activeMode = 'preview';
+    lifecycle.destroySourceView();
+    sourceView = null;
+    shell.source.replaceChildren();
+    shell.source.hidden = true;
+    shell.editable.hidden = true;
+    preview.setHtml(editor.getHTML());
+    preview.element.hidden = false;
+    editor.setEditable(false);
+    toolbar.updateState();
+  }
+
+  function applyActiveSourceMode(): boolean {
+    return applyActiveSourceHtml() && applyActiveSourceJson();
   }
 
   async function formatActiveSourceHtml(): Promise<void> {

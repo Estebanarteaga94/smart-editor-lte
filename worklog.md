@@ -5888,3 +5888,55 @@ Decision Git:
 Pendientes inmediatos:
 
 - Agregar modo `preview`.
+
+## 2026-07-10 - Modo preview desde la toolbar
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 6: permitir alternar al modo `preview` desde la toolbar y volver al editor visual sin perder contenido.
+
+Acciones realizadas:
+
+- Se agrego `preview` como control de contenido en `toolbar.ts` con icono Fontello de ojo, `aria-label` y estado `aria-pressed`.
+- La toolbar recibe callbacks para alternar preview y consultar su estado activo.
+- `mountEditorApp` monta el componente preview dentro de `editor-shell__body` y lo mantiene oculto fuera de ese modo.
+- Al entrar a preview se ocultan WYSIWYG y source view, se destruye CodeMirror cuando aplica, se refresca el HTML sanitizado y Tiptap queda temporalmente no editable.
+- Al volver desde preview se restaura WYSIWYG editable sin recrear Tiptap ni perder el documento.
+- Antes de cambiar desde HTML o JSON hacia otra vista se aplican los cambios fuente validos; contenido invalido conserva la vista fuente y no abre preview.
+- Se agregaron pruebas de toolbar para existencia, accesibilidad, disponibilidad y estado activo exclusivo del boton.
+- Se agrego una prueba de integracion que edita HTML fuente, cambia directamente a preview y vuelve a WYSIWYG conservando el contenido.
+- Se ajusto el estilo del preview para ocupar el cuerpo del editor sin margen ni borde exterior duplicado.
+- Se marco `Agregar modo preview` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 46 pruebas correctas.
+- Se ejecuto `npm run dev -- --host 127.0.0.1 --port 4173` y una comprobacion con Chromium/Playwright contra la aplicacion real.
+- Resultado navegador: preview visible, WYSIWYG oculto durante preview, `aria-pressed="true"`, WYSIWYG visible al regresar y contenido conservado.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 29 archivos de prueba correctos, 223 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene avisos no bloqueantes `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,065.14 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `EditorViewState` en la navegacion de vistas.

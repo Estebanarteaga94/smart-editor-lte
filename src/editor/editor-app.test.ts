@@ -1703,6 +1703,71 @@ describe('mountEditorApp', () => {
     expect(previewContent?.innerHTML).toContain('<p>Render actualizado</p>');
   });
 
+  it('toggles preview mode and applies source HTML before rendering it', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-preview-mode',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<h2>Vista inicial</h2><p>Contenido original</p>');
+
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const previewButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="preview"]',
+    );
+    const editableSlot = appRoot.querySelector<HTMLElement>('.editor-shell__editable');
+    const sourceSlot = appRoot.querySelector<HTMLElement>('.editor-shell__source');
+    const previewElement = appRoot.querySelector<HTMLElement>('.editor-preview');
+    const previewContent = appRoot.querySelector<HTMLElement>('.editor-preview__content');
+
+    expect(previewButton).not.toBeNull();
+    expect(previewButton?.disabled).toBe(false);
+    expect(previewButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(previewElement?.parentElement).toBe(
+      appRoot.querySelector<HTMLElement>('.editor-shell__body'),
+    );
+    expect(previewElement?.hidden).toBe(true);
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    mountedApp.getSourceView()?.setValue('<h3>Vista aplicada</h3><p>Contenido desde HTML</p>');
+
+    previewButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getActiveMode()).toBe('preview');
+    expect(mountedApp.getSourceView()).toBeNull();
+    expect(editableSlot?.hidden).toBe(true);
+    expect(sourceSlot?.hidden).toBe(true);
+    expect(previewElement?.hidden).toBe(false);
+    expect(mountedApp.editor.isEditable).toBe(false);
+    expect(previewButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(sourceHtmlButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(previewContent?.innerHTML).toContain('<h3>Vista aplicada</h3>');
+    expect(previewContent?.innerHTML).toContain('<p>Contenido desde HTML</p>');
+    expect(mountedApp.editor.getHTML()).toContain('<h3>Vista aplicada</h3>');
+
+    previewButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getActiveMode()).toBe('wysiwyg');
+    expect(editableSlot?.hidden).toBe(false);
+    expect(sourceSlot?.hidden).toBe(true);
+    expect(previewElement?.hidden).toBe(true);
+    expect(mountedApp.editor.isEditable).toBe(true);
+    expect(previewButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(mountedApp.editor.getHTML()).toContain('<p>Contenido desde HTML</p>');
+  }, 15_000);
+
   it('shows generated HTML in source-html mode and allows editing it', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

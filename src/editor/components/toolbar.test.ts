@@ -116,6 +116,9 @@ describe('createToolbar', () => {
     const sourceJsonButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="source-json"]',
     );
+    const previewButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="preview"]',
+    );
     const formatHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="format-html"]',
     );
@@ -140,8 +143,8 @@ describe('createToolbar', () => {
       'Encabezado 5',
       'Encabezado 6',
     ]);
-    expect(buttons).toHaveLength(144);
-    expect(iconButtons).toHaveLength(24);
+    expect(buttons).toHaveLength(145);
+    expect(iconButtons).toHaveLength(25);
     expect(colorPicker).not.toBeNull();
     expect(colorTrigger).not.toBeNull();
     expect(colorPanel?.hidden).toBe(true);
@@ -186,6 +189,11 @@ describe('createToolbar', () => {
     expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('false');
     expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0f6');
     expect(sourceJsonButton?.disabled).toBe(true);
+    expect(previewButton).not.toBeNull();
+    expect(previewButton?.getAttribute('aria-label')).toBe('Alternar vista previa');
+    expect(previewButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(previewButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\ue825');
+    expect(previewButton?.disabled).toBe(true);
     expect(formatHtmlButton).not.toBeNull();
     expect(formatHtmlButton?.getAttribute('aria-label')).toBe('Formatear HTML fuente');
     expect(formatHtmlButton?.hidden).toBe(true);
@@ -236,8 +244,9 @@ describe('createToolbar', () => {
     const onInsertImage = vi.fn();
     const onToggleSourceHtml = vi.fn();
     const onToggleSourceJson = vi.fn();
+    const onTogglePreview = vi.fn();
     const onFormatHtml = vi.fn();
-    let sourceMode: 'wysiwyg' | 'source-html' | 'source-json' = 'wysiwyg';
+    let sourceMode: 'wysiwyg' | 'source-html' | 'source-json' | 'preview' = 'wysiwyg';
     const toolbar = createToolbar({
       editor,
       lifecycle,
@@ -251,9 +260,14 @@ describe('createToolbar', () => {
         sourceMode = sourceMode === 'source-json' ? 'wysiwyg' : 'source-json';
         onToggleSourceJson();
       },
+      onTogglePreview: () => {
+        sourceMode = sourceMode === 'preview' ? 'wysiwyg' : 'preview';
+        onTogglePreview();
+      },
       onFormatHtml,
       isSourceHtmlActive: () => sourceMode === 'source-html',
       isSourceJsonActive: () => sourceMode === 'source-json',
+      isPreviewActive: () => sourceMode === 'preview',
     });
     const blockFormatSelect = toolbar.element.querySelector<HTMLSelectElement>(
       '[data-toolbar-action="block-format"]',
@@ -318,6 +332,9 @@ describe('createToolbar', () => {
     const sourceJsonButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="source-json"]',
     );
+    const previewButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="preview"]',
+    );
     const formatHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="format-html"]',
     );
@@ -350,9 +367,25 @@ describe('createToolbar', () => {
     expect(sourceJsonButton).not.toBeNull();
     expect(sourceJsonButton?.disabled).toBe(false);
     expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0f6');
+    expect(previewButton).not.toBeNull();
+    expect(previewButton?.disabled).toBe(false);
+    expect(previewButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\ue825');
     expect(formatHtmlButton).not.toBeNull();
     expect(formatHtmlButton?.hidden).toBe(true);
     expect(formatHtmlButton?.disabled).toBe(true);
+
+    previewButton?.click();
+    toolbar.updateState();
+    expect(onTogglePreview).toHaveBeenCalledOnce();
+    expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(sourceJsonButton?.dataset.active).toBe('false');
+    expect(previewButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(previewButton?.dataset.active).toBe('true');
+
+    previewButton?.click();
+    toolbar.updateState();
+    expect(onTogglePreview).toHaveBeenCalledTimes(2);
+    expect(previewButton?.getAttribute('aria-pressed')).toBe('false');
     expect(formatHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('{}');
 
     if (blockFormatSelect) {

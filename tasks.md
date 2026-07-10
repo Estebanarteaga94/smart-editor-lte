@@ -470,8 +470,9 @@ Objetivo medible: el editor ofrece preview y un estado fullscreen usable en escr
 - [x] Implementar `preview-view.ts`.
   - Criterio: renderiza HTML sanitizado del documento actual.
   - Nota: se consolida la implementacion existente de `createPreviewView`; sanitiza con DOMPurify el HTML inicial y cada actualizacion, y `mountEditorApp` mantiene la vista sincronizada con el documento actual. La navegacion al modo `preview` permanece en la tarea siguiente.
-- [ ] Agregar modo `preview`.
+- [x] Agregar modo `preview`.
   - Criterio: se puede alternar desde toolbar y volver al editor.
+  - Nota: la toolbar incluye un boton accesible con estado activo; `mountEditorApp` muestra el preview sanitizado dentro del cuerpo del editor, aplica primero cambios pendientes de HTML/JSON y permite volver a WYSIWYG sin perder contenido.
 - [ ] Implementar `EditorViewState` en la navegacion de vistas.
   - Criterio: `mode` controla `wysiwyg`, `source-html`, `source-json` o `preview`, y `fullscreen` se aplica como boolean independiente.
 - [ ] Implementar `fullscreen.ts`.

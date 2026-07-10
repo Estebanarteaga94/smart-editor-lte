@@ -1088,6 +1088,13 @@ textarea {
   overflow: hidden;
 }
 
+.editor-shell__body > .editor-preview {
+  min-height: 480px;
+  margin-top: 0;
+  border: 0;
+  border-radius: 0;
+}
+
 .editor-preview__title {
   margin: 0;
   padding: 12px 16px;
