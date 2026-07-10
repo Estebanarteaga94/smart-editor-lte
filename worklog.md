@@ -5883,6 +5883,7 @@ Verificacion:
 Decision Git:
 
 - Se crea commit porque la tarea quedo completada y verificada.
+- Commit creado: `45987b6 Consolidar vista preview sanitizada`.
 
 Pendientes inmediatos:
 
