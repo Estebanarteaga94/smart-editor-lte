@@ -5845,3 +5845,45 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar `preview-view.ts` en Fase 6 con el alcance de vista de contenido previsto para esa fase.
+
+## 2026-07-10 - Consolidacion de preview-view en Fase 6
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 6: confirmar que `preview-view.ts` renderiza HTML sanitizado del documento actual.
+
+Acciones realizadas:
+
+- Se audito `createPreviewView` contra el criterio exacto de la tarea.
+- Se confirmo que el componente crea una region de preview accesible con titulo y contenedor de contenido.
+- El HTML inicial y cada llamada a `setHtml` pasan por `SanitizerService`/DOMPurify antes de asignarse a `innerHTML`.
+- Se confirmo que `mountEditorApp` inicializa el preview desde el documento recuperado y lo actualiza con el HTML emitido por Tiptap.
+- Las pruebas existentes cubren renderizado inicial, actualizacion, eliminacion de scripts, eventos inline y protocolos inseguros.
+- No se modifico codigo de produccion porque la implementacion existente ya cumplia el criterio; la tarea siguiente conserva de forma separada la navegacion al modo `preview`.
+- Se marco `Implementar preview-view.ts` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/preview-view.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 40 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 29 archivos de prueba correctos, 222 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,064.42 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Agregar modo `preview`.

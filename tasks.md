@@ -467,8 +467,9 @@ Objetivo medible: el editor ofrece preview y un estado fullscreen usable en escr
 
 > Dependencia: requiere Fase 1.5, Fase 1.5.1, Fase 1.7 y sanitizacion de Fase 9 para renderizar preview seguro.
 
-- [ ] Implementar `preview-view.ts`.
+- [x] Implementar `preview-view.ts`.
   - Criterio: renderiza HTML sanitizado del documento actual.
+  - Nota: se consolida la implementacion existente de `createPreviewView`; sanitiza con DOMPurify el HTML inicial y cada actualizacion, y `mountEditorApp` mantiene la vista sincronizada con el documento actual. La navegacion al modo `preview` permanece en la tarea siguiente.
 - [ ] Agregar modo `preview`.
   - Criterio: se puede alternar desde toolbar y volver al editor.
 - [ ] Implementar `EditorViewState` en la navegacion de vistas.
