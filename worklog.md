@@ -5799,3 +5799,48 @@ Decision Git:
 Pendientes inmediatos:
 
 - Probar roundtrip WYSIWYG -> JSON -> WYSIWYG.
+
+## 2026-07-10 - Roundtrip WYSIWYG a JSON y regreso
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: probar que JSON valido conserva la estructura permitida al pasar de WYSIWYG a JSON y regresar al editor visual.
+
+Acciones realizadas:
+
+- Se creo `editor-source-json-roundtrip.test.ts` como prueba de integracion enfocada en el flujo real de `source-json`.
+- La prueba monta la aplicacion y alterna mediante el boton real de la toolbar.
+- El documento de prueba cubre encabezados, alineacion, marcas basicas, color, resaltado, links, listas ordenadas, tareas, citas, codigo, separador horizontal, tablas con anchos e imagenes con metadata, dimensiones y alineacion.
+- Se verifica que CodeMirror recibe el JSON canonico formateado con dos espacios.
+- Al regresar a WYSIWYG se comparan el JSON canonico, el HTML renderizable y el DOM de preview contra sus valores previos.
+- No se detectaron perdidas estructurales ni fue necesario modificar codigo de produccion.
+- Se marco `Probar roundtrip WYSIWYG -> JSON -> WYSIWYG` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-source-json-roundtrip.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-source-json-roundtrip.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 1 prueba correcta.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 29 archivos de prueba correctos, 222 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,064.42 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `preview-view.ts` en Fase 6 con el alcance de vista de contenido previsto para esa fase.

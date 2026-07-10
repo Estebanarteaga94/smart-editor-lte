@@ -457,8 +457,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Probar roundtrip WYSIWYG -> HTML -> WYSIWYG.
   - Criterio: contenido simple y avanzado conserva estructura permitida.
   - Nota: `editor-source-html-roundtrip.test.ts` cubre contenido simple y avanzado; la sanitizacion conserva el inicio de listas ordenadas y las dimensiones de imagen, y la comparacion canonica admite representaciones CSS de color semanticamente equivalentes.
-- [ ] Probar roundtrip WYSIWYG -> JSON -> WYSIWYG.
+- [x] Probar roundtrip WYSIWYG -> JSON -> WYSIWYG.
   - Criterio: JSON valido conserva estructura permitida.
+  - Nota: `editor-source-json-roundtrip.test.ts` verifica mediante el boton real de `source-json` que JSON canonico, HTML renderizable y preview permanecen iguales para formato, listas, tareas, citas, codigo, tablas e imagenes.
 
 ## Fase 6 - Vista previa y estado fullscreen
 
