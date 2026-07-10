@@ -454,8 +454,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Agregar mensajes de error amigables.
   - Criterio: errores indican que corregir sin exponer trazas tecnicas innecesarias.
   - Nota: los errores de HTML y JSON fuente ahora indican si se debe corregir sintaxis, nodos, marcas, atributos o estructuras incompatibles; la UI ya no expone rutas internas ni mensajes tecnicos de Zod.
-- [ ] Probar roundtrip WYSIWYG -> HTML -> WYSIWYG.
+- [x] Probar roundtrip WYSIWYG -> HTML -> WYSIWYG.
   - Criterio: contenido simple y avanzado conserva estructura permitida.
+  - Nota: `editor-source-html-roundtrip.test.ts` cubre contenido simple y avanzado; la sanitizacion conserva el inicio de listas ordenadas y las dimensiones de imagen, y la comparacion canonica admite representaciones CSS de color semanticamente equivalentes.
 - [ ] Probar roundtrip WYSIWYG -> JSON -> WYSIWYG.
   - Criterio: JSON valido conserva estructura permitida.
 

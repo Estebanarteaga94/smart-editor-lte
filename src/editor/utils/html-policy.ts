@@ -48,6 +48,7 @@ export const allowedHtmlAttributes = [
   'rel',
   'rowspan',
   'src',
+  'start',
   'style',
   'target',
   'title',

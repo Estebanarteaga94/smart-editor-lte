@@ -5750,3 +5750,51 @@ Decision Git:
 Pendientes inmediatos:
 
 - Probar roundtrip WYSIWYG -> HTML -> WYSIWYG.
+
+## 2026-07-10 - Roundtrip WYSIWYG a HTML y regreso
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: probar que contenido simple y avanzado conserva su estructura al pasar de WYSIWYG a HTML y regresar al editor visual.
+
+Acciones realizadas:
+
+- Se creo `editor-source-html-roundtrip.test.ts` con pruebas de integracion que alternan mediante el boton real de `source-html`.
+- El caso simple cubre encabezados, parrafos, negrita, cursiva, subrayado, tachado, listas no ordenadas y listas ordenadas con inicio personalizado.
+- El caso avanzado cubre alineacion, color, resaltado, enlaces, citas, bloques de codigo, separador horizontal, tareas, tablas con anchos e imagenes con metadata, dimensiones y alineacion.
+- La comparacion verifica el JSON canonico antes y despues del roundtrip y normaliza unicamente representaciones CSS de color semanticamente equivalentes, como hexadecimal y RGB.
+- Las pruebas iniciales detectaron que DOMPurify eliminaba `start` de listas ordenadas y `width`/`height` de imagenes.
+- Se amplio la politica HTML con `start` y se agregaron reglas controladas del sanitizador para conservar inicios y dimensiones enteras positivas.
+- Se agrego cobertura unitaria del sanitizador para esos atributos estructurales.
+- Se marco `Probar roundtrip WYSIWYG -> HTML -> WYSIWYG` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-source-html-roundtrip.test.ts`
+- `src/editor/services/sanitizer.service.ts`
+- `src/editor/services/sanitizer.service.test.ts`
+- `src/editor/utils/html-policy.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/sanitizer.service.test.ts src/editor/editor-source-html-roundtrip.test.ts`.
+- Resultado final: 2 archivos de prueba correctos, 5 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- La primera ejecucion de `npm run check` termino con timeouts de 5 segundos en una prueba nueva y una prueba preexistente de toolbar bajo carga concurrente; no reporto fallos funcionales.
+- Se amplio a 15 segundos solo el margen de las nuevas pruebas de integracion y se repitio `npm run check`.
+- Resultado final: build, lint y tests terminaron correctamente; 28 archivos de prueba correctos, 221 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,064.42 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Probar roundtrip WYSIWYG -> JSON -> WYSIWYG.

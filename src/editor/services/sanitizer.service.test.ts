@@ -29,4 +29,14 @@ describe('sanitizeHtml', () => {
     expect(sanitized).toContain('<img src="/image.png" alt="Invalida">');
     expect(sanitized).not.toContain('align="justify"');
   });
+
+  it('preserves structural attributes required by source HTML roundtrips', () => {
+    const sanitized = sanitizeHtml(
+      '<ol start="3"><li>Tercero</li></ol><img src="/image.png" width="320" height="180" alt="Diagrama">',
+    );
+
+    expect(sanitized).toContain('<ol start="3">');
+    expect(sanitized).toContain('width="320"');
+    expect(sanitized).toContain('height="180"');
+  });
 });
