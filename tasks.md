@@ -451,8 +451,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Sincronizar JSON editado hacia WYSIWYG.
   - Criterio: aplicar JSON valido y permitido por schema actualiza el editor visual; JSON invalido conserva el contenido anterior.
   - Nota: `source-json` mantiene validacion en vivo durante la edicion y solo aplica el JSON al salir de la vista; si el JSON es valido y permitido por schema, se aplica con `setContent`, y si es invalido se conserva el documento visual actual y se mantiene la vista fuente con error.
-- [ ] Agregar mensajes de error amigables.
+- [x] Agregar mensajes de error amigables.
   - Criterio: errores indican que corregir sin exponer trazas tecnicas innecesarias.
+  - Nota: los errores de HTML y JSON fuente ahora indican si se debe corregir sintaxis, nodos, marcas, atributos o estructuras incompatibles; la UI ya no expone rutas internas ni mensajes tecnicos de Zod.
 - [ ] Probar roundtrip WYSIWYG -> HTML -> WYSIWYG.
   - Criterio: contenido simple y avanzado conserva estructura permitida.
 - [ ] Probar roundtrip WYSIWYG -> JSON -> WYSIWYG.

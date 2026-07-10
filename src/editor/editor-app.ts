@@ -28,6 +28,11 @@ import { createSanitizerService, type SanitizerService } from './services/saniti
 import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
 import { sanitizeAndValidateHtmlAgainstSchema } from './services/paste-content-safety.service';
 import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
+import {
+  invalidSourceHtmlSchemaMessage,
+  invalidSourceJsonSchemaMessage,
+  sourceJsonApplyErrorMessage,
+} from './utils/source-error-messages';
 
 export interface MountEditorAppOptions {
   app: HTMLElement;
@@ -268,7 +273,7 @@ export async function mountEditorApp({
     const result = sanitizeAndValidateHtmlAgainstSchema(source, editor.state.schema, sanitizer);
 
     if (!result.ok) {
-      shell.setSaveStatus('error', result.error ?? 'HTML invalido.');
+      shell.setSaveStatus('error', result.error ?? invalidSourceHtmlSchemaMessage);
       return false;
     }
 
@@ -296,7 +301,7 @@ export async function mountEditorApp({
     const result = resolveSourceJsonUpdate(source, getCanonicalEditorJson(editor));
 
     if (!result.applied) {
-      shell.setSaveStatus('error', result.error ?? 'JSON invalido.');
+      shell.setSaveStatus('error', result.error ?? invalidSourceJsonSchemaMessage);
       return false;
     }
 
@@ -313,7 +318,7 @@ export async function mountEditorApp({
     const result = resolveSourceJsonUpdate(source, getCanonicalEditorJson(editor));
 
     if (!result.applied) {
-      shell.setSaveStatus('error', result.error ?? 'JSON invalido.');
+      shell.setSaveStatus('error', result.error ?? invalidSourceJsonSchemaMessage);
       return false;
     }
 
@@ -328,11 +333,11 @@ export async function mountEditorApp({
       const applied = editor.commands.setContent(result.content);
 
       if (!applied) {
-        shell.setSaveStatus('error', 'No se pudo aplicar el JSON al editor visual.');
+        shell.setSaveStatus('error', sourceJsonApplyErrorMessage);
         return false;
       }
     } catch {
-      shell.setSaveStatus('error', 'No se pudo aplicar el JSON al editor visual.');
+      shell.setSaveStatus('error', sourceJsonApplyErrorMessage);
       return false;
     }
 

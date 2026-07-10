@@ -1,6 +1,7 @@
 import { DOMParser as ProseMirrorDomParser, type Schema } from '@tiptap/pm/model';
 
 import { safeParseCanonicalEditorContent } from '../models/editor-content';
+import { invalidSourceHtmlSchemaMessage } from '../utils/source-error-messages';
 import { createSanitizerService, type SanitizerService } from './sanitizer.service';
 
 export interface SafePastedHtmlResult {
@@ -12,8 +13,6 @@ export interface SafePastedHtmlResult {
 export interface PasteContentSafetyService {
   sanitizeAndValidateHtml(html: string, schema: Schema): SafePastedHtmlResult;
 }
-
-const invalidHtmlMessage = 'El contenido HTML no cumple el schema permitido.';
 
 export function createPasteContentSafetyService(
   sanitizer: SanitizerService = createSanitizerService(),
@@ -68,7 +67,7 @@ export function sanitizeAndValidateHtmlAgainstSchema(
       return {
         ok: false,
         html: '',
-        error: invalidHtmlMessage,
+        error: invalidSourceHtmlSchemaMessage,
       };
     }
 
@@ -80,7 +79,7 @@ export function sanitizeAndValidateHtmlAgainstSchema(
     return {
       ok: false,
       html: '',
-      error: invalidHtmlMessage,
+      error: invalidSourceHtmlSchemaMessage,
     };
   }
 }

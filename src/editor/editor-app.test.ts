@@ -1855,7 +1855,7 @@ describe('mountEditorApp', () => {
     expect(editableSlot?.hidden).toBe(true);
     expect(sourceSlot?.hidden).toBe(false);
     expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
-      'El contenido HTML no cumple el schema permitido.',
+      'El HTML contiene etiquetas o una estructura no compatible con el editor. Corrige esos elementos antes de aplicar los cambios.',
     );
     expect(mountedApp.editor.getHTML()).toBe(originalHtml);
     expect(mountedApp.editor.getJSON()).toEqual(originalJson);
@@ -2001,7 +2001,7 @@ describe('mountEditorApp', () => {
     sourceView?.setValue('{');
 
     expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
-      'JSON invalido. Corrige la sintaxis antes de aplicar cambios.',
+      'El JSON tiene un error de sintaxis. Revisa comas, llaves y comillas antes de aplicar los cambios.',
     );
 
     sourceJsonButton?.click();
@@ -2018,8 +2018,8 @@ describe('mountEditorApp', () => {
       }),
     );
 
-    expect(appRoot.querySelector('#editor-status')?.textContent).toContain(
-      'JSON fuera del schema permitido',
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'El JSON contiene nodos, marcas o atributos no permitidos. Corrige esos elementos antes de aplicar los cambios.',
     );
 
     sourceJsonButton?.click();

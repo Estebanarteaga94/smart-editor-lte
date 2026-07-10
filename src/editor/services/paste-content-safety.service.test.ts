@@ -5,6 +5,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createWysiwygEditor } from '../core/create-editor';
+import { invalidSourceHtmlSchemaMessage } from '../utils/source-error-messages';
 import { sanitizeAndValidatePastedHtml } from './paste-content-safety.service';
 
 const mountedEditors = new Set<ReturnType<typeof createWysiwygEditor>>();
@@ -42,7 +43,7 @@ describe('sanitizeAndValidatePastedHtml', () => {
     expect(result).toEqual({
       ok: false,
       html: '',
-      error: 'El contenido HTML no cumple el schema permitido.',
+      error: invalidSourceHtmlSchemaMessage,
     });
   });
 });

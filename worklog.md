@@ -5697,3 +5697,55 @@ Decision Git:
 Pendientes inmediatos:
 
 - Agregar mensajes de error amigables.
+
+## 2026-07-10 - Mensajes de error amigables en vistas fuente
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 5: mostrar errores accionables en las vistas HTML/JSON sin exponer detalles tecnicos internos.
+
+Acciones realizadas:
+
+- Se creo `source-error-messages.ts` para centralizar los mensajes visibles de validacion y aplicacion de contenido fuente.
+- El error de sintaxis JSON ahora indica revisar comas, llaves y comillas antes de aplicar los cambios.
+- El error de schema JSON ahora indica revisar nodos, marcas y atributos no permitidos.
+- El error de estructura HTML ahora indica corregir etiquetas o estructuras incompatibles con el editor.
+- Los errores de schema JSON dejaron de exponer rutas internas y textos tecnicos de Zod.
+- El fallo al aplicar JSON valido en Tiptap ahora ofrece una instruccion de correccion en lugar de un mensaje generico.
+- Se actualizaron pruebas unitarias y de integracion para verificar los mensajes y la conservacion del documento actual ante errores.
+- Se marco `Agregar mensajes de error amigables` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/utils/source-error-messages.ts`
+- `src/editor/models/editor-content.ts`
+- `src/editor/models/editor-content.test.ts`
+- `src/editor/services/paste-content-safety.service.ts`
+- `src/editor/services/paste-content-safety.service.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/models/editor-content.test.ts src/editor/services/paste-content-safety.service.test.ts src/editor/editor-app.test.ts`.
+- Resultado: 3 archivos de prueba correctos, 49 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 27 archivos de prueba correctos, 218 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,064.14 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Probar roundtrip WYSIWYG -> HTML -> WYSIWYG.

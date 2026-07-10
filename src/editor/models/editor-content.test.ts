@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { resolveSourceJsonUpdate } from '../components/source-view';
 import { parseDocumentStoragePayload } from '../services/document-storage.service';
+import {
+  invalidSourceJsonSchemaMessage,
+  invalidSourceJsonSyntaxMessage,
+} from '../utils/source-error-messages';
 import { parseEditorDocument } from './editor-document';
 import {
   allowedCanonicalMarkTypes,
@@ -381,8 +385,9 @@ describe('canonical editor content schema', () => {
       content: validContent,
     });
 
-    expect(validateSourceJsonContent('{')).toMatchObject({
+    expect(validateSourceJsonContent('{')).toEqual({
       ok: false,
+      message: invalidSourceJsonSyntaxMessage,
     });
 
     const result = resolveSourceJsonUpdate(
@@ -397,6 +402,8 @@ describe('canonical editor content schema', () => {
       applied: false,
       content: validContent,
     });
-    expect(result.error).toContain('JSON fuera del schema permitido');
+    expect(result.error).toBe(invalidSourceJsonSchemaMessage);
+    expect(result.error).not.toContain('content.0');
+    expect(result.error).not.toContain('Unrecognized key');
   });
 });

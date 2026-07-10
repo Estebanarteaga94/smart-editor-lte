@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 import { isSafeImageSource, isSafeLinkHref } from '../utils/safe-url';
+import {
+  invalidSourceJsonSchemaMessage,
+  invalidSourceJsonSyntaxMessage,
+} from '../utils/source-error-messages';
 
 export const canonicalContentSchemaVersion = 1;
 
@@ -211,7 +215,7 @@ export function validateSourceJsonContent(source: string): SourceJsonValidationR
     if (!validation.success) {
       return {
         ok: false,
-        message: formatZodError(validation.error),
+        message: invalidSourceJsonSchemaMessage,
       };
     }
 
@@ -222,7 +226,7 @@ export function validateSourceJsonContent(source: string): SourceJsonValidationR
   } catch {
     return {
       ok: false,
-      message: 'JSON invalido. Corrige la sintaxis antes de aplicar cambios.',
+      message: invalidSourceJsonSyntaxMessage,
     };
   }
 }
@@ -332,15 +336,4 @@ function rejectContent(node: CanonicalJsonNode, ctx: z.RefinementCtx): void {
       path: ['content'],
     });
   }
-}
-
-function formatZodError(error: z.ZodError): string {
-  const [firstIssue] = error.issues;
-
-  if (!firstIssue) {
-    return 'JSON fuera del schema permitido.';
-  }
-
-  const path = firstIssue.path.length > 0 ? firstIssue.path.join('.') : 'documento';
-  return `JSON fuera del schema permitido en ${path}: ${firstIssue.message}`;
 }
