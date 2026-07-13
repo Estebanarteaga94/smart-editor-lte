@@ -473,8 +473,9 @@ Objetivo medible: el editor ofrece preview y un estado fullscreen usable en escr
 - [x] Agregar modo `preview`.
   - Criterio: se puede alternar desde toolbar y volver al editor.
   - Nota: la toolbar incluye un boton accesible con estado activo; `mountEditorApp` muestra el preview sanitizado dentro del cuerpo del editor, aplica primero cambios pendientes de HTML/JSON y permite volver a WYSIWYG sin perder contenido.
-- [ ] Implementar `EditorViewState` en la navegacion de vistas.
+- [x] Implementar `EditorViewState` en la navegacion de vistas.
   - Criterio: `mode` controla `wysiwyg`, `source-html`, `source-json` o `preview`, y `fullscreen` se aplica como boolean independiente.
+  - Nota: `mountEditorApp` mantiene un unico `EditorViewState`; las transiciones actualizan solo `mode`, conservan `fullscreen` y exponen una copia del estado para integracion y pruebas.
 - [ ] Implementar `fullscreen.ts`.
   - Criterio: alterna clase `editor-shell--fullscreen` sobre el root sin cambiar `EditorMode`.
 - [ ] Agregar boton de pantalla completa.

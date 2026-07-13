@@ -1768,6 +1768,66 @@ describe('mountEditorApp', () => {
     expect(mountedApp.editor.getHTML()).toContain('<p>Contenido desde HTML</p>');
   }, 15_000);
 
+  it('navigates content modes through EditorViewState without changing fullscreen', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-view-state-navigation',
+    });
+    mountedApps.add(mountedApp);
+
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const sourceJsonButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-json"]',
+    );
+    const previewButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="preview"]',
+    );
+
+    expect(mountedApp.getViewState()).toEqual({
+      mode: 'wysiwyg',
+      fullscreen: false,
+    });
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getViewState()).toEqual({
+      mode: 'source-html',
+      fullscreen: false,
+    });
+
+    sourceJsonButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getViewState()).toEqual({
+      mode: 'source-json',
+      fullscreen: false,
+    });
+
+    previewButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getViewState()).toEqual({
+      mode: 'preview',
+      fullscreen: false,
+    });
+
+    previewButton?.click();
+    await flushPromises();
+
+    expect(mountedApp.getViewState()).toEqual({
+      mode: 'wysiwyg',
+      fullscreen: false,
+    });
+  }, 15_000);
+
   it('shows generated HTML in source-html mode and allows editing it', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

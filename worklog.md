@@ -5941,3 +5941,49 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar `EditorViewState` en la navegacion de vistas.
+
+## 2026-07-13 - EditorViewState en la navegacion de vistas
+
+Objetivo:
+
+- Cerrar la siguiente tarea pendiente de Fase 6: usar `EditorViewState` como estado unico para navegar entre WYSIWYG, HTML, JSON y preview, manteniendo `fullscreen` como boolean independiente.
+
+Acciones realizadas:
+
+- Se reemplazo la variable aislada `activeMode` de `mountEditorApp` por un `EditorViewState` inicializado desde `defaultEditorViewState`.
+- Las transiciones de vista actualizan solo `viewState.mode` mediante una funcion comun y conservan el valor de `viewState.fullscreen`.
+- Las decisiones de toolbar, validacion y aplicacion de vistas fuente consultan ahora `viewState.mode`.
+- Se mantuvo `getActiveMode()` por compatibilidad y se agrego `getViewState()` para exponer una copia segura del estado completo.
+- Se agrego una prueba de integracion que recorre `wysiwyg`, `source-html`, `source-json`, `preview` y el regreso a `wysiwyg`, verificando que `fullscreen` permanezca en `false`.
+- No se implemento el cambio visual de pantalla completa porque corresponde a la siguiente tarea pendiente.
+- Se marco `Implementar EditorViewState en la navegacion de vistas` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/editor-app.test.ts`.
+- Resultado: 1 archivo de prueba correcto, 38 pruebas correctas.
+- Se ejecuto `npm run format`.
+- Resultado: Prettier termino correctamente sin cambios adicionales.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 29 archivos de prueba correctos, 224 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check` antes de actualizar la documentacion operativa.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom durante pruebas del editor.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,065.29 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `fullscreen.ts`.

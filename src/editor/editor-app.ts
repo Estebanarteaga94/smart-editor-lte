@@ -15,7 +15,11 @@ import { createWysiwygEditor } from './core/create-editor';
 import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
 import { defaultEditorConfig } from './models/editor-config';
-import type { EditorMode } from './models/editor-mode';
+import {
+  defaultEditorViewState,
+  type EditorMode,
+  type EditorViewState,
+} from './models/editor-mode';
 import {
   createLocalDocumentStorageService,
   type DocumentStorageService,
@@ -49,6 +53,7 @@ export interface MountedEditorApp {
   lifecycle: ReturnType<typeof createEditorLifecycle>;
   editor: ReturnType<typeof createWysiwygEditor>;
   getActiveMode: () => EditorMode;
+  getViewState: () => EditorViewState;
   getSourceView: () => SourceView | null;
   getSourceHtmlValue: () => string | null;
   getSourceJsonValue: () => string | null;
@@ -77,7 +82,7 @@ export async function mountEditorApp({
     sanitizer,
   });
   let preservedImageSelection: { from: number; to: number } | null = null;
-  let activeMode: EditorMode = 'wysiwyg';
+  let viewState: EditorViewState = { ...defaultEditorViewState };
   let sourceView: SourceView | null = null;
   let sourceHtmlValue: string | null = null;
   let sourceJsonValue: string | null = null;
@@ -133,7 +138,7 @@ export async function mountEditorApp({
       }
     },
     onToggleSourceHtml: () => {
-      if (activeMode === 'source-html') {
+      if (viewState.mode === 'source-html') {
         if (!applyActiveSourceMode()) {
           return;
         }
@@ -147,7 +152,7 @@ export async function mountEditorApp({
       }
     },
     onToggleSourceJson: () => {
-      if (activeMode === 'source-json') {
+      if (viewState.mode === 'source-json') {
         if (!applyActiveSourceMode()) {
           return;
         }
@@ -161,7 +166,7 @@ export async function mountEditorApp({
       }
     },
     onTogglePreview: () => {
-      if (activeMode === 'preview') {
+      if (viewState.mode === 'preview') {
         showWysiwygMode();
         return;
       }
@@ -173,9 +178,9 @@ export async function mountEditorApp({
     onFormatHtml: () => {
       void formatActiveSourceHtml();
     },
-    isSourceHtmlActive: () => activeMode === 'source-html',
-    isSourceJsonActive: () => activeMode === 'source-json',
-    isPreviewActive: () => activeMode === 'preview',
+    isSourceHtmlActive: () => viewState.mode === 'source-html',
+    isSourceJsonActive: () => viewState.mode === 'source-json',
+    isPreviewActive: () => viewState.mode === 'preview',
   });
   const tableMenu = createTableMenu({
     editor,
@@ -199,14 +204,15 @@ export async function mountEditorApp({
   return {
     lifecycle,
     editor,
-    getActiveMode: () => activeMode,
+    getActiveMode: () => viewState.mode,
+    getViewState: () => ({ ...viewState }),
     getSourceView: () => sourceView,
     getSourceHtmlValue: () => sourceHtmlValue,
     getSourceJsonValue: () => sourceJsonValue,
   };
 
   function showSourceHtmlMode(): void {
-    activeMode = 'source-html';
+    setActiveMode('source-html');
     sourceHtmlValue = editor.getHTML();
     lifecycle.destroySourceView();
     sourceView = createSourceView({
@@ -226,7 +232,7 @@ export async function mountEditorApp({
   }
 
   function showSourceJsonMode(): void {
-    activeMode = 'source-json';
+    setActiveMode('source-json');
     sourceJsonValue = JSON.stringify(editor.getJSON(), null, 2);
     lifecycle.destroySourceView();
     sourceView = createSourceView({
@@ -247,7 +253,7 @@ export async function mountEditorApp({
   }
 
   function showWysiwygMode(): void {
-    activeMode = 'wysiwyg';
+    setActiveMode('wysiwyg');
     lifecycle.destroySourceView();
     sourceView = null;
     shell.source.replaceChildren();
@@ -259,7 +265,7 @@ export async function mountEditorApp({
   }
 
   function showPreviewMode(): void {
-    activeMode = 'preview';
+    setActiveMode('preview');
     lifecycle.destroySourceView();
     sourceView = null;
     shell.source.replaceChildren();
@@ -271,12 +277,19 @@ export async function mountEditorApp({
     toolbar.updateState();
   }
 
+  function setActiveMode(mode: EditorMode): void {
+    viewState = {
+      ...viewState,
+      mode,
+    };
+  }
+
   function applyActiveSourceMode(): boolean {
     return applyActiveSourceHtml() && applyActiveSourceJson();
   }
 
   async function formatActiveSourceHtml(): Promise<void> {
-    if (activeMode !== 'source-html' || !sourceView) {
+    if (viewState.mode !== 'source-html' || !sourceView) {
       return;
     }
 
@@ -297,7 +310,7 @@ export async function mountEditorApp({
   }
 
   function applyActiveSourceHtml(): boolean {
-    if (activeMode !== 'source-html') {
+    if (viewState.mode !== 'source-html') {
       return true;
     }
 
@@ -325,7 +338,7 @@ export async function mountEditorApp({
   }
 
   function validateActiveSourceJsonInput(): boolean {
-    if (activeMode !== 'source-json') {
+    if (viewState.mode !== 'source-json') {
       return true;
     }
 
@@ -342,7 +355,7 @@ export async function mountEditorApp({
   }
 
   function applyActiveSourceJson(): boolean {
-    if (activeMode !== 'source-json') {
+    if (viewState.mode !== 'source-json') {
       return true;
     }
 
