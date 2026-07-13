@@ -5988,3 +5988,58 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar `fullscreen.ts`.
+
+## 2026-07-13 - Dialogo contextual compacto para gestion de tablas
+
+Objetivo:
+
+- Retirar el boton de gestion de tablas de la toolbar y mostrar sus acciones en un dialogo contextual similar al de imagenes.
+- Reducir el texto visible mediante iconos descriptivos, modificadores y tooltips accesibles.
+
+Acciones realizadas:
+
+- Se elimino el disparador de gestion de tablas y el panel desplegable asociado a la toolbar.
+- `table-menu.ts` monta ahora un dialogo contextual automatico al seleccionar una celda o rango de celdas.
+- El dialogo se posiciona fuera del rectangulo seleccionado, se limita al viewport y se reposiciona al hacer scroll o redimensionar.
+- El dialogo se oculta al salir de la tabla, destruir el editor o cambiar a HTML, JSON o preview.
+- Se conservaron los diez comandos existentes y sus reglas de habilitacion para filas, columnas, encabezado, tabla, combinar y separar celdas.
+- Los botones muestran solo iconos Fontello; fila, columna y tabla usan modificadores como `+↑`, `+↓`, `+←`, `+→`, `−`, `×` y `H`.
+- Cada boton conserva `aria-label`, `title` y un tooltip visible con hover o foco.
+- Se ajustaron las pruebas unitarias y de integracion para verificar ausencia del disparador, montaje fuera de la toolbar, posicion, visibilidad, tooltips, iconos y comandos.
+- Se limito Vitest a cuatro workers y se amplio el timeout global a 15 segundos porque la ejecucion completa saturaba el entorno y agotaba aleatoriamente el limite de pruebas no relacionadas; los mismos archivos pasaban aislados.
+- Se marco `Reemplazar el boton de gestion de tablas por un dialogo contextual` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/components/table-menu.ts`
+- `src/editor/components/table-menu.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `vite.config.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/components/table-menu.test.ts src/editor/editor-app.test.ts`.
+- Resultado final: 2 archivos de prueba correctos, 49 pruebas correctas.
+- Se ejecuto la aplicacion real con `npm run dev -- --host 127.0.0.1 --port 4173` y Chromium/Playwright.
+- Resultado navegador: no existe disparador de tablas en la toolbar; el dialogo muestra 10 acciones, queda fuera de la celda, mide 240 px, no contiene etiquetas largas y se oculta en `source-html`.
+- Resultado tooltip: `Fila antes` queda visible con hover, conserva `aria-label` y muestra el modificador `+↑`.
+- Las primeras ejecuciones completas detectaron timeouts aleatorios de 5 y 15 segundos bajo carga paralela en pruebas preexistentes y no relacionadas; los archivos fallidos pasaron al ejecutarse aislados.
+- Se configuro `maxWorkers: 4` y `testTimeout: 15_000` en Vitest para estabilizar la puerta completa sin cambiar expectativas funcionales.
+- Se ejecuto `npm run check` despues del ajuste de concurrencia.
+- Resultado final: build, lint y tests terminaron correctamente; 29 archivos de prueba correctos, 224 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,065.92 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Reproducir y corregir el pegado de contenido muy extenso sin perder el documento actual.

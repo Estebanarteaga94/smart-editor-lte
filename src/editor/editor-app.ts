@@ -192,7 +192,7 @@ export async function mountEditorApp({
   });
 
   shell.toolbar.replaceChildren(toolbar.element);
-  toolbar.element.append(tableMenu.element);
+  shell.root.append(tableMenu.element);
   shell.root.append(imageDialog.element);
   shell.root.append(imageOptionsDialog.element);
   registerImageDropUpload();
@@ -229,6 +229,7 @@ export async function mountEditorApp({
     preview.element.hidden = true;
     editor.setEditable(false);
     toolbar.updateState();
+    tableMenu.updateState();
   }
 
   function showSourceJsonMode(): void {
@@ -250,6 +251,7 @@ export async function mountEditorApp({
     preview.element.hidden = true;
     editor.setEditable(false);
     toolbar.updateState();
+    tableMenu.updateState();
   }
 
   function showWysiwygMode(): void {
@@ -262,6 +264,7 @@ export async function mountEditorApp({
     preview.element.hidden = true;
     editor.setEditable(true);
     toolbar.updateState();
+    tableMenu.updateState();
   }
 
   function showPreviewMode(): void {
@@ -275,6 +278,7 @@ export async function mountEditorApp({
     preview.element.hidden = false;
     editor.setEditable(false);
     toolbar.updateState();
+    tableMenu.updateState();
   }
 
   function setActiveMode(mode: EditorMode): void {

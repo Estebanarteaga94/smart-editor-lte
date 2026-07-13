@@ -1409,7 +1409,7 @@ describe('mountEditorApp', () => {
     );
   });
 
-  it('mounts the table command group inside the normal toolbar', async () => {
+  it('shows table commands in a contextual dialog outside the toolbar', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
     document.body.append(appRoot);
@@ -1421,50 +1421,43 @@ describe('mountEditorApp', () => {
     });
     mountedApps.add(mountedApp);
 
-    const tableMenu = appRoot.querySelector<HTMLElement>('.editor-table-menu');
-    const tableMenuTrigger = appRoot.querySelector<HTMLButtonElement>(
-      '.editor-table-menu [data-table-menu-trigger="true"]',
+    const tableDialog = appRoot.querySelector<HTMLElement>('.editor-table-options');
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
     );
-    const tableMenuPanelId = tableMenuTrigger?.getAttribute('aria-controls');
-    const tableMenuPanel = tableMenuPanelId ? document.getElementById(tableMenuPanelId) : null;
-    const addRowAfterButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const addRowAfterButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="add-row-after"]',
     );
-    const deleteRowButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const deleteRowButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="delete-row"]',
     );
-    const addColumnAfterButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const addColumnAfterButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="add-column-after"]',
     );
-    const deleteColumnButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const deleteColumnButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="delete-column"]',
     );
-    const deleteTableButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const deleteTableButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="delete-table"]',
     );
-    const toggleHeaderRowButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const toggleHeaderRowButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="toggle-header-row"]',
     );
-    const mergeCellsButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const mergeCellsButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="merge-cells"]',
     );
-    const splitCellButton = tableMenuPanel?.querySelector<HTMLButtonElement>(
+    const splitCellButton = tableDialog?.querySelector<HTMLButtonElement>(
       '[data-table-menu-action="split-cell"]',
     );
 
-    expect(tableMenu).not.toBeNull();
-    expect(tableMenu?.closest('.editor-toolbar')).not.toBeNull();
-    expect(tableMenu?.closest('.editor-shell__toolbar')).not.toBeNull();
-    expect(tableMenu?.hidden).toBe(false);
-    expect(tableMenuTrigger).not.toBeNull();
-    expect(tableMenuTrigger?.disabled).toBe(true);
-    expect(tableMenuTrigger?.getAttribute('aria-expanded')).toBe('false');
-    expect(tableMenuTrigger?.textContent).not.toContain('Tabla');
-    expect(tableMenuTrigger?.querySelector('.editor-table-menu__trigger-label')).toBeNull();
-    expect(tableMenuPanel).not.toBeNull();
-    expect(tableMenuPanel?.parentElement).toBe(document.body);
-    expect(tableMenu?.contains(tableMenuPanel)).toBe(false);
-    expect(tableMenuPanel?.hidden).toBe(true);
+    expect(tableDialog).not.toBeNull();
+    expect(tableDialog?.closest('.editor-toolbar')).toBeNull();
+    expect(tableDialog?.closest('.editor-shell__toolbar')).toBeNull();
+    expect(tableDialog?.parentElement).toBe(appRoot.querySelector<HTMLElement>('.editor-app'));
+    expect(tableDialog?.hidden).toBe(true);
+    expect(tableDialog?.getAttribute('role')).toBe('dialog');
+    expect(tableDialog?.getAttribute('aria-label')).toBe('Opciones de tabla');
+    expect(appRoot.querySelector('[data-table-menu-trigger="true"]')).toBeNull();
     expect(addRowAfterButton).not.toBeNull();
     expect(addRowAfterButton?.disabled).toBe(true);
     expect(deleteRowButton).not.toBeNull();
@@ -1485,13 +1478,7 @@ describe('mountEditorApp', () => {
     mountedApp.editor.commands.insertTable({ rows: 3, cols: 3, withHeaderRow: true });
     setSelectionInFirstTableCell(mountedApp.editor);
 
-    expect(tableMenu?.hidden).toBe(false);
-    expect(tableMenuTrigger?.disabled).toBe(false);
-    expect(tableMenuTrigger?.textContent).not.toContain('Tabla');
-    expect(tableMenuTrigger?.querySelector('.editor-table-menu__trigger-label')).toBeNull();
-    tableMenuTrigger?.click();
-    expect(tableMenuPanel?.hidden).toBe(false);
-    expect(tableMenuTrigger?.getAttribute('aria-expanded')).toBe('true');
+    expect(tableDialog?.hidden).toBe(false);
     expect(addRowAfterButton?.disabled).toBe(false);
     expect(deleteRowButton?.disabled).toBe(false);
     expect(addColumnAfterButton?.disabled).toBe(false);
@@ -1500,6 +1487,17 @@ describe('mountEditorApp', () => {
     expect(toggleHeaderRowButton?.disabled).toBe(false);
     expect(mergeCellsButton?.disabled).toBe(true);
     expect(splitCellButton?.disabled).toBe(true);
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    expect(tableDialog?.hidden).toBe(true);
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+
+    setSelectionInFirstTableCell(mountedApp.editor);
+    expect(tableDialog?.hidden).toBe(false);
 
     toggleHeaderRowButton?.click();
 

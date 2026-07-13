@@ -43,6 +43,7 @@ interface TableMenuButtonConfig {
   action: TableMenuAction;
   label: string;
   icon: string;
+  modifier?: string;
   command: (editor: Editor) => boolean;
   canRun: (editor: Editor) => boolean;
 }
@@ -51,49 +52,56 @@ const tableButtonConfigs: readonly TableMenuButtonConfig[] = [
   {
     action: 'add-row-before',
     label: 'Fila antes',
-    icon: '\uf176',
+    icon: '\ue812',
+    modifier: '+↑',
     command: tableCommands.addRowBefore,
     canRun: (editor) => editor.can().chain().focus().addRowBefore().run(),
   },
   {
     action: 'add-row-after',
     label: 'Fila despues',
-    icon: '\uf175',
+    icon: '\ue812',
+    modifier: '+↓',
     command: tableCommands.addRowAfter,
     canRun: (editor) => editor.can().chain().focus().addRowAfter().run(),
   },
   {
     action: 'delete-row',
     label: 'Eliminar fila',
-    icon: '\uf1f8',
+    icon: '\ue812',
+    modifier: '−',
     command: tableCommands.deleteRow,
     canRun: (editor) => editor.can().chain().focus().deleteRow().run(),
   },
   {
     action: 'add-column-before',
     label: 'Columna antes',
-    icon: '\uf177',
+    icon: '\uf0db',
+    modifier: '+←',
     command: tableCommands.addColumnBefore,
     canRun: (editor) => editor.can().chain().focus().addColumnBefore().run(),
   },
   {
     action: 'add-column-after',
     label: 'Columna despues',
-    icon: '\uf178',
+    icon: '\uf0db',
+    modifier: '+→',
     command: tableCommands.addColumnAfter,
     canRun: (editor) => editor.can().chain().focus().addColumnAfter().run(),
   },
   {
     action: 'delete-column',
     label: 'Eliminar columna',
-    icon: '\uf1f8',
+    icon: '\uf0db',
+    modifier: '−',
     command: tableCommands.deleteColumn,
     canRun: (editor) => editor.can().chain().focus().deleteColumn().run(),
   },
   {
     action: 'delete-table',
     label: 'Eliminar tabla',
-    icon: '\uf1f8',
+    icon: '\uf0ce',
+    modifier: '×',
     command: tableCommands.deleteTable,
     canRun: (editor) => editor.can().chain().focus().deleteTable().run(),
   },
@@ -101,6 +109,7 @@ const tableButtonConfigs: readonly TableMenuButtonConfig[] = [
     action: 'toggle-header-row',
     label: 'Alternar encabezado',
     icon: '\uf0ce',
+    modifier: 'H',
     command: tableCommands.toggleHeaderRow,
     canRun: (editor) => editor.can().chain().focus().toggleHeaderRow().run(),
   },
@@ -120,36 +129,36 @@ const tableButtonConfigs: readonly TableMenuButtonConfig[] = [
   },
 ];
 
-let tableMenuId = 0;
+const dialogGap = 8;
+const viewportMargin = 8;
+const fallbackDialogWidth = 240;
+const fallbackDialogHeight = 92;
 
 export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableMenu {
-  const panelId = `editor-table-menu-panel-${(tableMenuId += 1)}`;
-  const element = document.createElement('div');
-  const triggerButton = createTableMenuTriggerButton(panelId);
-  const panel = document.createElement('div');
+  const element = document.createElement('section');
+  const title = document.createElement('strong');
+  const actions = document.createElement('div');
   const buttons = new Map<TableMenuAction, HTMLButtonElement>();
 
-  element.className = 'editor-table-menu';
-  element.dataset.editorTableMenu = 'true';
-  element.setAttribute('role', 'group');
-  element.setAttribute('aria-label', 'Comandos de tabla');
+  element.className = 'editor-table-options';
+  element.dataset.tableOptions = 'dialog';
+  element.hidden = true;
+  element.setAttribute('role', 'dialog');
+  element.setAttribute('aria-label', 'Opciones de tabla');
 
-  panel.id = panelId;
-  panel.className = 'editor-table-menu__panel';
-  panel.hidden = true;
-  panel.setAttribute('role', 'group');
-  panel.setAttribute('aria-label', 'Acciones de tabla');
+  title.className = 'editor-table-options__title';
+  title.textContent = 'Tabla';
 
-  element.append(triggerButton);
-  document.body.append(panel);
-  lifecycle.registerCleanup(() => {
-    panel.remove();
-  });
+  actions.className = 'editor-table-options__actions';
+  actions.setAttribute('role', 'group');
+  actions.setAttribute('aria-label', 'Acciones de tabla');
+
+  element.append(title, actions);
 
   for (const config of tableButtonConfigs) {
     const button = createTableMenuButton(config);
     buttons.set(config.action, button);
-    panel.append(button);
+    actions.append(button);
 
     lifecycle.addEventListener(button, 'mousedown', (event) => {
       event.preventDefault();
@@ -162,79 +171,30 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
 
       config.command(editor);
       updateState();
-      setPanelOpen(false);
     });
   }
 
-  const positionPanel = (): void => {
-    positionFloatingPanel(triggerButton, panel);
-  };
-
-  const setPanelOpen = (open: boolean): void => {
-    panel.hidden = !open;
-    element.classList.toggle('is-open', open);
-    triggerButton.setAttribute('aria-expanded', String(open));
-
-    if (open) {
-      positionPanel();
-    }
-  };
-
-  lifecycle.addEventListener(triggerButton, 'mousedown', (event) => {
-    event.preventDefault();
-  });
-
-  lifecycle.addEventListener(triggerButton, 'click', () => {
-    if (triggerButton.disabled) {
-      return;
-    }
-
-    setPanelOpen(panel.hidden === true);
-  });
-
-  lifecycle.addEventListener(document, 'pointerdown', (event) => {
-    const target = event.target;
-
-    if (
-      panel.hidden ||
-      !(target instanceof Node) ||
-      element.contains(target) ||
-      panel.contains(target)
-    ) {
-      return;
-    }
-
-    setPanelOpen(false);
-  });
-
-  lifecycle.addEventListener(document, 'keydown', (event) => {
-    if (event.key !== 'Escape' || panel.hidden) {
-      return;
-    }
-
-    setPanelOpen(false);
-    triggerButton.focus();
-  });
-
   lifecycle.addEventListener(window, 'resize', () => {
-    positionPanel();
+    updatePosition();
   });
 
   lifecycle.addEventListener(window, 'scroll', () => {
-    positionPanel();
+    updatePosition();
   });
+
+  const scrollContainer = editor.view.dom.closest('.editor-shell__body');
+
+  if (scrollContainer instanceof HTMLElement) {
+    lifecycle.addEventListener(scrollContainer, 'scroll', () => {
+      updatePosition();
+    });
+  }
 
   const updateState = (): void => {
     const state = getTableMenuState(editor);
-    const menuHidden = editor.isDestroyed;
-    const triggerDisabled = editor.isDestroyed || !editor.isEditable || !state.isInsideTable;
+    const dialogHidden = editor.isDestroyed || !editor.isEditable || !state.isInsideTable;
 
-    element.hidden = menuHidden;
-    triggerButton.disabled = triggerDisabled;
-
-    if (menuHidden || triggerDisabled) {
-      setPanelOpen(false);
-    }
+    element.hidden = dialogHidden;
 
     for (const config of tableButtonConfigs) {
       const button = buttons.get(config.action);
@@ -244,6 +204,10 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
       }
 
       button.disabled = editor.isDestroyed || !editor.isEditable || !getCanRun(state, config);
+    }
+
+    if (!dialogHidden) {
+      updatePosition();
     }
   };
 
@@ -266,28 +230,146 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
     element,
     updateState,
   };
+
+  function updatePosition(): void {
+    if (element.hidden) {
+      return;
+    }
+
+    const selectionRect = getActiveTableSelectionRect(editor);
+
+    if (!selectionRect || !isUsableRect(selectionRect)) {
+      return;
+    }
+
+    const dialogRect = element.getBoundingClientRect();
+    const dialogWidth = dialogRect.width > 0 ? dialogRect.width : fallbackDialogWidth;
+    const dialogHeight = dialogRect.height > 0 ? dialogRect.height : fallbackDialogHeight;
+    const position = calculateDialogPosition(selectionRect, dialogWidth, dialogHeight);
+
+    element.style.left = `${position.left}px`;
+    element.style.top = `${position.top}px`;
+  }
 }
 
-function positionFloatingPanel(triggerButton: HTMLButtonElement, panel: HTMLElement): void {
-  if (panel.hidden) {
-    return;
+function getActiveTableSelectionRect(editor: Editor): DOMRect | null {
+  const selectedCells = Array.from(
+    editor.view.dom.querySelectorAll<HTMLElement>('th.selectedCell, td.selectedCell'),
+  );
+  const selectedCellRects = selectedCells
+    .map((cell) => cell.getBoundingClientRect())
+    .filter(isUsableRect);
+
+  if (selectedCellRects.length > 0) {
+    return combineRects(selectedCellRects);
   }
 
-  const viewportPadding = 16;
-  const panelGap = 6;
-  const triggerRect = triggerButton.getBoundingClientRect();
-  const panelWidth = panel.offsetWidth;
-  const panelHeight = panel.offsetHeight;
-  const maxLeft = Math.max(viewportPadding, window.innerWidth - panelWidth - viewportPadding);
-  const preferredLeft = Math.min(triggerRect.left, maxLeft);
-  const left = Math.max(viewportPadding, preferredLeft);
-  const belowTop = triggerRect.bottom + panelGap;
-  const aboveTop = triggerRect.top - panelHeight - panelGap;
-  const hasRoomBelow = belowTop + panelHeight <= window.innerHeight - viewportPadding;
-  const top = hasRoomBelow ? belowTop : Math.max(viewportPadding, aboveTop);
+  const activeCell = getActiveTableCellElement(editor);
+  const activeCellRect = activeCell?.getBoundingClientRect();
 
-  panel.style.left = `${left}px`;
-  panel.style.top = `${top}px`;
+  return activeCellRect && isUsableRect(activeCellRect) ? activeCellRect : null;
+}
+
+function getActiveTableCellElement(editor: Editor): HTMLElement | null {
+  const nodeAtSelection = editor.view.nodeDOM(editor.state.selection.from);
+  const cellAtSelection = getClosestTableCell(nodeAtSelection);
+
+  if (cellAtSelection) {
+    return cellAtSelection;
+  }
+
+  const { $from } = editor.state.selection;
+
+  for (let depth = $from.depth; depth > 0; depth -= 1) {
+    const node = $from.node(depth);
+
+    if (node.type.name !== 'tableCell' && node.type.name !== 'tableHeader') {
+      continue;
+    }
+
+    return getClosestTableCell(editor.view.nodeDOM($from.before(depth)));
+  }
+
+  return null;
+}
+
+function getClosestTableCell(node: Node | null): HTMLElement | null {
+  const element = node instanceof HTMLElement ? node : node?.parentElement;
+  const cell = element?.closest('td, th');
+
+  return cell instanceof HTMLElement ? cell : null;
+}
+
+function combineRects(rects: readonly DOMRect[]): DOMRect {
+  const left = Math.min(...rects.map((rect) => rect.left));
+  const top = Math.min(...rects.map((rect) => rect.top));
+  const right = Math.max(...rects.map((rect) => rect.right));
+  const bottom = Math.max(...rects.map((rect) => rect.bottom));
+
+  return new DOMRect(left, top, right - left, bottom - top);
+}
+
+function isUsableRect(rect: DOMRect): boolean {
+  return rect.width > 1 && rect.height > 1 && rect.right > rect.left && rect.bottom > rect.top;
+}
+
+function calculateDialogPosition(
+  selectionRect: DOMRect,
+  dialogWidth: number,
+  dialogHeight: number,
+): { top: number; left: number } {
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const clampedLeft = clamp(
+    selectionRect.left,
+    viewportMargin,
+    viewportWidth - dialogWidth - viewportMargin,
+  );
+  const clampedTop = clamp(
+    selectionRect.top,
+    viewportMargin,
+    viewportHeight - dialogHeight - viewportMargin,
+  );
+  const candidates = [
+    {
+      top: selectionRect.bottom + dialogGap,
+      left: clampedLeft,
+      fits: selectionRect.bottom + dialogGap + dialogHeight <= viewportHeight - viewportMargin,
+    },
+    {
+      top: selectionRect.top - dialogGap - dialogHeight,
+      left: clampedLeft,
+      fits: selectionRect.top - dialogGap - dialogHeight >= viewportMargin,
+    },
+    {
+      top: clampedTop,
+      left: selectionRect.right + dialogGap,
+      fits: selectionRect.right + dialogGap + dialogWidth <= viewportWidth - viewportMargin,
+    },
+    {
+      top: clampedTop,
+      left: selectionRect.left - dialogGap - dialogWidth,
+      fits: selectionRect.left - dialogGap - dialogWidth >= viewportMargin,
+    },
+  ];
+  const candidate = candidates.find((item) => item.fits) ?? candidates[0];
+
+  return {
+    top: Math.round(
+      clamp(candidate.top, viewportMargin, viewportHeight - dialogHeight - viewportMargin),
+    ),
+    left: Math.round(
+      clamp(candidate.left, viewportMargin, viewportWidth - dialogWidth - viewportMargin),
+    ),
+  };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  if (max < min) {
+    return min;
+  }
+
+  return Math.min(Math.max(value, min), max);
 }
 
 export function getTableMenuState(editor: Editor): TableMenuState {
@@ -369,50 +451,33 @@ function getCanRun(state: TableMenuState, config: TableMenuButtonConfig): boolea
 
 function createTableMenuButton(config: TableMenuButtonConfig): HTMLButtonElement {
   const button = document.createElement('button');
+  const iconWrapper = document.createElement('span');
   const icon = document.createElement('span');
-  const label = document.createElement('span');
 
   button.type = 'button';
-  button.className = 'editor-table-menu__button';
+  button.className = 'editor-table-options__button';
   button.dataset.tableMenuAction = config.action;
+  button.dataset.tooltip = config.label;
   button.setAttribute('aria-label', config.label);
   button.title = config.label;
 
-  icon.className = 'editor-table-menu__button-icon';
-  icon.setAttribute('aria-hidden', 'true');
+  iconWrapper.className = 'editor-table-options__button-visual';
+  iconWrapper.setAttribute('aria-hidden', 'true');
+
+  icon.className = 'editor-table-options__button-icon';
   icon.textContent = config.icon;
 
-  label.className = 'editor-table-menu__button-label';
-  label.textContent = config.label;
+  iconWrapper.append(icon);
 
-  button.append(icon, label);
+  if (config.modifier) {
+    const modifier = document.createElement('span');
 
-  return button;
-}
+    modifier.className = 'editor-table-options__button-modifier';
+    modifier.textContent = config.modifier;
+    iconWrapper.append(modifier);
+  }
 
-function createTableMenuTriggerButton(panelId: string): HTMLButtonElement {
-  const button = document.createElement('button');
-  const icon = document.createElement('span');
-  const chevron = document.createElement('span');
-
-  button.type = 'button';
-  button.className = 'editor-shell__tool editor-table-menu__trigger';
-  button.dataset.tableMenuTrigger = 'true';
-  button.setAttribute('aria-label', 'Comandos de tabla');
-  button.setAttribute('aria-haspopup', 'true');
-  button.setAttribute('aria-expanded', 'false');
-  button.setAttribute('aria-controls', panelId);
-  button.title = 'Comandos de tabla';
-
-  icon.className = 'editor-shell__tool-icon editor-table-menu__button-icon';
-  icon.setAttribute('aria-hidden', 'true');
-  icon.textContent = '\uf0ce';
-
-  chevron.className = 'editor-table-menu__trigger-chevron';
-  chevron.setAttribute('aria-hidden', 'true');
-  chevron.textContent = '▾';
-
-  button.append(icon, chevron);
+  button.append(iconWrapper);
 
   return button;
 }

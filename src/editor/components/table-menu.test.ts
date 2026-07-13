@@ -34,12 +34,10 @@ afterEach(() => {
 });
 
 describe('createTableMenu', () => {
-  it('renders the table trigger visible and disabled outside a table', () => {
+  it('renders a hidden contextual dialog outside a table', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
     const tableMenu = createTableMenu({ editor, lifecycle });
-    const triggerButton = getTableMenuTrigger(tableMenu.element);
-    const panel = getTableMenuPanel(tableMenu.element);
     const addRowBeforeButton = getTableMenuButton(tableMenu.element, 'add-row-before');
     const addRowAfterButton = getTableMenuButton(tableMenu.element, 'add-row-after');
     const deleteRowButton = getTableMenuButton(tableMenu.element, 'delete-row');
@@ -51,21 +49,27 @@ describe('createTableMenu', () => {
     const mergeCellsButton = getTableMenuButton(tableMenu.element, 'merge-cells');
     const splitCellButton = getTableMenuButton(tableMenu.element, 'split-cell');
 
-    expect(tableMenu.element.hidden).toBe(false);
-    expect(tableMenu.element.getAttribute('role')).toBe('group');
-    expect(tableMenu.element.getAttribute('aria-label')).toBe('Comandos de tabla');
-    expect(triggerButton).not.toBeNull();
-    expect(triggerButton?.disabled).toBe(true);
-    expect(triggerButton?.getAttribute('aria-expanded')).toBe('false');
-    expect(triggerButton?.textContent).not.toContain('Tabla');
-    expect(triggerButton?.querySelector('.editor-table-menu__trigger-label')).toBeNull();
-    expect(panel).not.toBeNull();
-    expect(panel?.hidden).toBe(true);
-    expect(panel?.getAttribute('role')).toBe('group');
-    expect(panel?.getAttribute('aria-label')).toBe('Acciones de tabla');
+    expect(tableMenu.element.hidden).toBe(true);
+    expect(tableMenu.element.getAttribute('role')).toBe('dialog');
+    expect(tableMenu.element.getAttribute('aria-label')).toBe('Opciones de tabla');
+    expect(tableMenu.element.querySelector('.editor-table-options__title')?.textContent).toBe(
+      'Tabla',
+    );
+    expect(tableMenu.element.querySelector('[data-table-menu-trigger="true"]')).toBeNull();
+    expect(
+      tableMenu.element.querySelector('.editor-table-options__actions')?.getAttribute('role'),
+    ).toBe('group');
     expect(addRowBeforeButton).not.toBeNull();
     expect(addRowBeforeButton?.disabled).toBe(true);
     expect(addRowBeforeButton?.getAttribute('aria-label')).toBe('Fila antes');
+    expect(addRowBeforeButton?.dataset.tooltip).toBe('Fila antes');
+    expect(addRowBeforeButton?.querySelector('.editor-table-options__button-label')).toBeNull();
+    expect(
+      addRowBeforeButton?.querySelector('.editor-table-options__button-icon')?.textContent,
+    ).toBe('\ue812');
+    expect(
+      addRowBeforeButton?.querySelector('.editor-table-options__button-modifier')?.textContent,
+    ).toBe('+↑');
     expect(addRowAfterButton).not.toBeNull();
     expect(addRowAfterButton?.disabled).toBe(true);
     expect(addRowAfterButton?.getAttribute('aria-label')).toBe('Fila despues');
@@ -78,6 +82,12 @@ describe('createTableMenu', () => {
     expect(addColumnAfterButton).not.toBeNull();
     expect(addColumnAfterButton?.disabled).toBe(true);
     expect(addColumnAfterButton?.getAttribute('aria-label')).toBe('Columna despues');
+    expect(
+      addColumnAfterButton?.querySelector('.editor-table-options__button-icon')?.textContent,
+    ).toBe('\uf0db');
+    expect(
+      addColumnAfterButton?.querySelector('.editor-table-options__button-modifier')?.textContent,
+    ).toBe('+→');
     expect(deleteColumnButton).not.toBeNull();
     expect(deleteColumnButton?.disabled).toBe(true);
     expect(deleteColumnButton?.getAttribute('aria-label')).toBe('Eliminar columna');
@@ -90,6 +100,7 @@ describe('createTableMenu', () => {
     expect(mergeCellsButton).not.toBeNull();
     expect(mergeCellsButton?.disabled).toBe(true);
     expect(mergeCellsButton?.getAttribute('aria-label')).toBe('Combinar celdas');
+    expect(mergeCellsButton?.querySelector('.editor-table-options__button-modifier')).toBeNull();
     expect(splitCellButton).not.toBeNull();
     expect(splitCellButton?.disabled).toBe(true);
     expect(splitCellButton?.getAttribute('aria-label')).toBe('Separar celdas');
@@ -110,62 +121,44 @@ describe('createTableMenu', () => {
     lifecycle.dispose();
   });
 
-  it('groups table commands behind a single contextual trigger', () => {
+  it('shows table commands automatically when a cell is selected', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
     const tableMenu = createTableMenu({ editor, lifecycle });
-    const triggerButton = getTableMenuTrigger(tableMenu.element);
-    const panel = getTableMenuPanel(tableMenu.element);
+    document.body.append(tableMenu.element);
 
     editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: false });
     setSelectionInFirstTableCell(editor);
     tableMenu.updateState();
 
     expect(tableMenu.element.hidden).toBe(false);
-    expect(triggerButton).not.toBeNull();
-    expect(triggerButton?.disabled).toBe(false);
-    expect(triggerButton?.textContent).not.toContain('Tabla');
-    expect(triggerButton?.querySelector('.editor-table-menu__trigger-label')).toBeNull();
-    expect(triggerButton?.getAttribute('aria-haspopup')).toBe('true');
-    expect(triggerButton?.getAttribute('aria-expanded')).toBe('false');
-    expect(panel?.hidden).toBe(true);
-    expect(panel?.parentElement).toBe(document.body);
-    expect(tableMenu.element.contains(panel)).toBe(false);
+    expect(tableMenu.element.querySelectorAll('[data-table-menu-action]')).toHaveLength(10);
+    expect(tableMenu.element.querySelector('[data-table-menu-trigger="true"]')).toBeNull();
 
-    pressTableMenuButton(triggerButton);
+    editor.commands.setContent('<p>Fuera de tabla</p>');
+    tableMenu.updateState();
 
-    expect(panel?.hidden).toBe(false);
-    expect(triggerButton?.getAttribute('aria-expanded')).toBe('true');
-
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-
-    expect(panel?.hidden).toBe(true);
-    expect(triggerButton?.getAttribute('aria-expanded')).toBe('false');
+    expect(tableMenu.element.hidden).toBe(true);
 
     lifecycle.dispose();
   });
 
-  it('positions the table command panel as a floating overlay inside the viewport', () => {
+  it('positions the contextual dialog outside the selected cell and inside the viewport', () => {
     const originalInnerWidth = window.innerWidth;
     const originalInnerHeight = window.innerHeight;
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();
     const tableMenu = createTableMenu({ editor, lifecycle });
-    const triggerButton = getTableMenuTrigger(tableMenu.element);
-    const panel = getTableMenuPanel(tableMenu.element);
+    document.body.append(tableMenu.element);
 
     editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: false });
     setSelectionInFirstTableCell(editor);
-    tableMenu.updateState();
-
-    expect(triggerButton).not.toBeNull();
-    expect(panel).not.toBeNull();
-    expect(panel?.parentElement).toBe(document.body);
-    expect(tableMenu.element.contains(panel)).toBe(false);
 
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 });
-    mockElementRect(triggerButton, {
+    const selectedCell = editor.view.dom.querySelector('th.selectedCell, td.selectedCell');
+
+    mockElementRect(selectedCell, {
       left: 760,
       top: 10,
       right: 790,
@@ -173,17 +166,22 @@ describe('createTableMenu', () => {
       width: 30,
       height: 30,
     });
-    mockElementSize(panel, 360, 180);
+    mockElementRect(tableMenu.element, {
+      left: 0,
+      top: 0,
+      right: 360,
+      bottom: 180,
+      width: 360,
+      height: 180,
+    });
 
-    pressTableMenuButton(triggerButton);
+    tableMenu.updateState();
 
-    expect(panel?.hidden).toBe(false);
-    expect(panel?.style.left).toBe('424px');
-    expect(panel?.style.top).toBe('46px');
+    expect(tableMenu.element.hidden).toBe(false);
+    expect(tableMenu.element.style.left).toBe('432px');
+    expect(tableMenu.element.style.top).toBe('48px');
 
     lifecycle.dispose();
-
-    expect(panel?.isConnected).toBe(false);
 
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
@@ -222,7 +220,7 @@ describe('createTableMenu', () => {
     editor.commands.setContent('<p>Fuera de tabla</p>');
     tableMenu.updateState();
 
-    expect(tableMenu.element.hidden).toBe(false);
+    expect(tableMenu.element.hidden).toBe(true);
     expect(addRowBeforeButton?.disabled).toBe(true);
     expect(addRowAfterButton?.disabled).toBe(true);
 
@@ -287,7 +285,7 @@ describe('createTableMenu', () => {
     editor.commands.setContent('<p>Fuera de tabla</p>');
     tableMenu.updateState();
 
-    expect(tableMenu.element.hidden).toBe(false);
+    expect(tableMenu.element.hidden).toBe(true);
     expect(addColumnBeforeButton?.disabled).toBe(true);
     expect(addColumnAfterButton?.disabled).toBe(true);
 
@@ -499,22 +497,7 @@ function getTableMenuButton(
     | 'merge-cells'
     | 'split-cell',
 ): HTMLButtonElement | null {
-  return (
-    getTableMenuPanel(element)?.querySelector<HTMLButtonElement>(
-      `[data-table-menu-action="${action}"]`,
-    ) ?? null
-  );
-}
-
-function getTableMenuTrigger(element: HTMLElement): HTMLButtonElement | null {
-  return element.querySelector<HTMLButtonElement>('[data-table-menu-trigger="true"]');
-}
-
-function getTableMenuPanel(element: HTMLElement): HTMLElement | null {
-  const trigger = getTableMenuTrigger(element);
-  const panelId = trigger?.getAttribute('aria-controls');
-
-  return panelId ? document.getElementById(panelId) : null;
+  return element.querySelector<HTMLButtonElement>(`[data-table-menu-action="${action}"]`);
 }
 
 function pressTableMenuButton(button: HTMLButtonElement | null): void {
@@ -612,20 +595,5 @@ function mockElementRect(element: Element | null, rect: Partial<DOMRect>): void 
       height,
       toJSON: () => ({}),
     }),
-  });
-}
-
-function mockElementSize(element: HTMLElement | null, width: number, height: number): void {
-  if (!element) {
-    throw new Error('Expected element to mock size');
-  }
-
-  Object.defineProperty(element, 'offsetWidth', {
-    configurable: true,
-    value: width,
-  });
-  Object.defineProperty(element, 'offsetHeight', {
-    configurable: true,
-    value: height,
   });
 }

@@ -305,6 +305,10 @@ Objetivo medible: el usuario puede crear y modificar tablas completas desde la U
   - Nota: cerrado por consolidacion; `table-menu.ts` muestra los comandos contextuales de tabla dentro de un grupo desplegable.
   - Nota: por ajuste de diseño, los comandos se agruparon bajo un unico disparador de icono para evitar una segunda fila de botones.
   - Nota: por ajuste de UI, el disparador queda siempre visible en la toolbar normal, sin texto, y se deshabilita fuera de tabla.
+  - Ajuste posterior: el disparador de toolbar se retiro mediante la tarea siguiente y las acciones pasaron a un dialogo contextual automatico.
+- [x] Reemplazar el boton de gestion de tablas por un dialogo contextual.
+  - Criterio: la toolbar no contiene un disparador de gestion de tablas; al seleccionar una celda aparece fuera de la seleccion un dialogo con las acciones existentes, respeta los estados disabled, se reposiciona con el viewport y se oculta al salir de la tabla o de WYSIWYG.
+  - Nota: el dialogo usa botones compactos de solo icono, modificadores visuales para fila/columna/tabla, tooltips, `aria-label` y conserva los diez comandos existentes.
 - [x] Probar persistencia de tabla.
   - Criterio: guardar y recargar conserva filas, columnas, encabezados, merges y anchos.
   - Nota: validado con prueba de integracion que guarda y recarga una tabla con encabezados, celdas combinadas y `colwidth`; el serializer completa atributos estructurales de tabla desde el JSON canonico antes y despues de sanitizar.

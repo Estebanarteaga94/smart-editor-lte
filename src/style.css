@@ -528,84 +528,64 @@ textarea {
   background: var(--border-strong);
 }
 
-.editor-table-menu {
-  position: relative;
-  display: flex;
-  width: max-content;
-  max-width: 100%;
-  align-items: center;
-}
-
-.editor-table-menu[hidden] {
-  display: none;
-}
-
-.editor-table-menu__trigger {
-  display: inline-flex;
-  width: 30px;
-  height: 30px;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 0;
-  color: var(--muted);
-  background: transparent;
-}
-
-.editor-table-menu.is-open .editor-table-menu__trigger {
-  border-color: var(--focus);
-  color: var(--focus);
-  background: rgb(37 99 235 / 0.1);
-}
-
-.editor-table-menu__trigger .editor-table-menu__button-icon {
-  font-size: 16px;
-}
-
-.editor-table-menu__trigger-chevron {
-  color: currentcolor;
-  font-size: 9px;
-  line-height: 1;
-}
-
-.editor-table-menu__panel {
+.editor-table-options {
   position: fixed;
-  z-index: 25;
-  top: 0;
-  left: 0;
+  z-index: 30;
+  top: 128px;
+  left: 24px;
   display: grid;
-  width: min(360px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
+  width: min(240px, calc(100vw - 16px));
+  gap: 6px;
   padding: 8px;
-  overflow: auto;
+  overflow: visible;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.editor-table-menu__panel[hidden] {
+.editor-table-options[hidden] {
   display: none;
 }
 
-.editor-table-menu__button {
+.editor-table-options__title {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.editor-table-options__actions {
+  display: grid;
+  grid-template-columns: repeat(5, 32px);
+  gap: 4px;
+  justify-content: center;
+}
+
+.editor-table-options__button {
+  position: relative;
   display: inline-flex;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   align-items: center;
-  gap: 6px;
-  padding: 0 9px;
+  justify-content: center;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: 4px;
   color: var(--text);
   background: var(--surface);
-  font-size: 12px;
   line-height: 1;
-  white-space: nowrap;
 }
 
-.editor-table-menu__button-icon {
+.editor-table-options__button-visual {
+  position: relative;
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-table-options__button-icon {
   display: block;
   font-family: 'fontello';
   font-size: 14px;
@@ -614,17 +594,65 @@ textarea {
   speak: never;
 }
 
-.editor-table-menu__button:disabled {
+.editor-table-options__button-modifier {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+  min-width: 12px;
+  padding: 1px 2px;
+  border-radius: 4px;
+  color: var(--focus);
+  background: var(--surface);
+  font-family: system-ui, sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  text-align: center;
+}
+
+.editor-table-options__button::after {
+  position: absolute;
+  z-index: 40;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  padding: 5px 7px;
+  border-radius: 4px;
+  color: #fff;
+  background: #172033;
+  box-shadow: var(--shadow);
+  content: attr(data-tooltip);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(2px);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.editor-table-options__button:hover::after,
+.editor-table-options__button:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  visibility: visible;
+}
+
+.editor-table-options__button:disabled {
   cursor: not-allowed;
   opacity: 0.58;
 }
 
-.editor-table-menu__button:not(:disabled):hover {
+.editor-table-options__button:not(:disabled):hover {
   border-color: var(--border-strong);
   background: var(--surface-muted);
 }
 
-.editor-table-menu__button:focus-visible {
+.editor-table-options__button:focus-visible {
   outline: 3px solid rgb(37 99 235 / 0.24);
   outline-offset: 2px;
 }
