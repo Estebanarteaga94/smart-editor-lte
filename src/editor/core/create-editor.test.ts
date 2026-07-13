@@ -7,6 +7,7 @@ import { Slice } from '@tiptap/pm/model';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createWysiwygEditor } from './create-editor';
+import { safeParseCanonicalEditorContent } from '../models/editor-content';
 import type { PasteNormalizerService } from '../services/paste-normalizer.service';
 
 const mountedEditors = new Set<ReturnType<typeof createWysiwygEditor>>();
@@ -341,7 +342,7 @@ describe('createWysiwygEditor', () => {
     expect(editor.getHTML()).toContain('<td colspan="1" rowspan="1"><p>Cafe</p></td>');
   });
 
-  it('blocks normalized tabulated paste when it does not pass canonical validation', () => {
+  it('normalizes line breaks in tabulated paste without discarding its content', () => {
     const element = document.createElement('div');
     const normalizePaste = vi.fn<PasteNormalizerService['normalizePaste']>(() => ({
       normalizedHtml: '<p>Linea uno<br>Linea dos</p>',
@@ -364,7 +365,37 @@ describe('createWysiwygEditor', () => {
 
     expect(handled).toBe(true);
     expect(pasteEvent.defaultPrevented).toBe(true);
-    expect(editor.getHTML()).toBe('<p>Base</p>');
+    expect(editor.getHTML()).not.toBe('<p>Base</p>');
+    expect(editor.getText()).toContain('Linea uno Linea dos');
+  });
+
+  it('pastes extensive HTML with line breaks as valid canonical content', () => {
+    const element = document.createElement('div');
+    const paragraphCount = 1_200;
+    const extensiveHtml = [
+      ...Array.from({ length: paragraphCount }, (_, index) => `<p>Parrafo extenso ${index}</p>`),
+      '<p>Linea uno<br>Linea dos</p>',
+    ].join('');
+    document.body.append(element);
+
+    const editor = mountEditor({
+      element,
+      initialContent: '<p>Base original</p>',
+    });
+    const pasteEvent = createPasteEvent({
+      html: extensiveHtml,
+      text: 'Contenido extenso',
+    });
+
+    editor.view.dom.dispatchEvent(pasteEvent);
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(editor.getHTML()).not.toBe('<p>Base original</p>');
+    expect(editor.getText()).toContain('Parrafo extenso 0');
+    expect(editor.getText()).toContain(`Parrafo extenso ${paragraphCount - 1}`);
+    expect(editor.getText()).toContain('Linea uno Linea dos');
+    expect(editor.getJSON().content?.length).toBeGreaterThan(paragraphCount);
+    expect(safeParseCanonicalEditorContent(editor.getJSON()).success).toBe(true);
   });
 
   it('does not intercept normal plain-text paste in handlePaste', () => {

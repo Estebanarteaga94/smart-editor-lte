@@ -5,7 +5,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createWysiwygEditor } from '../core/create-editor';
-import { invalidSourceHtmlSchemaMessage } from '../utils/source-error-messages';
 import { sanitizeAndValidatePastedHtml } from './paste-content-safety.service';
 
 const mountedEditors = new Set<ReturnType<typeof createWysiwygEditor>>();
@@ -33,7 +32,7 @@ describe('sanitizeAndValidatePastedHtml', () => {
     });
   });
 
-  it('rejects sanitized pasted HTML that parses outside the canonical schema', () => {
+  it('normalizes line breaks before validating pasted HTML against the canonical schema', () => {
     const editor = mountEditor();
     const result = sanitizeAndValidatePastedHtml(
       '<p>Linea uno<br>Linea dos</p>',
@@ -41,9 +40,8 @@ describe('sanitizeAndValidatePastedHtml', () => {
     );
 
     expect(result).toEqual({
-      ok: false,
-      html: '',
-      error: invalidSourceHtmlSchemaMessage,
+      ok: true,
+      html: '<p>Linea uno Linea dos</p>',
     });
   });
 });

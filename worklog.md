@@ -6044,3 +6044,57 @@ Decision Git:
 Pendientes inmediatos:
 
 - Reproducir y corregir el pegado de contenido muy extenso sin perder el documento actual.
+
+## 2026-07-13 - Correccion de pegado extenso con saltos de linea
+
+Objetivo:
+
+- Corregir el caso en que pegar contenido muy extenso no cambia el editor y conserva exactamente el documento anterior.
+
+Diagnostico:
+
+- Se reprodujo el pegado real en Chromium con cargas crecientes mediante `ClipboardEvent` y `DataTransfer`.
+- HTML generico limpio de 10.000, 25.000 y 50.000 parrafos se pego correctamente; 50.000 parrafos y 2.988.890 caracteres se insertaron en 6.790 ms.
+- HTML de Word de 25.000 parrafos y 3.088.966 caracteres tambien se pego correctamente en 4.285 ms.
+- El caso exacto fallo con 5.000 parrafos y un unico `<br>`: el pipeline termino en 216 ms, pero el editor permanecio sin cambios.
+- La causa fue la validacion de todo o nada: Tiptap convertia `<br>` en `hardBreak`, nodo que no pertenece al schema JSON canonico, y `transformPastedHTML` devolvia un string vacio para todo el fragmento.
+- No se uso WebAssembly porque las mediciones descartaron un cuello de rendimiento; el problema era una incompatibilidad determinista de schema.
+
+Acciones realizadas:
+
+- Se separo la seguridad especifica de paste de la validacion estricta usada por source HTML.
+- Despues de DOMPurify y antes de parsear con ProseMirror, los `<br>` del contenido pegado se convierten en separadores de texto.
+- El JSON canonico sigue sin admitir `hardBreak` y no se cambio la arquitectura aprobada.
+- Se actualizo la prueba del servicio para confirmar que `Linea uno<br>Linea dos` produce HTML permitido sin descartar el fragmento.
+- Se actualizo el flujo tabulado para confirmar que un salto normalizable ya no bloquea todo el contenido.
+- Se agrego una regresion que despacha un paste real con 1.200 parrafos, conserva el primero y el ultimo, normaliza el salto y valida el JSON final contra el schema canonico.
+- Se marco `Evitar el descarte completo de contenido pegado muy extenso con saltos de linea` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/paste-content-safety.service.ts`
+- `src/editor/services/paste-content-safety.service.test.ts`
+- `src/editor/core/create-editor.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npm test -- src/editor/services/paste-content-safety.service.test.ts src/editor/core/create-editor.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 16 pruebas correctas.
+- Se ejecuto la aplicacion real con `npm run dev -- --host 127.0.0.1 --port 4173` y Chromium/Playwright.
+- Resultado navegador: 5.000 parrafos mas un `<br>` se pegaron en 497 ms; el editor termino con 5.001 parrafos, con el primer y ultimo parrafo presentes, ambas lineas conservadas y ningun `<br>` restante.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 29 archivos de prueba correctos, 225 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,066.26 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `fullscreen.ts` en Fase 6.

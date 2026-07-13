@@ -445,6 +445,9 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Probar pegado desde Excel.
   - Criterio: pruebas cubren tabla HTML y texto tabulado; el JSON/HTML final conserva estructura de tabla sin scripts, eventos inline ni estilos propietarios.
   - Nota: se agregaron pruebas de la app montada para texto tabulado y tabla HTML de Excel con `Workbook`, estilos `mso-*`, formulas `x:fmla`, script y eventos inline; el resultado final conserva `table/tableRow/tableHeader/tableCell`, `colwidth` seguro y contenido visible sin metadata propietaria.
+- [x] Evitar el descarte completo de contenido pegado muy extenso con saltos de linea.
+  - Criterio: un fragmento HTML extenso que contenga `<br>` se normaliza a nodos permitidos, se inserta sin dejar el editor intacto, conserva el texto y termina como JSON canonico valido; una prueba de regresion cubre el flujo real de paste.
+  - Nota: el pipeline exclusivo de paste convierte `<br>` sanitizados en separadores de texto antes de validar; source HTML conserva su validacion estricta y el schema canonico no incorpora `hardBreak`.
 
 - [x] Implementar validacion de HTML permitido.
   - Criterio: scripts, eventos inline, iframes no permitidos y protocolos inseguros se eliminan o bloquean.
