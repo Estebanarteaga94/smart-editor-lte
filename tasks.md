@@ -448,6 +448,11 @@ Objetivo medible: el contenido copiado desde Word, Excel y fuentes Office simila
 - [x] Evitar el descarte completo de contenido pegado muy extenso con saltos de linea.
   - Criterio: un fragmento HTML extenso que contenga `<br>` se normaliza a nodos permitidos, se inserta sin dejar el editor intacto, conserva el texto y termina como JSON canonico valido; una prueba de regresion cubre el flujo real de paste.
   - Nota: el pipeline exclusivo de paste convierte `<br>` sanitizados en separadores de texto antes de validar; source HTML conserva su validacion estricta y el schema canonico no incorpora `hardBreak`.
+- [x] Conservar imagenes enlazadas y base64 al pegar contenido HTML extenso.
+  - Criterio: las imagenes `http/https` permanecen como enlaces seguros y cada `data:image/...;base64` valida, se convierte en archivo, se sube mediante `MediaUploadService` y se reemplaza por la URL retornada antes de insertar el fragmento.
+  - Criterio: el texto, el orden de las imagenes y el resto del contenido se conservan; el JSON canonico no contiene URI `data:` y un fallo aislado de imagen no descarta todo el pegado.
+  - Verificacion: prueba automatizada de pegado HTML mixto y extenso, mas prueba manual documentada en navegador real.
+  - Nota: el interceptor prioriza el HTML completo del portapapeles; sube las imagenes base64 compatibles con concurrencia maxima de cuatro, reemplaza sus fuentes antes de normalizar y deja pasar el HTML con imagenes enlazadas. Si una imagen falla, se elimina solo esa imagen y se inserta el contenido restante con un aviso.
 
 - [x] Implementar validacion de HTML permitido.
   - Criterio: scripts, eventos inline, iframes no permitidos y protocolos inseguros se eliminan o bloquean.

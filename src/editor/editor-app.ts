@@ -14,6 +14,8 @@ import { createToolbar } from './components/toolbar';
 import { createWysiwygEditor } from './core/create-editor';
 import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
+import type { PasteContentSafetyService } from './services/paste-content-safety.service';
+import type { PasteNormalizerService } from './services/paste-normalizer.service';
 import { defaultEditorConfig } from './models/editor-config';
 import {
   defaultEditorViewState,
@@ -30,7 +32,15 @@ import {
 } from './services/media-upload.service';
 import { createSanitizerService, type SanitizerService } from './services/sanitizer.service';
 import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
-import { sanitizeAndValidateHtmlAgainstSchema } from './services/paste-content-safety.service';
+import {
+  createPasteContentSafetyService,
+  sanitizeAndValidateHtmlAgainstSchema,
+} from './services/paste-content-safety.service';
+import { createPasteNormalizerService } from './services/paste-normalizer.service';
+import {
+  hasEmbeddedBase64Images,
+  uploadEmbeddedPasteImages,
+} from './services/embedded-image-paste.service';
 import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
 import {
   invalidSourceHtmlSchemaMessage,
@@ -44,6 +54,8 @@ export interface MountEditorAppOptions {
   mediaUpload?: MediaUploadService;
   htmlFormat?: HtmlFormatService;
   sanitizer?: SanitizerService;
+  pasteNormalizer?: PasteNormalizerService;
+  pasteContentSafety?: PasteContentSafetyService;
   documentId?: string;
   documentTitle?: string;
   placeholder?: string;
@@ -67,10 +79,14 @@ export async function mountEditorApp({
   mediaUpload = createLocalMediaUploadService(),
   htmlFormat = createHtmlFormatService(),
   sanitizer = createSanitizerService(),
+  pasteNormalizer,
+  pasteContentSafety,
   documentId = defaultEditorConfig.documentId,
   documentTitle = defaultDocumentTitle,
   placeholder = defaultEditorConfig.placeholder,
 }: MountEditorAppOptions): Promise<MountedEditorApp> {
+  const activePasteNormalizer = pasteNormalizer ?? createPasteNormalizerService();
+  const activePasteContentSafety = pasteContentSafety ?? createPasteContentSafetyService(sanitizer);
   const shell = createEditorShell({
     saveStatus: 'unchanged',
   });
@@ -96,6 +112,8 @@ export async function mountEditorApp({
     initialContent:
       loadedDocument?.contentJson ?? createDefaultDocumentContent(activeDocumentTitle),
     placeholder,
+    pasteNormalizer: activePasteNormalizer,
+    pasteContentSafety: activePasteContentSafety,
     onChange: ({ contentJson, contentHtml }) => {
       shell.setSaveStatus('saving');
       preview.setHtml(contentHtml);
@@ -525,6 +543,21 @@ export async function mountEditorApp({
   }
 
   function handleImagePaste(event: ClipboardEvent): void {
+    const clipboardHtml = getClipboardHtml(event);
+
+    if (clipboardHtml && hasEmbeddedBase64Images(clipboardHtml)) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const { from, to } = editor.state.selection;
+      void insertHtmlWithUploadedEmbeddedImages(clipboardHtml, { from, to });
+      return;
+    }
+
+    if (clipboardHtml) {
+      return;
+    }
+
     const file = getFirstPastedImageFile(event);
 
     if (!file) {
@@ -537,6 +570,63 @@ export async function mountEditorApp({
     const { from, to } = editor.state.selection;
     preservedImageSelection = { from, to };
     void insertUploadedImage(file, '');
+  }
+
+  async function insertHtmlWithUploadedEmbeddedImages(
+    html: string,
+    selection: { from: number; to: number },
+  ): Promise<void> {
+    shell.setSaveStatus('saving');
+
+    try {
+      const result = await uploadEmbeddedPasteImages({
+        html,
+        documentId,
+        mediaUpload,
+      });
+      const normalizedHtml = activePasteNormalizer.normalizePaste({
+        html: result.html,
+      }).normalizedHtml;
+      const safeHtml = activePasteContentSafety.sanitizeAndValidateHtml(
+        normalizedHtml,
+        editor.state.schema,
+      );
+
+      if (!safeHtml.ok || safeHtml.html.trim().length === 0) {
+        shell.setSaveStatus('error', 'No se pudo insertar el contenido pegado de forma segura.');
+        return;
+      }
+
+      restorePasteSelection(selection);
+      const inserted = editor.commands.insertContent(safeHtml.html, {
+        applyPasteRules: false,
+      });
+
+      if (!inserted) {
+        shell.setSaveStatus('error', 'No se pudo insertar el contenido pegado.');
+        return;
+      }
+
+      shell.setSaveStatus(
+        result.failedCount > 0 ? 'error' : 'saved',
+        result.failedCount > 0
+          ? `Se pego el contenido, pero ${formatImageCount(result.failedCount)} no se pudo subir.`
+          : undefined,
+      );
+    } catch {
+      shell.setSaveStatus('error', 'No se pudo procesar el contenido pegado con imagenes.');
+    }
+  }
+
+  function restorePasteSelection(selection: { from: number; to: number }): void {
+    if (editor.isDestroyed) {
+      return;
+    }
+
+    const maxPosition = editor.state.doc.content.size;
+    const from = Math.min(selection.from, maxPosition);
+    const to = Math.min(Math.max(selection.to, from), maxPosition);
+    editor.commands.setTextSelection({ from, to });
   }
 }
 
@@ -580,6 +670,18 @@ function getFirstPastedImageFile(event: ClipboardEvent): File | null {
   }
 
   return null;
+}
+
+function getClipboardHtml(event: ClipboardEvent): string {
+  const clipboardData = event.clipboardData;
+
+  return clipboardData && typeof clipboardData.getData === 'function'
+    ? clipboardData.getData('text/html')
+    : '';
+}
+
+function formatImageCount(count: number): string {
+  return count === 1 ? '1 imagen' : `${count} imagenes`;
 }
 
 function createDefaultDocumentContent(title: string): JSONContent {

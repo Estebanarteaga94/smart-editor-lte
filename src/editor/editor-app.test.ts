@@ -11,6 +11,7 @@ import type {
 } from './services/document-storage.service';
 import type { HtmlFormatService } from './services/html-format.service';
 import type { MediaUploadService } from './services/media-upload.service';
+import { safeParseCanonicalEditorContent } from './models/editor-content';
 import { mountEditorApp, type MountedEditorApp } from './editor-app';
 
 const mountedApps = new Set<MountedEditorApp>();
@@ -1148,6 +1149,156 @@ describe('mountEditorApp', () => {
 
     expect(pasteEvent.defaultPrevented).toBe(false);
     expect(mediaUploadDouble.uploadImage).not.toHaveBeenCalled();
+  });
+
+  it('preserves linked HTML images and surrounding text when file items are also present', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble({
+      url: 'https://cdn.example.com/assets/unused.png',
+    });
+    const redundantFile = createImageFile('clipboard-copy.png', 'image/png');
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-linked-image-paste',
+    });
+    mountedApps.add(mountedApp);
+    mountedApp.editor.commands.setContent('<p></p>');
+
+    const pasteEvent = dispatchClipboardDataEvent(getEditorPasteTarget(appRoot), {
+      html: [
+        '<p>Texto antes de la imagen</p>',
+        '<img src="https://images.example.com/linked-only.jpg" alt="Imagen enlazada">',
+        '<p>Texto despues de la imagen</p>',
+      ].join(''),
+      items: [createFileItem(redundantFile)],
+    });
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(mediaUploadDouble.uploadImage).not.toHaveBeenCalled();
+    expect(mountedApp.editor.getText()).toContain('Texto antes de la imagen');
+    expect(mountedApp.editor.getText()).toContain('Texto despues de la imagen');
+    expect(mountedApp.editor.getHTML()).toContain(
+      'src="https://images.example.com/linked-only.jpg"',
+    );
+  });
+
+  it('uploads base64 images and preserves linked images in extensive pasted HTML', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble({
+      url: 'https://cdn.example.com/assets/embedded.png',
+      altText: 'Imagen embebida subida',
+    });
+    const paragraphs = Array.from(
+      { length: 1_200 },
+      (_, index) => `<p>Parrafo extenso ${index}</p>`,
+    );
+    const embeddedImage =
+      '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" alt="Imagen base64">';
+    const linkedImage = '<img src="https://images.example.com/linked.jpg" alt="Imagen enlazada">';
+    const pastedHtml = [
+      ...paragraphs.slice(0, 600),
+      embeddedImage,
+      ...paragraphs.slice(600),
+      linkedImage,
+    ].join('');
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-extensive-image-paste',
+    });
+    mountedApps.add(mountedApp);
+    mountedApp.editor.commands.setContent('<p></p>');
+
+    const pasteEvent = dispatchClipboardDataEvent(getEditorPasteTarget(appRoot), {
+      html: pastedHtml,
+      text: 'Contenido extenso con imagenes',
+    });
+    await flushPromises();
+
+    const html = mountedApp.editor.getHTML();
+    const images = Array.from(appRoot.querySelectorAll<HTMLImageElement>('.tiptap img'));
+    const uploadedFile = mediaUploadDouble.uploadImage.mock.calls[0]?.[1];
+
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(mediaUploadDouble.uploadImage).toHaveBeenCalledTimes(1);
+    expect(mediaUploadDouble.uploadImage).toHaveBeenCalledWith(
+      'doc-extensive-image-paste',
+      expect.any(File),
+      'Imagen base64',
+    );
+    expect(uploadedFile).toMatchObject({
+      name: 'pasted-image-1.png',
+      type: 'image/png',
+    });
+    expect(uploadedFile?.size).toBeGreaterThan(0);
+    expect(mountedApp.editor.getText()).toContain('Parrafo extenso 0');
+    expect(mountedApp.editor.getText()).toContain('Parrafo extenso 1199');
+    expect(images.map((image) => image.getAttribute('src'))).toEqual([
+      'https://cdn.example.com/assets/embedded.png',
+      'https://images.example.com/linked.jpg',
+    ]);
+    expect(images.map((image) => image.getAttribute('alt'))).toEqual([
+      'Imagen embebida subida',
+      'Imagen enlazada',
+    ]);
+    expect(html.indexOf('Parrafo extenso 599')).toBeLessThan(
+      html.indexOf('https://cdn.example.com/assets/embedded.png'),
+    );
+    expect(html.indexOf('https://cdn.example.com/assets/embedded.png')).toBeLessThan(
+      html.indexOf('Parrafo extenso 600'),
+    );
+    expect(html).not.toContain('data:image');
+    expect(safeParseCanonicalEditorContent(mountedApp.editor.getJSON()).success).toBe(true);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+  });
+
+  it('pastes remaining HTML when an embedded base64 image cannot be uploaded', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const mediaUploadDouble = createMediaUploadDouble(
+      { url: 'https://cdn.example.com/assets/unused.png' },
+      { uploadError: new Error('Network error') },
+    );
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      mediaUpload: mediaUploadDouble.service,
+      documentId: 'doc-partial-image-paste',
+    });
+    mountedApps.add(mountedApp);
+    mountedApp.editor.commands.setContent('<p>Contenido anterior</p>');
+
+    dispatchClipboardDataEvent(getEditorPasteTarget(appRoot), {
+      html: [
+        '<p>Texto pegado antes</p>',
+        '<img src="data:image/png;base64,iVBORw0KGgo=" alt="No disponible">',
+        '<p>Texto pegado despues</p>',
+        '<img src="https://images.example.com/still-linked.jpg" alt="Enlazada">',
+      ].join(''),
+    });
+    await flushPromises();
+
+    expect(mountedApp.editor.getText()).toContain('Texto pegado antes');
+    expect(mountedApp.editor.getText()).toContain('Texto pegado despues');
+    expect(mountedApp.editor.getHTML()).toContain(
+      'src="https://images.example.com/still-linked.jpg"',
+    );
+    expect(mountedApp.editor.getHTML()).not.toContain('data:image');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+      'Se pego el contenido, pero 1 imagen no se pudo subir.',
+    );
+    expect(safeParseCanonicalEditorContent(mountedApp.editor.getJSON()).success).toBe(true);
   });
 
   it('normalizes tabulated text paste through the mounted Tiptap editor', async () => {
@@ -2490,7 +2641,7 @@ function dispatchClipboardEvent(target: HTMLElement, items: readonly ClipboardIt
 
 function dispatchClipboardDataEvent(
   target: HTMLElement,
-  options: { html?: string; text?: string },
+  options: { html?: string; text?: string; items?: readonly ClipboardItemDouble[] },
 ): Event {
   const event = new Event('paste', {
     bubbles: true,
@@ -2500,7 +2651,7 @@ function dispatchClipboardDataEvent(
   Object.defineProperty(event, 'clipboardData', {
     configurable: true,
     value: {
-      items: [],
+      items: options.items ?? [],
       getData: (type: string) => {
         if (type === 'text/html') {
           return options.html ?? '';

@@ -6099,3 +6099,59 @@ Decision Git:
 Pendientes inmediatos:
 
 - Implementar `fullscreen.ts` en Fase 6.
+
+## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
+
+Objetivo:
+
+- Conservar las imagenes al pegar contenido HTML extenso desde una pagina web, tanto cuando usan enlaces `http/https` como cuando vienen embebidas en base64.
+
+Diagnostico:
+
+- El interceptor existente solo detectaba archivos de imagen en `clipboardData.items`; las imagenes incluidas dentro de `text/html` no pasaban por `MediaUploadService`.
+- Las URI `data:image/...;base64` eran eliminadas correctamente por la politica de seguridad y no son validas en el JSON canonico; al quedar un nodo de imagen incompatible, la validacion de todo el fragmento podia dejar el editor sin cambios.
+- No se uso WebAssembly: la conversion usa las APIs nativas `atob`, `Uint8Array` y `File`, y la prueba real no mostro un cuello de rendimiento que justificara incorporar otra tecnologia.
+
+Acciones realizadas:
+
+- Se agrego `embedded-image-paste.service.ts` para detectar imagenes base64 PNG, JPEG y WebP, convertirlas en archivos y subirlas mediante el servicio de medios existente.
+- Las subidas se limitan a cuatro operaciones concurrentes para evitar decodificar todas las imagenes de un pegado grande al mismo tiempo.
+- Cada imagen subida reemplaza su `src` base64 por la URL segura retornada, conserva el texto alternativo y elimina `srcset`; las imagenes enlazadas permanecen intactas.
+- El interceptor prioriza el HTML completo cuando el portapapeles tambien expone archivos, evitando descartar el texto y las imagenes enlazadas de una seleccion web.
+- El mismo normalizador y la misma validacion de seguridad usados por Tiptap se reutilizan despues de completar las subidas y antes de insertar el fragmento.
+- Si una imagen embebida no se puede convertir o subir, se elimina solo esa imagen, se inserta el resto del contenido y se muestra un aviso con la cantidad de fallos.
+- El normalizador de Word conserva ahora imagenes con fuentes seguras, texto alternativo, titulo, dimensiones y alineacion permitida.
+- Se agregaron regresiones para HTML enlazado con un item de archivo redundante, contenido mixto de 1.200 parrafos y fallo aislado de subida.
+- Se marco `Conservar imagenes enlazadas y base64 al pegar contenido HTML extenso` como completada en `tasks.md`.
+
+Archivos modificados:
+
+- `src/editor/services/embedded-image-paste.service.ts`
+- `src/editor/services/paste-normalizer.service.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Se ejecuto `npx vitest run src/editor/editor-app.test.ts src/editor/services/paste-normalizer.service.test.ts`.
+- Resultado: 2 archivos de prueba correctos, 67 pruebas correctas.
+- Se ejecuto la aplicacion real con `npm run dev -- --host 127.0.0.1 --port 4173` y Chromium/Playwright.
+- Resultado navegador: 5.000 parrafos, una imagen PNG base64 y una imagen `https` se pegaron en 685 ms; quedaron 5.002 parrafos, ambas imagenes en orden, el primer y ultimo texto presentes, ninguna URI `data:` y estado `Guardado`.
+- Se ejecuto `npm run check`.
+- Resultado: build, lint y tests terminaron correctamente; 29 archivos de prueba correctos, 228 pruebas correctas.
+- Se ejecuto `npm run test:e2e`.
+- Resultado: Playwright termino correctamente con `--pass-with-no-tests`.
+- Se ejecuto `git diff --check`.
+- Resultado: sin errores de whitespace.
+- Nota: Vitest mantiene el aviso no bloqueante `Not implemented: Window's scrollBy() method` en jsdom.
+- Nota: Vite mantiene la advertencia no bloqueante de chunk mayor a 500 kB; el bundle principal reportado fue 1,069.38 kB.
+
+Decision Git:
+
+- Se crea commit porque la tarea quedo completada y verificada.
+
+Pendientes inmediatos:
+
+- Implementar `fullscreen.ts` en Fase 6.

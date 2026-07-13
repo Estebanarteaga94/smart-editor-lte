@@ -1,4 +1,4 @@
-import { isSafeLinkHref } from '../utils/safe-url';
+import { isSafeImageSource, isSafeLinkHref } from '../utils/safe-url';
 
 export type PasteNormalizationSource = 'word' | 'excel' | 'html' | 'plain-text' | 'unknown';
 
@@ -367,6 +367,12 @@ function serializeWordNode(node: ChildNode): string {
     return '<br>';
   }
 
+  if (tagName === 'img') {
+    const attributes = serializeWordAttributes(node, tagName);
+
+    return attributes.includes(' src=') ? `<img${attributes}>` : '';
+  }
+
   return `<${tagName}${serializeWordAttributes(node, tagName)}>${normalizeWordInlineElement(
     node,
     children,
@@ -483,6 +489,38 @@ function serializeWordAttributes(element: HTMLElement, tagName: string): string 
 
     if (title) {
       attributes.push(`title="${escapeAttribute(title)}"`);
+    }
+  }
+
+  if (tagName === 'img') {
+    const src = element.getAttribute('src')?.trim();
+    const alt = element.getAttribute('alt');
+    const title = element.getAttribute('title');
+
+    if (src && isSafeImageSource(src)) {
+      attributes.push(`src="${escapeAttribute(src)}"`);
+    }
+
+    if (alt !== null) {
+      attributes.push(`alt="${escapeAttribute(alt)}"`);
+    }
+
+    if (title !== null) {
+      attributes.push(`title="${escapeAttribute(title)}"`);
+    }
+
+    for (const attributeName of ['width', 'height'] as const) {
+      const value = element.getAttribute(attributeName)?.trim();
+
+      if (value && positiveIntegerPattern.test(value)) {
+        attributes.push(`${attributeName}="${value}"`);
+      }
+    }
+
+    const align = element.getAttribute('align')?.trim();
+
+    if (align && imageAlignments.has(align)) {
+      attributes.push(`align="${align}"`);
     }
   }
 
@@ -674,6 +712,7 @@ const allowedWordTags = new Set([
   'h5',
   'h6',
   'i',
+  'img',
   'li',
   'ol',
   'p',
@@ -693,6 +732,7 @@ const allowedWordTags = new Set([
 const metadataTags = new Set(['head', 'link', 'meta', 'script', 'style', 'title', 'xml']);
 const tableCellSpanAttributes = ['colspan', 'rowspan'] as const;
 const positiveIntegerPattern = /^[1-9]\d*$/;
+const imageAlignments = new Set(['left', 'center', 'right']);
 const formatTagEquivalents = new Map<string, Set<string>>([
   ['strong', new Set(['b'])],
   ['em', new Set(['i'])],
