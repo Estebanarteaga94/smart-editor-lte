@@ -6242,6 +6242,10 @@ Pendientes inmediatos:
 
 - Implementar el cliente y los contratos para versiones de documentos.
 
+Decision Git:
+
+- Commit creado: `2efc9b1 Integrar autosave del editor`.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:
