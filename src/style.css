@@ -98,24 +98,42 @@ textarea {
 .editor-app.editor-shell--fullscreen .editor-shell__editable,
 .editor-app.editor-shell--fullscreen .editor-shell__source,
 .editor-app.editor-shell--fullscreen .editor-shell__body > .editor-preview {
-  flex: 1 0 auto;
-  min-height: 100%;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 0;
 }
 
 .editor-app.editor-shell--fullscreen .editor-shell__editable .tiptap,
 .editor-app.editor-shell--fullscreen .editor-source-view,
 .editor-app.editor-shell--fullscreen .editor-source-view .cm-editor,
-.editor-app.editor-shell--fullscreen .editor-source-view .cm-scroller,
-.editor-app.editor-shell--fullscreen .editor-preview {
-  min-height: 100%;
+.editor-app.editor-shell--fullscreen .editor-source-view .cm-scroller {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-.editor-app.editor-shell--fullscreen .editor-shell__editable .tiptap,
-.editor-app.editor-shell--fullscreen .editor-source-view .cm-content,
+.editor-app.editor-shell--fullscreen .editor-shell__editable .tiptap {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.editor-app.editor-shell--fullscreen .editor-preview {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.editor-app.editor-shell--fullscreen .editor-preview[hidden] {
+  display: none;
+}
+
 .editor-app.editor-shell--fullscreen .editor-preview__content {
-  width: min(920px, 100%);
-  margin-right: auto;
-  margin-left: auto;
+  width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .editor-app__header {

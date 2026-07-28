@@ -6163,6 +6163,13 @@ Verificacion:
 - `npm test -- src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts src/editor/components/fullscreen.test.ts`: 3 archivos y 52 pruebas correctas.
 - `npm run build` y `npm run lint`: correctos; Vite conserva la advertencia no bloqueante de bundle mayor a 500 kB.
 
+Correccion posterior:
+
+- Una medicion en Chromium revelo que el preview con atributo `hidden` seguia usando `display: flex` en fullscreen y ocupaba la mitad del cuerpo aunque no fuera visible.
+- Se excluyo explicitamente el preview oculto del layout y se cambiaron los paneles activos a `flex: 1 1 0`, con ancho y alto completos.
+- Resultado medido en viewport 1440x900: WYSIWYG, HTML, JSON y preview ocupan 1425x814 px entre la toolbar y la barra de estado.
+- Resultado medido en viewport movil 390x844: las cuatro vistas ocupan 375x688 px.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:
