@@ -6246,6 +6246,41 @@ Decision Git:
 
 - Commit creado: `2efc9b1 Integrar autosave del editor`.
 
+## 2026-07-28 - Historial y recuperacion de versiones
+
+Objetivo:
+
+- Completar el versionado manual, recuperacion y comparacion basica de Fase 7.
+
+Acciones realizadas:
+
+- Se definio `EditorVersion` y el payload validado para crear snapshots de JSON canonico y HTML.
+- Se implemento `VersionsApi` HTTP con endpoints para listar, crear y restaurar, mas una implementacion local persistente para el entorno sin backend.
+- Se agrego un boton de historial y un panel accesible que lista versiones, crea snapshots y restaura la seleccion.
+- Crear version hace flush del autosave antes del snapshot; restaurar aplica el JSON validado a Tiptap y lo trata como un cambio pendiente nuevo.
+- Cada version muestra fecha, numero y una comparacion de titulo, contenido canonico y HTML respecto al documento actual.
+- El listado construye sus nodos con `textContent` para no interpretar datos externos como HTML.
+
+Archivos principales:
+
+- `src/editor/models/editor-version.ts`
+- `src/api/versions.api.ts`
+- `src/editor/services/version-comparison.service.ts`
+- `src/editor/components/version-history.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/editor-app.ts`
+- `src/style.css`
+- Pruebas asociadas, `tasks.md` y `worklog.md`.
+
+Verificacion:
+
+- Pruebas focalizadas: 4 archivos y 58 pruebas correctas.
+- Se cubrieron cliente local/HTTP, numeracion, listado, restauracion, comparacion e integracion completa desde la toolbar.
+
+Pendientes inmediatos:
+
+- Iniciar Fase 8 con contratos TypeScript completos para documentos.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:

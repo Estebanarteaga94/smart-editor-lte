@@ -1,5 +1,6 @@
 import type { JSONContent } from '@tiptap/core';
 
+import { createLocalVersionsApi, type VersionsApi } from '../api/versions.api';
 import { createEditorShell } from './components/editor-shell';
 import { createImageDialog } from './components/image-dialog';
 import { createImageOptionsDialog } from './components/image-options-dialog';
@@ -12,6 +13,7 @@ import {
 } from './components/source-view';
 import { createTableMenu } from './components/table-menu';
 import { createToolbar } from './components/toolbar';
+import { createVersionHistory } from './components/version-history';
 import { createWysiwygEditor } from './core/create-editor';
 import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
@@ -36,6 +38,7 @@ import {
   type AutosaveService,
   type AutosaveStatus,
 } from './services/autosave.service';
+import { compareDocumentToVersion } from './services/version-comparison.service';
 import { createSanitizerService, type SanitizerService } from './services/sanitizer.service';
 import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
 import {
@@ -66,6 +69,7 @@ export interface MountEditorAppOptions {
   documentTitle?: string;
   placeholder?: string;
   autosave?: EditorAutosaveConfig;
+  versionsApi?: VersionsApi;
 }
 
 export interface MountedEditorApp {
@@ -93,6 +97,7 @@ export async function mountEditorApp({
   documentTitle = defaultDocumentTitle,
   placeholder = defaultEditorConfig.placeholder,
   autosave: autosaveConfig = defaultEditorConfig.autosave,
+  versionsApi = createLocalVersionsApi(),
 }: MountEditorAppOptions): Promise<MountedEditorApp> {
   const activePasteNormalizer = pasteNormalizer ?? createPasteNormalizerService();
   const activePasteContentSafety = pasteContentSafety ?? createPasteContentSafetyService(sanitizer);
@@ -167,6 +172,28 @@ export async function mountEditorApp({
       void insertUploadedImage(file, altText);
     },
   });
+  const versionHistory = createVersionHistory({
+    lifecycle,
+    listVersions: () => versionsApi.listVersions(documentId),
+    createVersion: async () => {
+      if (autosaveService) {
+        await autosaveService.flush();
+      } else {
+        await persistCurrentDocument();
+      }
+      return versionsApi.createVersion(documentId, currentDocumentPayload());
+    },
+    restoreVersion: async (version) => {
+      const restoredVersion = await versionsApi.restoreVersion(documentId, version.id);
+      const applied = editor.commands.setContent(restoredVersion.contentJson);
+      if (!applied) {
+        throw new Error('Version content could not be applied');
+      }
+      preview.setHtml(editor.getHTML());
+      shell.setSaveStatus('pending', `Versión ${restoredVersion.versionNumber} restaurada`);
+    },
+    compareVersion: (version) => compareDocumentToVersion(currentDocumentPayload(), version),
+  });
   const toolbar = createToolbar({
     editor,
     lifecycle,
@@ -229,6 +256,9 @@ export async function mountEditorApp({
     onToggleFullscreen: () => {
       fullscreen.toggle();
     },
+    onOpenVersions: () => {
+      void versionHistory.open();
+    },
     onFormatHtml: () => {
       void formatActiveSourceHtml();
     },
@@ -250,6 +280,7 @@ export async function mountEditorApp({
   shell.root.append(tableMenu.element);
   shell.root.append(imageDialog.element);
   shell.root.append(imageOptionsDialog.element);
+  shell.root.append(versionHistory.element);
   registerImageDropUpload();
   registerImagePasteUpload();
   lifecycle.addEventListener(window, 'beforeunload', () => {
@@ -294,10 +325,14 @@ export async function mountEditorApp({
   }
 
   function persistCurrentDocument(): Promise<void> {
-    return storage.saveDocument(documentId, {
+    return storage.saveDocument(documentId, currentDocumentPayload());
+  }
+
+  function currentDocumentPayload() {
+    return {
       title: activeDocumentTitle,
       ...serializeEditorContent(editor),
-    });
+    };
   }
 
   function renderAutosaveStatus(status: AutosaveStatus): void {

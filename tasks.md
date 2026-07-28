@@ -530,14 +530,18 @@ Objetivo medible: el editor guarda cambios de forma automatica, informa estado y
 - [x] Evitar condiciones de carrera entre guardados.
   - Criterio: una respuesta antigua no sobrescribe el estado de un guardado mas reciente.
   - Nota: el servicio no ejecuta guardados simultaneos y solo marca `saved` cuando la revision completada coincide con la ultima revision solicitada.
-- [ ] Implementar cliente para versiones.
+- [x] Implementar cliente para versiones.
   - Criterio: existen funciones para listar, crear y recuperar versiones.
-- [ ] Crear version manual o al publicar.
+  - Nota: `VersionsApi` ofrece implementaciones HTTP y local validadas para listar, crear y restaurar snapshots.
+- [x] Crear version manual o al publicar.
   - Criterio: `POST /api/documents/{id}/versions` queda integrado o simulado.
-- [ ] Implementar recuperacion de version.
+  - Nota: el historial permite crear una version manual; primero hace flush del documento y luego persiste JSON canonico y HTML.
+- [x] Implementar recuperacion de version.
   - Criterio: seleccionar una version carga su JSON/HTML en el editor.
-- [ ] Implementar comparacion basica de versiones.
+  - Nota: seleccionar Restaurar recupera la version mediante el API, valida su contrato y carga `contentJson` en Tiptap como un cambio pendiente nuevo.
+- [x] Implementar comparacion basica de versiones.
   - Criterio: se muestra diferencia basica de metadata o contenido, o queda documentado como pendiente opcional.
+  - Nota: cada entrada indica `Sin cambios` o resume diferencias de titulo, contenido canonico y HTML respecto al documento actual.
 
 ## Fase 8 - API backend y contratos
 

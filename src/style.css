@@ -1219,6 +1219,81 @@ textarea {
   margin-bottom: 0;
 }
 
+.editor-version-history {
+  position: fixed;
+  z-index: 120;
+  top: 50%;
+  left: 50%;
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(680px, calc(100dvh - 32px));
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 24px 70px rgb(15 23 42 / 0.25);
+  overflow: auto;
+  transform: translate(-50%, -50%);
+}
+
+.editor-version-history[hidden] {
+  display: none;
+}
+
+.editor-version-history > header,
+.editor-version-history__actions,
+.editor-version-history__list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.editor-version-history h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.editor-version-history button {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+.editor-version-history__actions {
+  margin-top: 18px;
+}
+
+.editor-version-history__status {
+  color: var(--muted);
+}
+
+.editor-version-history__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.editor-version-history__list li {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.editor-version-history__list li div,
+.editor-version-history__list time,
+.editor-version-history__list span {
+  display: block;
+}
+
+.editor-version-history__list time,
+.editor-version-history__list span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 @media (max-width: 760px) {
   .editor-app {
     padding: 20px 12px;

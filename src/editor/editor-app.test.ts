@@ -5,6 +5,8 @@
 import type { JSONContent } from '@tiptap/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { VersionsApi } from '../api/versions.api';
+import type { EditorVersion } from './models/editor-version';
 import type {
   DocumentStoragePayload,
   DocumentStorageService,
@@ -1936,6 +1938,60 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('creates, compares and restores a selected document version', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const versionsDouble = createVersionsDouble();
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      versionsApi: versionsDouble.service,
+      documentId: 'doc-version-history',
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Contenido versionado</p>');
+    appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="versions"]')?.click();
+
+    await vi.waitFor(() => {
+      expect(appRoot.querySelector('.editor-version-history')?.hasAttribute('hidden')).toBe(false);
+    });
+
+    appRoot.querySelector<HTMLButtonElement>('[data-version-action="create"]')?.click();
+    await vi.waitFor(() => {
+      expect(versionsDouble.createVersion).toHaveBeenCalledOnce();
+    });
+    expect(storageDouble.saveDocument).toHaveBeenCalledOnce();
+    expect(appRoot.querySelector('.editor-version-history__list')?.textContent).toContain(
+      'Versión 1',
+    );
+    expect(appRoot.querySelector('.editor-version-history__list')?.textContent).toContain(
+      'Sin cambios',
+    );
+
+    mountedApp.editor.commands.setContent('<p>Contenido posterior</p>');
+    appRoot.querySelector<HTMLButtonElement>('[data-version-action="close"]')?.click();
+    appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="versions"]')?.click();
+
+    await vi.waitFor(() => {
+      expect(appRoot.querySelector('.editor-version-history__list')?.textContent).toContain(
+        'Cambios en contenido',
+      );
+    });
+
+    appRoot.querySelector<HTMLButtonElement>('[data-version-action="restore"]')?.click();
+    await vi.waitFor(() => {
+      expect(mountedApp.editor.getHTML()).toBe('<p>Contenido versionado</p>');
+    });
+    expect(versionsDouble.restoreVersion).toHaveBeenCalledWith(
+      'doc-version-history',
+      expect.any(String),
+    );
+    expect(appRoot.querySelector('.editor-version-history')?.hasAttribute('hidden')).toBe(true);
+  });
+
   it('updates the basic rendered preview when editor content changes', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);
@@ -2649,6 +2705,39 @@ function createMediaUploadDouble(
       uploadImage,
     },
     uploadImage,
+  };
+}
+
+function createVersionsDouble(): {
+  service: VersionsApi;
+  createVersion: ReturnType<typeof vi.fn<VersionsApi['createVersion']>>;
+  restoreVersion: ReturnType<typeof vi.fn<VersionsApi['restoreVersion']>>;
+} {
+  const versions: EditorVersion[] = [];
+  const createVersion = vi.fn<VersionsApi['createVersion']>((documentId, payload) => {
+    const version: EditorVersion = {
+      id: `version-${versions.length + 1}`,
+      documentId,
+      versionNumber: versions.length + 1,
+      ...payload,
+      createdAt: '2026-07-28T00:00:00.000Z',
+    };
+    versions.unshift(version);
+    return Promise.resolve(version);
+  });
+  const restoreVersion = vi.fn<VersionsApi['restoreVersion']>((_documentId, versionId) => {
+    const version = versions.find((item) => item.id === versionId);
+    return version ? Promise.resolve(version) : Promise.reject(new Error('Version not found'));
+  });
+
+  return {
+    service: {
+      listVersions: () => Promise.resolve([...versions]),
+      createVersion,
+      restoreVersion,
+    },
+    createVersion,
+    restoreVersion,
   };
 }
 

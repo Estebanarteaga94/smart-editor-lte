@@ -29,6 +29,7 @@ export type ToolbarButtonId =
   | 'source-json'
   | 'preview'
   | 'fullscreen'
+  | 'versions'
   | 'format-html'
   | 'bullet-list'
   | 'ordered-list'
@@ -58,6 +59,7 @@ export interface EditorToolbarOptions {
   onToggleSourceJson?: () => void;
   onTogglePreview?: () => void;
   onToggleFullscreen?: () => void;
+  onOpenVersions?: () => void;
   onFormatHtml?: () => Promise<void> | void;
   isSourceHtmlActive?: () => boolean;
   isSourceJsonActive?: () => boolean;
@@ -272,6 +274,12 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     ariaLabel: 'Formatear HTML fuente',
   },
   {
+    id: 'versions',
+    label: 'Versiones',
+    icon: '\uf1da',
+    ariaLabel: 'Abrir historial de versiones',
+  },
+  {
     id: 'save',
     label: 'Guardar',
     icon: '\ue89b',
@@ -288,6 +296,7 @@ export function createToolbar({
   onToggleSourceJson,
   onTogglePreview,
   onToggleFullscreen,
+  onOpenVersions,
   onFormatHtml,
   isSourceHtmlActive,
   isSourceJsonActive,
@@ -418,6 +427,11 @@ export function createToolbar({
         return;
       }
 
+      if (config.id === 'versions') {
+        onOpenVersions?.();
+        return;
+      }
+
       config.command?.(editor);
       updateState();
     });
@@ -457,6 +471,7 @@ export function createToolbar({
         hasTogglePreviewAction: Boolean(onTogglePreview),
         hasToggleFullscreenAction: Boolean(onToggleFullscreen),
         hasFormatHtmlAction: Boolean(onFormatHtml),
+        hasOpenVersionsAction: Boolean(onOpenVersions),
         sourceHtmlActive,
         sourceJsonActive,
         previewActive,
@@ -518,6 +533,7 @@ function isToolbarButtonDisabled(
     hasTogglePreviewAction: boolean;
     hasToggleFullscreenAction: boolean;
     hasFormatHtmlAction: boolean;
+    hasOpenVersionsAction: boolean;
     sourceHtmlActive: boolean;
     sourceJsonActive: boolean;
     previewActive: boolean;
@@ -546,6 +562,10 @@ function isToolbarButtonDisabled(
 
   if (config.id === 'format-html') {
     return !actions.hasFormatHtmlAction || !actions.sourceHtmlActive;
+  }
+
+  if (config.id === 'versions') {
+    return !actions.hasOpenVersionsAction;
   }
 
   if (config.id === 'insert-image' && !actions.hasInsertImageAction) {
