@@ -6281,6 +6281,10 @@ Pendientes inmediatos:
 
 - Iniciar Fase 8 con contratos TypeScript completos para documentos.
 
+Decision Git:
+
+- Commit creado: `cf2b685 Agregar historial de versiones`.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:
