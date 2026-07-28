@@ -6100,6 +6100,59 @@ Pendientes inmediatos:
 
 - Implementar `fullscreen.ts` en Fase 6.
 
+## 2026-07-28 - Secciones temporales para asistencia de agentes
+
+Objetivo:
+
+- Permitir que el usuario identifique varias partes del contenido que, en una
+  integracion futura, se enviaran a un agente para mejorar redaccion, cambiar el
+  tono, corregir o generar sugerencias.
+
+Acciones realizadas:
+
+- Se agrego una extension de Tiptap basada en decoraciones de ProseMirror para
+  marcar y desmarcar selecciones sin contaminar el documento canonico.
+- Las posiciones marcadas se actualizan mediante el mapeo de transacciones
+  cuando el contenido cambia y se descartan si el rango desaparece.
+- La toolbar incorpora acciones accesibles para marcar la seleccion y limpiar
+  todas las secciones, con estados activo y deshabilitado.
+- `MountedEditorApp.getAgentSections()` entrega identificador, posiciones,
+  texto y fragmento JSON de cada seccion para el futuro contrato con agentes.
+- Se agregaron estilos de resaltado y pruebas unitarias y de integracion.
+
+Archivos principales:
+
+- `src/editor/extensions/agent-section.extension.ts`
+- `src/editor/core/editor-extensions.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/editor-app.ts`
+- `src/style.css`
+- Pruebas asociadas, `context.md`, `tasks.md` y `worklog.md`.
+
+Verificacion:
+
+- Pruebas focalizadas: 3 archivos y 59 pruebas correctas.
+- Prueba real con Chromium: la seleccion se marco desde la toolbar, el estado
+  informo una seccion, la accion de limpiar quedo habilitada y no hubo overflow
+  horizontal en un viewport de 1280 x 800.
+- `npm run check`: build, lint y 37 archivos con 254 pruebas correctas.
+- `npm run test:e2e`: correcto con `--pass-with-no-tests`.
+- `git diff --check`: correcto.
+- Vite conserva la advertencia no bloqueante del bundle principal mayor a 500
+  kB; jsdom conserva los avisos no bloqueantes de `scrollBy` y `localStorage`.
+
+Decision tecnica:
+
+- Las secciones son efimeras y no se guardan con el documento. Esto mantiene el
+  JSON de ProseMirror como contenido puro y deja la futura conversacion con el
+  agente en un estado separado.
+
+Pendientes inmediatos:
+
+- Definir mas adelante las acciones del agente, el formato de respuesta y el
+  flujo de aceptar, rechazar o comparar sugerencias.
+- Continuar con la primera tarea pendiente de Fase 9.
+
 ## 2026-07-28 - Estado visual de pantalla completa
 
 Objetivo:

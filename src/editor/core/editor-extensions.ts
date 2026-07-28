@@ -15,6 +15,7 @@ import { Underline } from '@tiptap/extension-underline';
 import { StarterKit } from '@tiptap/starter-kit';
 
 import { ResizableImage } from '../extensions/resizable-image.extension';
+import { AgentSectionExtension } from '../extensions/agent-section.extension';
 import { isSafeLinkHref } from '../utils/safe-url';
 
 export interface CreateEditorExtensionsOptions {
@@ -33,6 +34,7 @@ export function createEditorExtensions(
       link: false,
       underline: false,
     }),
+    AgentSectionExtension,
     Underline,
     TextStyle,
     Color,

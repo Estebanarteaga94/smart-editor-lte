@@ -1992,6 +1992,50 @@ describe('mountEditorApp', () => {
     expect(appRoot.querySelector('.editor-version-history')?.hasAttribute('hidden')).toBe(true);
   });
 
+  it('marks multiple sections for future agent assistance without changing canonical JSON', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-agent-sections',
+    });
+    mountedApps.add(mountedApp);
+    mountedApp.editor.commands.setContent('<p>Mejorar esta parte y corregir esta otra.</p>');
+    const canonicalBefore = mountedApp.editor.getJSON();
+    const markButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="agent-section"]',
+    );
+    const clearButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="clear-agent-sections"]',
+    );
+
+    expect(markButton?.disabled).toBe(true);
+    expect(clearButton?.disabled).toBe(true);
+
+    mountedApp.editor.commands.setTextSelection({ from: 1, to: 19 });
+    expect(markButton?.disabled).toBe(false);
+    markButton?.click();
+
+    mountedApp.editor.commands.setTextSelection({ from: 22, to: 40 });
+    markButton?.click();
+
+    expect(mountedApp.getAgentSections().map((section) => section.text)).toEqual([
+      'Mejorar esta parte',
+      'corregir esta otra',
+    ]);
+    expect(appRoot.querySelectorAll('.editor-agent-section')).toHaveLength(2);
+    expect(clearButton?.disabled).toBe(false);
+    expect(mountedApp.editor.getJSON()).toEqual(canonicalBefore);
+    expect(mountedApp.editor.getHTML()).not.toContain('agent-section');
+
+    clearButton?.click();
+    expect(mountedApp.getAgentSections()).toEqual([]);
+    expect(appRoot.querySelectorAll('.editor-agent-section')).toHaveLength(0);
+  });
+
   it('updates the basic rendered preview when editor content changes', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

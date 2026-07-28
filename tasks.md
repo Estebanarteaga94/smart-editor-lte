@@ -670,6 +670,9 @@ Objetivo medible: flujos criticos quedan cubiertos por unitarias, integracion y 
 
 Estas tareas no bloquean la primera version, pero deben quedar visibles para no perder alcance futuro.
 
+- [x] Marcar secciones temporales para futura asistencia de agentes.
+  - Criterio: el usuario puede marcar, desmarcar y limpiar varias selecciones; las secciones se resaltan, siguen su contenido al editar y exponen texto y fragmento JSON sin modificar el JSON/HTML canonico.
+  - Nota: las selecciones son estado efimero de ProseMirror y no se persisten con el documento; una integracion futura podra consumirlas mediante `getAgentSections()`.
 - [ ] Decidir si se implementaran plantillas.
   - Criterio: decision documentada con alcance minimo o descartado.
 - [ ] Decidir bloques reutilizables.

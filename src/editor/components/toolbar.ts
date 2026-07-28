@@ -30,6 +30,8 @@ export type ToolbarButtonId =
   | 'preview'
   | 'fullscreen'
   | 'versions'
+  | 'agent-section'
+  | 'clear-agent-sections'
   | 'format-html'
   | 'bullet-list'
   | 'ordered-list'
@@ -60,11 +62,16 @@ export interface EditorToolbarOptions {
   onTogglePreview?: () => void;
   onToggleFullscreen?: () => void;
   onOpenVersions?: () => void;
+  onToggleAgentSection?: () => void;
+  onClearAgentSections?: () => void;
   onFormatHtml?: () => Promise<void> | void;
   isSourceHtmlActive?: () => boolean;
   isSourceJsonActive?: () => boolean;
   isPreviewActive?: () => boolean;
   isFullscreenActive?: () => boolean;
+  canToggleAgentSection?: () => boolean;
+  hasAgentSections?: () => boolean;
+  isAgentSectionActive?: () => boolean;
 }
 
 export interface EditorToolbar {
@@ -280,6 +287,19 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     ariaLabel: 'Abrir historial de versiones',
   },
   {
+    id: 'agent-section',
+    label: 'Sección para agente',
+    icon: '\ue829',
+    ariaLabel: 'Marcar o desmarcar selección para asistencia',
+    pressed: true,
+  },
+  {
+    id: 'clear-agent-sections',
+    label: 'Limpiar secciones',
+    icon: '\uf12d',
+    ariaLabel: 'Quitar todas las secciones marcadas',
+  },
+  {
     id: 'save',
     label: 'Guardar',
     icon: '\ue89b',
@@ -297,11 +317,16 @@ export function createToolbar({
   onTogglePreview,
   onToggleFullscreen,
   onOpenVersions,
+  onToggleAgentSection,
+  onClearAgentSections,
   onFormatHtml,
   isSourceHtmlActive,
   isSourceJsonActive,
   isPreviewActive,
   isFullscreenActive,
+  canToggleAgentSection,
+  hasAgentSections,
+  isAgentSectionActive,
 }: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
   const blockFormatSelect = createBlockFormatSelect();
@@ -432,6 +457,18 @@ export function createToolbar({
         return;
       }
 
+      if (config.id === 'agent-section') {
+        onToggleAgentSection?.();
+        updateState();
+        return;
+      }
+
+      if (config.id === 'clear-agent-sections') {
+        onClearAgentSections?.();
+        updateState();
+        return;
+      }
+
       config.command?.(editor);
       updateState();
     });
@@ -472,6 +509,10 @@ export function createToolbar({
         hasToggleFullscreenAction: Boolean(onToggleFullscreen),
         hasFormatHtmlAction: Boolean(onFormatHtml),
         hasOpenVersionsAction: Boolean(onOpenVersions),
+        hasToggleAgentSectionAction: Boolean(onToggleAgentSection),
+        hasClearAgentSectionsAction: Boolean(onClearAgentSections),
+        canToggleAgentSection: canToggleAgentSection?.() ?? false,
+        hasAgentSections: hasAgentSections?.() ?? false,
         sourceHtmlActive,
         sourceJsonActive,
         previewActive,
@@ -482,6 +523,7 @@ export function createToolbar({
         sourceJsonActive,
         previewActive,
         fullscreenActive,
+        agentSectionActive: isAgentSectionActive?.() ?? false,
       });
 
       button.disabled = isDisabled;
@@ -534,6 +576,10 @@ function isToolbarButtonDisabled(
     hasToggleFullscreenAction: boolean;
     hasFormatHtmlAction: boolean;
     hasOpenVersionsAction: boolean;
+    hasToggleAgentSectionAction: boolean;
+    hasClearAgentSectionsAction: boolean;
+    canToggleAgentSection: boolean;
+    hasAgentSections: boolean;
     sourceHtmlActive: boolean;
     sourceJsonActive: boolean;
     previewActive: boolean;
@@ -568,6 +614,14 @@ function isToolbarButtonDisabled(
     return !actions.hasOpenVersionsAction;
   }
 
+  if (config.id === 'agent-section') {
+    return !actions.hasToggleAgentSectionAction || !actions.canToggleAgentSection;
+  }
+
+  if (config.id === 'clear-agent-sections') {
+    return !actions.hasClearAgentSectionsAction || !actions.hasAgentSections;
+  }
+
   if (config.id === 'insert-image' && !actions.hasInsertImageAction) {
     return true;
   }
@@ -583,6 +637,7 @@ function getToolbarButtonActiveState(
     sourceJsonActive: boolean;
     previewActive: boolean;
     fullscreenActive: boolean;
+    agentSectionActive: boolean;
   },
 ): boolean {
   if (config.id === 'source-html') {
@@ -599,6 +654,10 @@ function getToolbarButtonActiveState(
 
   if (config.id === 'fullscreen') {
     return sourceState.fullscreenActive;
+  }
+
+  if (config.id === 'agent-section') {
+    return sourceState.agentSectionActive;
   }
 
   return config.isActive?.(editor) ?? false;

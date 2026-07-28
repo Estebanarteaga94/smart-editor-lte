@@ -17,6 +17,14 @@ import { createVersionHistory } from './components/version-history';
 import { createWysiwygEditor } from './core/create-editor';
 import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
+import {
+  clearAgentSections,
+  getAgentSections,
+  hasAgentSections,
+  isAgentSectionSelectionActive,
+  toggleAgentSection,
+  type AgentSection,
+} from './extensions/agent-section.extension';
 import type { PasteContentSafetyService } from './services/paste-content-safety.service';
 import type { PasteNormalizerService } from './services/paste-normalizer.service';
 import { defaultEditorConfig, type EditorAutosaveConfig } from './models/editor-config';
@@ -81,6 +89,7 @@ export interface MountedEditorApp {
   getSourceHtmlValue: () => string | null;
   getSourceJsonValue: () => string | null;
   setFullscreen: (enabled: boolean) => void;
+  getAgentSections: () => AgentSection[];
 }
 
 const defaultDocumentTitle = 'Documento de ejemplo';
@@ -259,6 +268,20 @@ export async function mountEditorApp({
     onOpenVersions: () => {
       void versionHistory.open();
     },
+    onToggleAgentSection: () => {
+      if (toggleAgentSection(editor)) {
+        const count = getAgentSections(editor).length;
+        shell.setSaveStatus(
+          'unchanged',
+          count === 1 ? '1 sección marcada para asistencia' : `${count} secciones marcadas`,
+        );
+      }
+    },
+    onClearAgentSections: () => {
+      if (clearAgentSections(editor)) {
+        shell.setSaveStatus('unchanged', 'Secciones de asistencia eliminadas');
+      }
+    },
     onFormatHtml: () => {
       void formatActiveSourceHtml();
     },
@@ -266,6 +289,9 @@ export async function mountEditorApp({
     isSourceJsonActive: () => viewState.mode === 'source-json',
     isPreviewActive: () => viewState.mode === 'preview',
     isFullscreenActive: () => viewState.fullscreen,
+    canToggleAgentSection: () => !editor.state.selection.empty,
+    hasAgentSections: () => hasAgentSections(editor),
+    isAgentSectionActive: () => isAgentSectionSelectionActive(editor),
   });
   const tableMenu = createTableMenu({
     editor,
@@ -301,6 +327,7 @@ export async function mountEditorApp({
     getSourceHtmlValue: () => sourceHtmlValue,
     getSourceJsonValue: () => sourceJsonValue,
     setFullscreen: (enabled) => fullscreen.setEnabled(enabled),
+    getAgentSections: () => getAgentSections(editor),
   };
 
   function showSourceHtmlMode(): void {

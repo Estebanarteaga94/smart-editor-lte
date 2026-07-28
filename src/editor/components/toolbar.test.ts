@@ -146,8 +146,8 @@ describe('createToolbar', () => {
       'Encabezado 5',
       'Encabezado 6',
     ]);
-    expect(buttons).toHaveLength(147);
-    expect(iconButtons).toHaveLength(27);
+    expect(buttons).toHaveLength(149);
+    expect(iconButtons).toHaveLength(29);
     expect(colorPicker).not.toBeNull();
     expect(colorTrigger).not.toBeNull();
     expect(colorPanel?.hidden).toBe(true);

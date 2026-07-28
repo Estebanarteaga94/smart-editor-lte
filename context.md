@@ -388,6 +388,19 @@ Regla critica:
 Nunca renderizar HTML del usuario con innerHTML sin pasar primero por sanitizacion.
 ```
 
+## Secciones para asistencia de agentes
+
+Las partes que el usuario marque para una futura operacion de redaccion, tono,
+correccion o sugerencias se representan como decoraciones temporales de
+ProseMirror. No son marcas del schema y, por tanto, no alteran ni se persisten en
+`contentJson` o `contentHtml`.
+
+`MountedEditorApp.getAgentSections()` expone cada seleccion mediante un
+identificador, posiciones actuales, texto plano y fragmento JSON. Las posiciones
+se mapean al editar el documento para mantener el resaltado unido al contenido
+mientras la aplicacion siga montada. La accion concreta del agente, su prompt y
+la aplicacion o revision de resultados quedan fuera de este primer contrato.
+
 ## Estado inicial del workspace
 
 Al crear estos documentos, el directorio contenia solo:
