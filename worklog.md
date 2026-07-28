@@ -6100,6 +6100,43 @@ Pendientes inmediatos:
 
 - Implementar `fullscreen.ts` en Fase 6.
 
+## 2026-07-28 - Estado visual de pantalla completa
+
+Objetivo:
+
+- Completar los controles de pantalla completa de la Fase 6 sin alterar `EditorMode`.
+
+Acciones realizadas:
+
+- Se implemento `createFullscreenController`, que aplica `editor-shell--fullscreen` al root visual y notifica el cambio sin mezclarlo con el modo de contenido.
+- Se agrego el boton accesible de pantalla completa a la toolbar y un manejador global de `Escape` para salir sin cambiar la vista activa.
+- Se mantuvo el estado en `EditorViewState.fullscreen`; WYSIWYG, HTML, JSON y preview conservan su modo al entrar y salir.
+- Se agregaron estilos fullscreen con toolbar sticky, zona de contenido desplazable y ancho de lectura centrado, tambien aplicables a viewport movil.
+- Se agregaron pruebas unitarias del controlador y de integracion para las cuatro vistas y Escape.
+- Se marcaron como completadas las tareas restantes de fullscreen de Fase 6.
+
+Archivos modificados:
+
+- `src/editor/components/fullscreen.ts`
+- `src/editor/components/fullscreen.test.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- `npm test -- src/editor/components/fullscreen.test.ts src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts`: 3 archivos y 52 pruebas correctas.
+- `npm run build` y `npm run lint`: correctos mediante `npm run check`; Vite conserva la advertencia no bloqueante de bundle mayor a 500 kB.
+- La ejecucion completa de Vitest no devolvio su resumen en el runner pese a iniciar correctamente; los archivos cambiados y su integracion pasaron de forma aislada.
+
+Pendientes inmediatos:
+
+- Implementar `debounce.ts` e integrar autosave en Fase 7.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:

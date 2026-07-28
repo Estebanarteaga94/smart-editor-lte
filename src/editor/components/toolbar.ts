@@ -28,6 +28,7 @@ export type ToolbarButtonId =
   | 'source-html'
   | 'source-json'
   | 'preview'
+  | 'fullscreen'
   | 'format-html'
   | 'bullet-list'
   | 'ordered-list'
@@ -56,10 +57,12 @@ export interface EditorToolbarOptions {
   onToggleSourceHtml?: () => void;
   onToggleSourceJson?: () => void;
   onTogglePreview?: () => void;
+  onToggleFullscreen?: () => void;
   onFormatHtml?: () => Promise<void> | void;
   isSourceHtmlActive?: () => boolean;
   isSourceJsonActive?: () => boolean;
   isPreviewActive?: () => boolean;
+  isFullscreenActive?: () => boolean;
 }
 
 export interface EditorToolbar {
@@ -253,6 +256,14 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
     icon: '\ue825',
     ariaLabel: 'Alternar vista previa',
     pressed: true,
+    separatorAfter: true,
+  },
+  {
+    id: 'fullscreen',
+    label: 'Pantalla completa',
+    icon: '\ue830',
+    ariaLabel: 'Alternar pantalla completa',
+    pressed: true,
   },
   {
     id: 'format-html',
@@ -276,10 +287,12 @@ export function createToolbar({
   onToggleSourceHtml,
   onToggleSourceJson,
   onTogglePreview,
+  onToggleFullscreen,
   onFormatHtml,
   isSourceHtmlActive,
   isSourceJsonActive,
   isPreviewActive,
+  isFullscreenActive,
 }: EditorToolbarOptions): EditorToolbar {
   const element = document.createElement('div');
   const blockFormatSelect = createBlockFormatSelect();
@@ -393,6 +406,12 @@ export function createToolbar({
         return;
       }
 
+      if (config.id === 'fullscreen') {
+        onToggleFullscreen?.();
+        updateState();
+        return;
+      }
+
       if (config.id === 'format-html') {
         void onFormatHtml?.();
         updateState();
@@ -412,6 +431,7 @@ export function createToolbar({
     const sourceHtmlActive = isSourceHtmlActive?.() ?? false;
     const sourceJsonActive = isSourceJsonActive?.() ?? false;
     const previewActive = isPreviewActive?.() ?? false;
+    const fullscreenActive = isFullscreenActive?.() ?? false;
 
     blockFormatSelect.disabled = controlsDisabled;
     blockFormatSelect.value = getActiveBlockFormat(editor);
@@ -435,15 +455,18 @@ export function createToolbar({
         hasToggleSourceHtmlAction: Boolean(onToggleSourceHtml),
         hasToggleSourceJsonAction: Boolean(onToggleSourceJson),
         hasTogglePreviewAction: Boolean(onTogglePreview),
+        hasToggleFullscreenAction: Boolean(onToggleFullscreen),
         hasFormatHtmlAction: Boolean(onFormatHtml),
         sourceHtmlActive,
         sourceJsonActive,
         previewActive,
+        fullscreenActive,
       });
       const isActive = getToolbarButtonActiveState(config, editor, {
         sourceHtmlActive,
         sourceJsonActive,
         previewActive,
+        fullscreenActive,
       });
 
       button.disabled = isDisabled;
@@ -493,10 +516,12 @@ function isToolbarButtonDisabled(
     hasToggleSourceHtmlAction: boolean;
     hasToggleSourceJsonAction: boolean;
     hasTogglePreviewAction: boolean;
+    hasToggleFullscreenAction: boolean;
     hasFormatHtmlAction: boolean;
     sourceHtmlActive: boolean;
     sourceJsonActive: boolean;
     previewActive: boolean;
+    fullscreenActive: boolean;
   },
 ): boolean {
   if (editor.isDestroyed) {
@@ -513,6 +538,10 @@ function isToolbarButtonDisabled(
 
   if (config.id === 'preview') {
     return !actions.hasTogglePreviewAction;
+  }
+
+  if (config.id === 'fullscreen') {
+    return !actions.hasToggleFullscreenAction;
   }
 
   if (config.id === 'format-html') {
@@ -533,6 +562,7 @@ function getToolbarButtonActiveState(
     sourceHtmlActive: boolean;
     sourceJsonActive: boolean;
     previewActive: boolean;
+    fullscreenActive: boolean;
   },
 ): boolean {
   if (config.id === 'source-html') {
@@ -545,6 +575,10 @@ function getToolbarButtonActiveState(
 
   if (config.id === 'preview') {
     return sourceState.previewActive;
+  }
+
+  if (config.id === 'fullscreen') {
+    return sourceState.fullscreenActive;
   }
 
   return config.isActive?.(editor) ?? false;

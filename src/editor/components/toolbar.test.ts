@@ -119,6 +119,9 @@ describe('createToolbar', () => {
     const previewButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="preview"]',
     );
+    const fullscreenButton = toolbar.element.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="fullscreen"]',
+    );
     const formatHtmlButton = toolbar.element.querySelector<HTMLButtonElement>(
       '[data-toolbar-action="format-html"]',
     );
@@ -143,8 +146,8 @@ describe('createToolbar', () => {
       'Encabezado 5',
       'Encabezado 6',
     ]);
-    expect(buttons).toHaveLength(145);
-    expect(iconButtons).toHaveLength(25);
+    expect(buttons).toHaveLength(146);
+    expect(iconButtons).toHaveLength(26);
     expect(colorPicker).not.toBeNull();
     expect(colorTrigger).not.toBeNull();
     expect(colorPanel?.hidden).toBe(true);
@@ -194,6 +197,10 @@ describe('createToolbar', () => {
     expect(previewButton?.getAttribute('aria-pressed')).toBe('false');
     expect(previewButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\ue825');
     expect(previewButton?.disabled).toBe(true);
+    expect(fullscreenButton).not.toBeNull();
+    expect(fullscreenButton?.getAttribute('aria-label')).toBe('Alternar pantalla completa');
+    expect(fullscreenButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(fullscreenButton?.disabled).toBe(true);
     expect(formatHtmlButton).not.toBeNull();
     expect(formatHtmlButton?.getAttribute('aria-label')).toBe('Formatear HTML fuente');
     expect(formatHtmlButton?.hidden).toBe(true);
@@ -224,7 +231,7 @@ describe('createToolbar', () => {
       colorInput?.closest('[data-toolbar-action="text-color-custom"]')?.hasAttribute('hidden'),
     ).toBe(false);
     expect(moreColorsButton?.textContent).toContain('Mas colores...');
-    expect(separators).toHaveLength(6);
+    expect(separators).toHaveLength(7);
     expect(separators.every((separator) => separator.getAttribute('aria-hidden') === 'true')).toBe(
       true,
     );

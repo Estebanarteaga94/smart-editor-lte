@@ -68,6 +68,39 @@ textarea {
   padding: 32px 24px;
 }
 
+.editor-app.editor-shell--fullscreen {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--app-bg);
+}
+
+.editor-app.editor-shell--fullscreen .editor-app__header {
+  display: none;
+}
+
+.editor-app.editor-shell--fullscreen .editor-shell {
+  min-height: 100dvh;
+  max-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+}
+
+.editor-app.editor-shell--fullscreen .editor-shell__body {
+  overflow: auto;
+}
+
+.editor-app.editor-shell--fullscreen .editor-shell__editable .tiptap,
+.editor-app.editor-shell--fullscreen .editor-source-view .cm-content,
+.editor-app.editor-shell--fullscreen .editor-preview__content {
+  width: min(920px, 100%);
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .editor-app__header {
   margin-bottom: 20px;
 }

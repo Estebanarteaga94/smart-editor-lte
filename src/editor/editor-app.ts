@@ -3,6 +3,7 @@ import type { JSONContent } from '@tiptap/core';
 import { createEditorShell } from './components/editor-shell';
 import { createImageDialog } from './components/image-dialog';
 import { createImageOptionsDialog } from './components/image-options-dialog';
+import { createFullscreenController } from './components/fullscreen';
 import { createPreviewView } from './components/preview-view';
 import {
   createSourceView,
@@ -69,6 +70,7 @@ export interface MountedEditorApp {
   getSourceView: () => SourceView | null;
   getSourceHtmlValue: () => string | null;
   getSourceJsonValue: () => string | null;
+  setFullscreen: (enabled: boolean) => void;
 }
 
 const defaultDocumentTitle = 'Documento de ejemplo';
@@ -102,6 +104,13 @@ export async function mountEditorApp({
   let sourceView: SourceView | null = null;
   let sourceHtmlValue: string | null = null;
   let sourceJsonValue: string | null = null;
+  const fullscreen = createFullscreenController({
+    root: shell.root,
+    onChange: ({ enabled }) => {
+      viewState = { ...viewState, fullscreen: enabled };
+      toolbar.updateState();
+    },
+  });
 
   lifecycle.mountRoot(app, shell.root);
   preview.element.hidden = true;
@@ -193,12 +202,16 @@ export async function mountEditorApp({
         showPreviewMode();
       }
     },
+    onToggleFullscreen: () => {
+      fullscreen.toggle();
+    },
     onFormatHtml: () => {
       void formatActiveSourceHtml();
     },
     isSourceHtmlActive: () => viewState.mode === 'source-html',
     isSourceJsonActive: () => viewState.mode === 'source-json',
     isPreviewActive: () => viewState.mode === 'preview',
+    isFullscreenActive: () => viewState.fullscreen,
   });
   const tableMenu = createTableMenu({
     editor,
@@ -218,6 +231,11 @@ export async function mountEditorApp({
   lifecycle.addEventListener(window, 'beforeunload', () => {
     lifecycle.dispose();
   });
+  lifecycle.addEventListener(window, 'keydown', (event) => {
+    if (event.key === 'Escape' && viewState.fullscreen) {
+      fullscreen.setEnabled(false);
+    }
+  });
 
   return {
     lifecycle,
@@ -227,6 +245,7 @@ export async function mountEditorApp({
     getSourceView: () => sourceView,
     getSourceHtmlValue: () => sourceHtmlValue,
     getSourceJsonValue: () => sourceJsonValue,
+    setFullscreen: (enabled) => fullscreen.setEnabled(enabled),
   };
 
   function showSourceHtmlMode(): void {

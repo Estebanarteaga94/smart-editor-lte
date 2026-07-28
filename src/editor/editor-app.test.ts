@@ -1977,6 +1977,58 @@ describe('mountEditorApp', () => {
     });
   }, 15_000);
 
+  it('keeps the active content mode while fullscreen is toggled and exits with Escape', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-fullscreen',
+    });
+    mountedApps.add(mountedApp);
+
+    const fullscreenButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="fullscreen"]',
+    );
+    const sourceHtmlButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-html"]',
+    );
+    const sourceJsonButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="source-json"]',
+    );
+    const previewButton = appRoot.querySelector<HTMLButtonElement>(
+      '[data-toolbar-action="preview"]',
+    );
+    const shellRoot = appRoot.querySelector<HTMLElement>('.editor-app');
+
+    expect(fullscreenButton).not.toBeNull();
+
+    fullscreenButton?.click();
+    expect(mountedApp.getViewState()).toEqual({ mode: 'wysiwyg', fullscreen: true });
+    expect(shellRoot?.classList.contains('editor-shell--fullscreen')).toBe(true);
+    expect(fullscreenButton?.getAttribute('aria-pressed')).toBe('true');
+
+    sourceHtmlButton?.click();
+    await flushPromises();
+    expect(mountedApp.getViewState()).toEqual({ mode: 'source-html', fullscreen: true });
+
+    sourceJsonButton?.click();
+    await flushPromises();
+    expect(mountedApp.getViewState()).toEqual({ mode: 'source-json', fullscreen: true });
+
+    previewButton?.click();
+    await flushPromises();
+    expect(mountedApp.getViewState()).toEqual({ mode: 'preview', fullscreen: true });
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(mountedApp.getViewState()).toEqual({ mode: 'preview', fullscreen: false });
+    expect(shellRoot?.classList.contains('editor-shell--fullscreen')).toBe(false);
+    expect(fullscreenButton?.getAttribute('aria-pressed')).toBe('false');
+  }, 15_000);
+
   it('shows generated HTML in source-html mode and allows editing it', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

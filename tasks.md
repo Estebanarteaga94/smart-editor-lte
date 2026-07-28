@@ -488,19 +488,19 @@ Objetivo medible: el editor ofrece preview y un estado fullscreen usable en escr
 - [x] Implementar `EditorViewState` en la navegacion de vistas.
   - Criterio: `mode` controla `wysiwyg`, `source-html`, `source-json` o `preview`, y `fullscreen` se aplica como boolean independiente.
   - Nota: `mountEditorApp` mantiene un unico `EditorViewState`; las transiciones actualizan solo `mode`, conservan `fullscreen` y exponen una copia del estado para integracion y pruebas.
-- [ ] Implementar `fullscreen.ts`.
+- [x] Implementar `fullscreen.ts`.
   - Criterio: alterna clase `editor-shell--fullscreen` sobre el root sin cambiar `EditorMode`.
-- [ ] Agregar boton de pantalla completa.
+- [x] Agregar boton de pantalla completa.
   - Criterio: entra y sale del estado fullscreen sin perder foco ni contenido.
-- [ ] Agregar atajo `Esc` para salir de fullscreen.
+- [x] Agregar atajo `Esc` para salir de fullscreen.
   - Criterio: presionar Escape revierte el estado fullscreen sin cambiar el modo de contenido activo.
-- [ ] Mantener toolbar fija en fullscreen.
+- [x] Mantener toolbar fija en fullscreen.
   - Criterio: la toolbar permanece disponible mientras se edita contenido largo.
-- [ ] Centrar area de edicion cuando aplique.
+- [x] Centrar area de edicion cuando aplique.
   - Criterio: documentos largos son legibles en pantallas grandes.
-- [ ] Verificar fullscreen sobre cada vista.
+- [x] Verificar fullscreen sobre cada vista.
   - Criterio: fullscreen funciona sobre WYSIWYG, HTML, JSON y preview sin recrear instancias ni perder contenido.
-- [ ] Validar responsive.
+- [x] Validar responsive.
   - Criterio: toolbar, editor, preview y estado fullscreen funcionan en viewport movil.
 
 ## Fase 7 - Autosave y versionado
