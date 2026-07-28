@@ -6137,6 +6137,10 @@ Pendientes inmediatos:
 
 - Implementar `debounce.ts` e integrar autosave en Fase 7.
 
+Decision Git:
+
+- Commit creado: `6f8bbcd Implementar pantalla completa del editor`.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:
