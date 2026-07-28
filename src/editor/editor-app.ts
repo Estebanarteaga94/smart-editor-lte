@@ -17,7 +17,7 @@ import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
 import type { PasteContentSafetyService } from './services/paste-content-safety.service';
 import type { PasteNormalizerService } from './services/paste-normalizer.service';
-import { defaultEditorConfig } from './models/editor-config';
+import { defaultEditorConfig, type EditorAutosaveConfig } from './models/editor-config';
 import {
   defaultEditorViewState,
   type EditorMode,
@@ -31,6 +31,11 @@ import {
   createLocalMediaUploadService,
   type MediaUploadService,
 } from './services/media-upload.service';
+import {
+  createAutosaveService,
+  type AutosaveService,
+  type AutosaveStatus,
+} from './services/autosave.service';
 import { createSanitizerService, type SanitizerService } from './services/sanitizer.service';
 import { createHtmlFormatService, type HtmlFormatService } from './services/html-format.service';
 import {
@@ -60,6 +65,7 @@ export interface MountEditorAppOptions {
   documentId?: string;
   documentTitle?: string;
   placeholder?: string;
+  autosave?: EditorAutosaveConfig;
 }
 
 export interface MountedEditorApp {
@@ -86,6 +92,7 @@ export async function mountEditorApp({
   documentId = defaultEditorConfig.documentId,
   documentTitle = defaultDocumentTitle,
   placeholder = defaultEditorConfig.placeholder,
+  autosave: autosaveConfig = defaultEditorConfig.autosave,
 }: MountEditorAppOptions): Promise<MountedEditorApp> {
   const activePasteNormalizer = pasteNormalizer ?? createPasteNormalizerService();
   const activePasteContentSafety = pasteContentSafety ?? createPasteContentSafetyService(sanitizer);
@@ -104,6 +111,7 @@ export async function mountEditorApp({
   let sourceView: SourceView | null = null;
   let sourceHtmlValue: string | null = null;
   let sourceJsonValue: string | null = null;
+  let autosaveService: AutosaveService | null = null;
   const fullscreen = createFullscreenController({
     root: shell.root,
     onChange: ({ enabled }) => {
@@ -124,11 +132,15 @@ export async function mountEditorApp({
     pasteNormalizer: activePasteNormalizer,
     pasteContentSafety: activePasteContentSafety,
     onChange: ({ contentJson, contentHtml }) => {
-      shell.setSaveStatus('saving');
       preview.setHtml(contentHtml);
 
       if (contentJson.type && contentHtml.length > 0) {
-        shell.setSaveStatus('saved');
+        if (autosaveService) {
+          autosaveService.schedule();
+        } else {
+          shell.setSaveStatus('pending');
+        }
+
         return;
       }
 
@@ -136,6 +148,17 @@ export async function mountEditorApp({
     },
   });
   preview.setHtml(editor.getHTML());
+  if (autosaveConfig.enabled) {
+    autosaveService = createAutosaveService({
+      debounceMs: autosaveConfig.debounceMs,
+      save: persistCurrentDocument,
+      onStatusChange: renderAutosaveStatus,
+    });
+    lifecycle.registerCleanup(() => {
+      autosaveService?.cancel();
+      autosaveService = null;
+    });
+  }
 
   lifecycle.registerTiptapEditor(editor);
   const imageDialog = createImageDialog({
@@ -154,12 +177,13 @@ export async function mountEditorApp({
     },
     onSave: async () => {
       try {
-        shell.setSaveStatus('saving');
-        await storage.saveDocument(documentId, {
-          title: activeDocumentTitle,
-          ...serializeEditorContent(editor),
-        });
-        shell.setSaveStatus('saved');
+        if (autosaveService) {
+          await autosaveService.flush();
+        } else {
+          shell.setSaveStatus('saving');
+          await persistCurrentDocument();
+          shell.setSaveStatus('saved');
+        }
       } catch {
         shell.setSaveStatus('error');
       }
@@ -267,6 +291,34 @@ export async function mountEditorApp({
     editor.setEditable(false);
     toolbar.updateState();
     tableMenu.updateState();
+  }
+
+  function persistCurrentDocument(): Promise<void> {
+    return storage.saveDocument(documentId, {
+      title: activeDocumentTitle,
+      ...serializeEditorContent(editor),
+    });
+  }
+
+  function renderAutosaveStatus(status: AutosaveStatus): void {
+    if (status === 'pending') {
+      shell.setSaveStatus('pending');
+      return;
+    }
+
+    if (status === 'saving') {
+      shell.setSaveStatus('saving');
+      return;
+    }
+
+    if (status === 'saved') {
+      shell.setSaveStatus('saved');
+      return;
+    }
+
+    if (status === 'error') {
+      shell.setSaveStatus('error', 'No se pudo guardar automaticamente.');
+    }
   }
 
   function showSourceJsonMode(): void {
@@ -448,10 +500,11 @@ export async function mountEditorApp({
         alt: asset.altText ?? altText,
       });
 
-      shell.setSaveStatus(
-        inserted ? 'saved' : 'error',
-        inserted ? undefined : 'No se pudo insertar la imagen en el documento.',
-      );
+      if (!inserted) {
+        shell.setSaveStatus('error', 'No se pudo insertar la imagen en el documento.');
+      } else {
+        shell.setSaveStatus('pending');
+      }
     } catch (error) {
       shell.setSaveStatus('error', formatImageUploadError(error));
     } finally {
@@ -626,12 +679,14 @@ export async function mountEditorApp({
         return;
       }
 
-      shell.setSaveStatus(
-        result.failedCount > 0 ? 'error' : 'saved',
-        result.failedCount > 0
-          ? `Se pego el contenido, pero ${formatImageCount(result.failedCount)} no se pudo subir.`
-          : undefined,
-      );
+      if (result.failedCount > 0) {
+        shell.setSaveStatus(
+          'error',
+          `Se pego el contenido, pero ${formatImageCount(result.failedCount)} no se pudo subir.`,
+        );
+      } else {
+        shell.setSaveStatus('pending');
+      }
     } catch {
       shell.setSaveStatus('error', 'No se pudo procesar el contenido pegado con imagenes.');
     }

@@ -1168,6 +1168,10 @@ textarea {
   background: var(--status-saving);
 }
 
+.editor-shell__status[data-save-status='pending'] span::before {
+  background: var(--status-saving);
+}
+
 .editor-shell__status[data-save-status='saved'] span::before {
   background: var(--status-saved);
 }

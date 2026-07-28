@@ -1,4 +1,4 @@
-export type EditorSaveStatus = 'unchanged' | 'saving' | 'saved' | 'error';
+export type EditorSaveStatus = 'unchanged' | 'pending' | 'saving' | 'saved' | 'error';
 
 export interface EditorShellElements {
   root: HTMLElement;
@@ -19,6 +19,7 @@ export interface EditorShellOptions {
 
 const saveStatusLabels: Record<EditorSaveStatus, string> = {
   unchanged: 'Sin cambios',
+  pending: 'Cambios pendientes',
   saving: 'Guardando',
   saved: 'Guardado',
   error: 'Error',

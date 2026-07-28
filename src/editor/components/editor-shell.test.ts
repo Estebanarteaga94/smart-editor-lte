@@ -37,6 +37,10 @@ describe('createEditorShell', () => {
   it('renders all supported save status states', () => {
     const shell = createEditorShell();
 
+    shell.setSaveStatus('pending');
+    expect(shell.status.textContent).toBe('Cambios pendientes');
+    expect(shell.statusBar.dataset.saveStatus).toBe('pending');
+
     shell.setSaveStatus('saving');
     expect(shell.status.textContent).toBe('Guardando');
     expect(shell.statusBar.dataset.saveStatus).toBe('saving');

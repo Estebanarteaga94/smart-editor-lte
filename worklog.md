@@ -6202,6 +6202,46 @@ Verificacion:
 - `npm run build` y `npm run lint`: correctos; Vite conserva la advertencia no bloqueante de bundle mayor a 500 kB.
 - En Chromium, la vista JSON mostro controles `Fold line` para las estructuras plegables.
 
+## 2026-07-28 - Autosave integrado y guardado manual coordinado
+
+Objetivo:
+
+- Completar las tareas de autosave de Fase 7 sin saturar storage ni permitir carreras entre guardados.
+
+Acciones realizadas:
+
+- Se verifico y cubrio `debounce.ts` con argumentos tipados, reinicio del timer y cancelacion.
+- Se implemento `createAutosaveService` con debounce validado entre 800 y 1500 ms, estados, flush, cancelacion y cola serial de guardados.
+- Los cambios del editor muestran `Cambios pendientes`, pasan por `Guardando` y terminan en `Guardado` o en un error automatico controlado.
+- El boton Guardar cancela el debounce y fuerza persistencia inmediata sin generar una segunda operacion posterior.
+- Los guardados se serializan y una revision antigua no puede marcar como guardada una revision mas reciente.
+- El autosave se cancela al desmontar el ciclo de vida y puede deshabilitarse mediante `EditorConfig`.
+- Se actualizaron las pruebas de imagenes para representar correctamente cambios pendientes antes de persistir.
+
+Archivos modificados:
+
+- `src/editor/utils/debounce.test.ts`
+- `src/editor/services/autosave.service.ts`
+- `src/editor/services/autosave.service.test.ts`
+- `src/editor/models/editor-config.ts`
+- `src/editor/models/editor-models.test.ts`
+- `src/editor/components/editor-shell.ts`
+- `src/editor/components/editor-shell.test.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/editor-app.test.ts`
+- `src/style.css`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- Pruebas focalizadas: 5 archivos y 60 pruebas correctas.
+- Se cubrieron debounce, flush manual, error/reintento, cancelacion, serializacion, integracion y estados visuales.
+
+Pendientes inmediatos:
+
+- Implementar el cliente y los contratos para versiones de documentos.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:

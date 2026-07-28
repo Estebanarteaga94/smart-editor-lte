@@ -4,7 +4,7 @@ import { editorModeSchema, type EditorMode } from './editor-mode';
 
 export const editorAutosaveConfigSchema = z.object({
   enabled: z.boolean(),
-  debounceMs: z.number().int().nonnegative(),
+  debounceMs: z.number().int().min(800).max(1500),
 });
 
 export const editorImageLimitsSchema = z.object({

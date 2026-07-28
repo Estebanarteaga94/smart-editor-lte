@@ -864,7 +864,7 @@ describe('mountEditorApp', () => {
       src: 'https://cdn.example.com/assets/logo.png',
       alt: 'Logo cargado',
     });
-    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Cambios pendientes');
 
     const saveButton = appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]');
     saveButton?.click();
@@ -931,7 +931,7 @@ describe('mountEditorApp', () => {
       expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
         src: 'blob:http://localhost/dialog-image',
       });
-      expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+      expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Cambios pendientes');
     } finally {
       if (originalCreateObjectUrl) {
         Object.defineProperty(URL, 'createObjectURL', originalCreateObjectUrl);
@@ -1046,7 +1046,7 @@ describe('mountEditorApp', () => {
     expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
       src: 'https://cdn.example.com/assets/drop.png',
     });
-    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Cambios pendientes');
   });
 
   it('shows Error and does not insert an image when the dropped file is invalid', async () => {
@@ -1124,7 +1124,7 @@ describe('mountEditorApp', () => {
     expect(appRoot.querySelector('.editor-preview__content img')).toMatchObject({
       src: 'https://cdn.example.com/assets/pasted.png',
     });
-    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Cambios pendientes');
   });
 
   it('does not block normal text paste when the clipboard has no image files', async () => {
@@ -1258,7 +1258,7 @@ describe('mountEditorApp', () => {
     );
     expect(html).not.toContain('data:image');
     expect(safeParseCanonicalEditorContent(mountedApp.editor.getJSON()).success).toBe(true);
-    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Cambios pendientes');
   });
 
   it('pastes remaining HTML when an embedded base64 image cannot be uploaded', async () => {
@@ -1831,6 +1831,109 @@ describe('mountEditorApp', () => {
     expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Error');
     expect(statusBar?.dataset.saveStatus).toBe('error');
     expect(mountedApp.editor.getHTML()).toBe('<p>Contenido no guardado</p>');
+  });
+
+  it('automatically saves the latest content after the configured debounce', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-autosave',
+      autosave: {
+        enabled: true,
+        debounceMs: 800,
+      },
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Primera version</p>');
+    mountedApp.editor.commands.setContent('<p>Ultima version</p>');
+
+    expect(storageDouble.saveDocument).not.toHaveBeenCalled();
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Cambios pendientes');
+    expect(appRoot.querySelector('.editor-shell__status')?.getAttribute('data-save-status')).toBe(
+      'pending',
+    );
+
+    await vi.waitFor(
+      () => {
+        expect(storageDouble.saveDocument).toHaveBeenCalledOnce();
+      },
+      { timeout: 1500 },
+    );
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-autosave',
+      expect.objectContaining({
+        contentHtml: '<p>Ultima version</p>',
+      }),
+    );
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+  });
+
+  it('manual save flushes autosave immediately without duplicating the request', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-autosave-manual',
+      autosave: {
+        enabled: true,
+        debounceMs: 1500,
+      },
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Guardar ahora</p>');
+    appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]')?.click();
+    await flushPromises();
+
+    expect(storageDouble.saveDocument).toHaveBeenCalledOnce();
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('Guardado');
+
+    await new Promise((resolve) => window.setTimeout(resolve, 1550));
+    expect(storageDouble.saveDocument).toHaveBeenCalledOnce();
+  });
+
+  it('shows an automatic save error without losing the current content', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null, {
+      saveError: new Error('offline'),
+    });
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-autosave-error',
+      autosave: {
+        enabled: true,
+        debounceMs: 800,
+      },
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Contenido local intacto</p>');
+
+    await vi.waitFor(
+      () => {
+        expect(appRoot.querySelector('#editor-status')?.textContent).toBe(
+          'No se pudo guardar automaticamente.',
+        );
+      },
+      { timeout: 1500 },
+    );
+
+    expect(mountedApp.editor.getHTML()).toBe('<p>Contenido local intacto</p>');
+    expect(appRoot.querySelector('.editor-shell__status')?.getAttribute('data-save-status')).toBe(
+      'error',
+    );
   });
 
   it('updates the basic rendered preview when editor content changes', async () => {

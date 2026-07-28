@@ -512,18 +512,24 @@ Objetivo medible: el editor guarda cambios de forma automatica, informa estado y
 
 > Dependencia: requiere Fase 1.7 para persistencia manual y Fase 1.5.1 para cleanup de debounce/timers.
 
-- [ ] Implementar `debounce.ts`.
+- [x] Implementar `debounce.ts`.
   - Criterio: recibe funcion y delay, devuelve funcion debounced tipada.
-- [ ] Implementar `autosave.service.ts`.
+  - Nota: la utilidad tipada conserva los argumentos de la ultima invocacion y permite cancelar el timer; cuenta con pruebas de debounce y cancelacion.
+- [x] Implementar `autosave.service.ts`.
   - Criterio: guarda cambios con debounce configurable entre 800 y 1500 ms.
-- [ ] Integrar autosave con cambios del editor.
+  - Nota: `createAutosaveService` valida el rango, expone estados, permite flush/cancel y serializa las operaciones de guardado.
+- [x] Integrar autosave con cambios del editor.
   - Criterio: cambios de contenido disparan guardado automatico sin saturar requests.
-- [ ] Mantener guardado manual.
+  - Nota: `mountEditorApp` agenda el contenido mas reciente con la configuracion de `EditorConfig` y cancela el servicio al desmontar.
+- [x] Mantener guardado manual.
   - Criterio: boton guardar fuerza persistencia inmediata aunque exista autosave.
-- [ ] Mostrar estado visual de autosave.
+  - Nota: el boton Guardar hace flush del autosave pendiente y cancela el timer para evitar una segunda request.
+- [x] Mostrar estado visual de autosave.
   - Criterio: `Guardando`, `Guardado`, `Error` y `Cambios pendientes` se actualizan correctamente.
-- [ ] Evitar condiciones de carrera entre guardados.
+  - Nota: el shell incorpora el estado `pending` con la etiqueta `Cambios pendientes`; errores automaticos conservan el contenido actual.
+- [x] Evitar condiciones de carrera entre guardados.
   - Criterio: una respuesta antigua no sobrescribe el estado de un guardado mas reciente.
+  - Nota: el servicio no ejecuta guardados simultaneos y solo marca `saved` cuando la revision completada coincide con la ultima revision solicitada.
 - [ ] Implementar cliente para versiones.
   - Criterio: existen funciones para listar, crear y recuperar versiones.
 - [ ] Crear version manual o al publicar.

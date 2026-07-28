@@ -95,5 +95,17 @@ describe('editor model validation', () => {
       documentId: 'doc-1',
       initialMode: 'wysiwyg',
     });
+    expect(() =>
+      parseEditorConfig({
+        documentId: 'doc-1',
+        autosave: { enabled: true, debounceMs: 799 },
+        imageLimits: {
+          maxSizeBytes: 1024,
+          allowedMimeTypes: ['image/png'],
+        },
+        placeholder: 'Escribe...',
+        initialMode: 'wysiwyg',
+      }),
+    ).toThrow();
   });
 });
