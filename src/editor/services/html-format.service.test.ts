@@ -13,6 +13,19 @@ describe('formatHtmlSource', () => {
     });
   });
 
+  it('keeps inline formatting tags readable instead of splitting closing tags', async () => {
+    const result = await formatHtmlSource(
+      '<h1><span style="color: rgb(0, 0, 0);"><strong>Documento de ejemplo</strong></span></h1>',
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      html: '<h1>\n  <span style="color: rgb(0, 0, 0);"><strong>Documento de ejemplo</strong></span>\n</h1>\n',
+      error: null,
+    });
+    expect(result.html).not.toContain('</span\n');
+  });
+
   it('reports format errors without changing the original HTML', async () => {
     const originalHtml = '<div><span></div></span>';
 

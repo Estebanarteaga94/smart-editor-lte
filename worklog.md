@@ -6170,6 +6170,38 @@ Correccion posterior:
 - Resultado medido en viewport 1440x900: WYSIWYG, HTML, JSON y preview ocupan 1425x814 px entre la toolbar y la barra de estado.
 - Resultado medido en viewport movil 390x844: las cuatro vistas ocupan 375x688 px.
 
+## 2026-07-28 - Plegado de codigo e iconos de vistas fuente
+
+Objetivo:
+
+- Diferenciar visualmente HTML, JSON y formateo.
+- Permitir plegar y desplegar secciones de codigo.
+- Mejorar la legibilidad del HTML formateado.
+
+Acciones realizadas:
+
+- HTML conserva el icono `</>`, JSON usa `{}` y el formateador HTML usa el glifo Fontello `magic`.
+- CodeMirror incorpora gutter de plegado y atajos de plegado para HTML y JSON.
+- El formateador HTML usa 100 columnas para evitar cierres de elementos inline partidos como `</span` seguido de `>` en otra linea, preservando la sensibilidad semantica de espacios de HTML.
+- Se agregaron regresiones para los iconos, plegado/desplegado en ambos lenguajes y el caso de `span`/`strong` reportado.
+
+Archivos modificados:
+
+- `src/editor/components/source-view.ts`
+- `src/editor/components/source-view.test.ts`
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/editor/services/html-format.service.ts`
+- `src/editor/services/html-format.service.test.ts`
+- `tasks.md`
+- `worklog.md`
+
+Verificacion:
+
+- `npm test -- src/editor/services/html-format.service.test.ts src/editor/components/source-view.test.ts src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts`: 4 archivos y 62 pruebas correctas.
+- `npm run build` y `npm run lint`: correctos; Vite conserva la advertencia no bloqueante de bundle mayor a 500 kB.
+- En Chromium, la vista JSON mostro controles `Fold line` para las estructuras plegables.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:

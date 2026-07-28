@@ -1,8 +1,13 @@
 import { html } from '@codemirror/lang-html';
 import { json } from '@codemirror/lang-json';
-import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import {
+  defaultHighlightStyle,
+  foldGutter,
+  foldKeymap,
+  syntaxHighlighting,
+} from '@codemirror/language';
 import { EditorState, type Extension } from '@codemirror/state';
-import { EditorView, lineNumbers } from '@codemirror/view';
+import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 
 import {
   validateSourceJsonContent,
@@ -43,6 +48,8 @@ export function createSourceEditorExtensions(
   const languageExtension = options.language === 'html' ? html() : json();
   const extensions: Extension[] = [
     lineNumbers(),
+    foldGutter(),
+    keymap.of(foldKeymap),
     EditorView.lineWrapping,
     EditorView.contentAttributes.of({
       'data-language': options.language,

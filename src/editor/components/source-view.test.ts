@@ -1,6 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
+import { foldCode, foldedRanges, unfoldCode } from '@codemirror/language';
 import { EditorView } from '@codemirror/view';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -70,6 +71,42 @@ describe('source view CodeMirror configuration', () => {
 
     view.destroy();
   });
+
+  it.each([
+    {
+      language: 'html' as const,
+      value: '<section>\n  <div>\n    <p>Contenido</p>\n  </div>\n</section>',
+    },
+    {
+      language: 'json' as const,
+      value: '{\n  "document": {\n    "title": "Documento"\n  }\n}',
+    },
+  ])(
+    'allows folding and unfolding $language sections from CodeMirror',
+    async ({ language, value }) => {
+      const view = mountSourceEditor(value, language);
+
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+
+      expect(document.querySelector('.cm-foldGutter')).toBeInstanceOf(HTMLElement);
+      expect(foldCode(view)).toBe(true);
+
+      let foldedCount = 0;
+      foldedRanges(view.state).between(0, view.state.doc.length, () => {
+        foldedCount += 1;
+      });
+      expect(foldedCount).toBe(1);
+      expect(unfoldCode(view)).toBe(true);
+
+      foldedCount = 0;
+      foldedRanges(view.state).between(0, view.state.doc.length, () => {
+        foldedCount += 1;
+      });
+      expect(foldedCount).toBe(0);
+
+      view.destroy();
+    },
+  );
 
   it('emits changes through the configured update listener', () => {
     const onChange = vi.fn();

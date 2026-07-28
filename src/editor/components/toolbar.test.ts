@@ -190,7 +190,7 @@ describe('createToolbar', () => {
     expect(sourceJsonButton).not.toBeNull();
     expect(sourceJsonButton?.getAttribute('aria-label')).toBe('Alternar vista JSON');
     expect(sourceJsonButton?.getAttribute('aria-pressed')).toBe('false');
-    expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0f6');
+    expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('{}');
     expect(sourceJsonButton?.disabled).toBe(true);
     expect(previewButton).not.toBeNull();
     expect(previewButton?.getAttribute('aria-label')).toBe('Alternar vista previa');
@@ -204,6 +204,7 @@ describe('createToolbar', () => {
     expect(fullscreenButton?.disabled).toBe(true);
     expect(formatHtmlButton).not.toBeNull();
     expect(formatHtmlButton?.getAttribute('aria-label')).toBe('Formatear HTML fuente');
+    expect(formatHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0d0');
     expect(formatHtmlButton?.hidden).toBe(true);
     expect(formatHtmlButton?.disabled).toBe(true);
     expect(toolbar.element.querySelector('[data-toolbar-action="image-dimensions"]')).toBeNull();
@@ -374,7 +375,7 @@ describe('createToolbar', () => {
     expect(sourceHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('</>');
     expect(sourceJsonButton).not.toBeNull();
     expect(sourceJsonButton?.disabled).toBe(false);
-    expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0f6');
+    expect(sourceJsonButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('{}');
     expect(previewButton).not.toBeNull();
     expect(previewButton?.disabled).toBe(false);
     expect(previewButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\ue825');
@@ -394,7 +395,7 @@ describe('createToolbar', () => {
     toolbar.updateState();
     expect(onTogglePreview).toHaveBeenCalledTimes(2);
     expect(previewButton?.getAttribute('aria-pressed')).toBe('false');
-    expect(formatHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('{}');
+    expect(formatHtmlButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\uf0d0');
 
     if (blockFormatSelect) {
       blockFormatSelect.value = 'heading-6';

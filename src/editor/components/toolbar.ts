@@ -246,7 +246,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'source-json',
     label: 'JSON',
-    icon: '\uf0f6',
+    icon: '{}',
     ariaLabel: 'Alternar vista JSON',
     pressed: true,
   },
@@ -268,7 +268,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'format-html',
     label: 'Formatear',
-    icon: '{}',
+    icon: '\uf0d0',
     ariaLabel: 'Formatear HTML fuente',
   },
   {

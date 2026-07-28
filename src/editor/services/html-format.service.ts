@@ -22,6 +22,7 @@ export async function formatHtmlSource(html: string): Promise<HtmlFormatResult> 
     const formattedHtml = await prettier.format(html, {
       parser: 'html',
       plugins: [htmlPlugin],
+      printWidth: 100,
     });
 
     return {
