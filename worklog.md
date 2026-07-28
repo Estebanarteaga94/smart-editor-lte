@@ -6320,6 +6320,10 @@ Pendientes inmediatos:
 
 - Iniciar Fase 9 revisando la implementacion actual de sanitizacion y cerrando sus criterios pendientes.
 
+Decision Git:
+
+- Commit creado: `8fea4e2 Completar contratos y clientes API`.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:
