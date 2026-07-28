@@ -6153,6 +6153,10 @@ Pendientes inmediatos:
   flujo de aceptar, rechazar o comparar sugerencias.
 - Continuar con la primera tarea pendiente de Fase 9.
 
+Decision Git:
+
+- Commit creado: `2102604 Agregar secciones para asistencia de agentes`.
+
 ## 2026-07-28 - Estado visual de pantalla completa
 
 Objetivo:
