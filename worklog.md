@@ -6285,6 +6285,41 @@ Decision Git:
 
 - Commit creado: `cf2b685 Agregar historial de versiones`.
 
+## 2026-07-28 - Contratos y clientes HTTP de Fase 8
+
+Objetivo:
+
+- Completar los contratos frontend, clientes HTTP, errores centralizados y documentacion de backend.
+
+Acciones realizadas:
+
+- Se agregaron contratos de request/response para CRUD de documentos, versiones y assets.
+- `createHttpDocumentsApi` implementa crear, obtener, actualizar y eliminar, y compone listar, crear y restaurar versiones.
+- Los payloads salientes y las respuestas entrantes pasan por schemas canonicos antes de usarse.
+- Documentos, versiones y assets comparten `HttpApiError`, con operacion, status y body diagnostico.
+- `context.md` documenta rutas, metodos, payloads, responses, codificacion de IDs, tablas, relaciones, indices y restricciones.
+- Se agregaron pruebas de CRUD, endpoints codificados, contratos invalidos y errores estructurados.
+
+Archivos principales:
+
+- `src/api/api-contracts.ts`
+- `src/api/http-error.ts`
+- `src/api/documents.api.ts`
+- `src/api/versions.api.ts`
+- `src/api/assets.api.ts`
+- Pruebas asociadas, `context.md`, `tasks.md` y `worklog.md`.
+
+Verificacion:
+
+- `npm run build`: correcto.
+- `npm run lint`: correcto.
+- Pruebas API focalizadas: 4 archivos y 11 pruebas correctas.
+- Vite conserva la advertencia no bloqueante del bundle principal mayor a 500 kB.
+
+Pendientes inmediatos:
+
+- Iniciar Fase 9 revisando la implementacion actual de sanitizacion y cerrando sus criterios pendientes.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:

@@ -301,9 +301,27 @@ PUT /api/documents/{id}
 DELETE /api/documents/{id}
 GET /api/documents/{id}/versions
 POST /api/documents/{id}/versions
+POST /api/documents/{id}/versions/{versionId}/restore
 POST /api/documents/{id}/assets/images
 DELETE /api/documents/{id}/assets/{assetId}
 ```
+
+Contratos de rutas:
+
+| Metodo   | Ruta                                               | Request                                               | Response                   |
+| -------- | -------------------------------------------------- | ----------------------------------------------------- | -------------------------- |
+| `POST`   | `/api/documents`                                   | `CreateDocumentRequest`                               | `EditorDocument`           |
+| `GET`    | `/api/documents/{id}`                              | Sin body                                              | `EditorDocument`           |
+| `PUT`    | `/api/documents/{id}`                              | `UpdateDocumentRequest`                               | `EditorDocument`           |
+| `DELETE` | `/api/documents/{id}`                              | Sin body                                              | `204` sin body             |
+| `GET`    | `/api/documents/{id}/versions`                     | Sin body                                              | `EditorVersion[]`          |
+| `POST`   | `/api/documents/{id}/versions`                     | `CreateVersionRequest`                                | `EditorVersion`            |
+| `POST`   | `/api/documents/{id}/versions/{versionId}/restore` | Sin body                                              | `EditorVersion` restaurada |
+| `POST`   | `/api/documents/{id}/assets/images`                | `multipart/form-data` con `file` y `altText` opcional | `EditorAsset`              |
+| `DELETE` | `/api/documents/{id}/assets/{assetId}`             | Sin body                                              | `204` sin body             |
+
+Todos los identificadores de ruta deben codificarse. Los clientes validan requests y responses,
+y convierten cualquier respuesta no OK en `HttpApiError` con operacion, status y body diagnostico.
 
 Payload base para guardar:
 
@@ -331,6 +349,16 @@ Campos clave:
 - Documento: id, title, content_json, content_html, status, created_by, created_at, updated_at.
 - Version: id, document_id, version_number, content_json, content_html, created_by, created_at.
 - Asset: id, document_id, file_name, mime_type, url, size, alt_text, created_by, created_at.
+
+Restricciones e indices recomendados:
+
+- `documents.status`: `draft`, `published` o `archived`.
+- `document_versions`: `UNIQUE (document_id, version_number)` e indice por
+  `(document_id, created_at DESC)`.
+- `document_assets`: indice por `(document_id, created_at DESC)` y `size >= 0`.
+- `document_versions.document_id` y `document_assets.document_id` referencian `documents.id`
+  con politica de borrado definida por el backend.
+- `content_json` es la fuente canonica; `content_html` es una proyeccion sanitizada.
 
 ## Seguridad
 

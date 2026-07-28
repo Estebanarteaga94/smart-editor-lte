@@ -549,22 +549,30 @@ Objetivo medible: el frontend consume contratos claros y el backend esperado que
 
 > Dependencia: requiere modelos de Fase 1.3, persistencia de Fase 1.7 y assets de Fase 4 para validar contratos reales.
 
-- [ ] Definir contratos TypeScript para documentos.
+- [x] Definir contratos TypeScript para documentos.
   - Criterio: payloads de crear, actualizar, obtener y eliminar documento estan tipados.
-- [ ] Definir contratos TypeScript para versiones.
+  - Nota: `api-contracts.ts` tipa requests y responses CRUD; los writes se validan tambien con Zod antes de enviar.
+- [x] Definir contratos TypeScript para versiones.
   - Criterio: payloads de listar, crear y recuperar version estan tipados.
-- [ ] Definir contratos TypeScript para assets.
+  - Nota: los contratos reutilizan `CreateEditorVersionPayload` y `EditorVersion` validados.
+- [x] Definir contratos TypeScript para assets.
   - Criterio: subida y eliminacion de imagenes estan tipadas.
-- [ ] Implementar `documents.api.ts`.
+  - Nota: `UploadImageRequest/Response` y `DeleteAssetResponse` formalizan multipart y eliminacion.
+- [x] Implementar `documents.api.ts`.
   - Criterio: contiene `create`, `get`, `update`, `delete`, `listVersions`, `createVersion`, `restoreVersion`.
-- [ ] Implementar `assets.api.ts`.
+  - Nota: `createHttpDocumentsApi` implementa CRUD validado y compone todas las operaciones de `VersionsApi`.
+- [x] Implementar `assets.api.ts`.
   - Criterio: contiene `uploadImage` y `deleteAsset`.
-- [ ] Centralizar manejo de errores HTTP.
+  - Nota: el cliente existente queda alineado con contratos compartidos y cubierto para upload/delete.
+- [x] Centralizar manejo de errores HTTP.
   - Criterio: respuestas no OK generan errores claros para UI y logs.
-- [ ] Documentar endpoints minimos.
+  - Nota: `HttpApiError` centraliza operacion, status y cuerpo diagnostico para documentos, versiones y assets.
+- [x] Documentar endpoints minimos.
   - Criterio: `context.md` o documento tecnico lista rutas, metodos y payloads.
-- [ ] Documentar esquema de base de datos sugerido.
+  - Nota: `context.md` incluye tabla de metodos, rutas, requests, responses y reglas de identificadores.
+- [x] Documentar esquema de base de datos sugerido.
   - Criterio: quedan tablas `documents`, `document_versions` y `document_assets` con campos esperados.
+  - Nota: se documentan campos, relaciones, unicidad, indices, estados y fuente canonica.
 
 ## Fase 9 - Seguridad
 

@@ -1,9 +1,14 @@
-import type { EditorAsset } from '../editor/models/editor-asset';
 import { parseEditorAsset } from '../editor/models/editor-asset';
+import type { DeleteAssetResponse, UploadImageRequest, UploadImageResponse } from './api-contracts';
+import { assertHttpResponse } from './http-error';
 
 export interface AssetsApi {
-  uploadImage(documentId: string, file: File, altText?: string): Promise<EditorAsset>;
-  deleteAsset(documentId: string, assetId: string): Promise<void>;
+  uploadImage(
+    documentId: string,
+    file: UploadImageRequest['file'],
+    altText?: UploadImageRequest['altText'],
+  ): Promise<UploadImageResponse>;
+  deleteAsset(documentId: string, assetId: string): Promise<DeleteAssetResponse>;
 }
 
 export interface AssetsApiOptions {
@@ -33,9 +38,7 @@ export function createHttpAssetsApi(options: AssetsApiOptions = {}): AssetsApi {
         body,
       });
 
-      if (!response.ok) {
-        throw new Error(`Image upload failed with status ${response.status}`);
-      }
+      await assertHttpResponse(response, 'Image upload');
 
       return parseEditorAsset(await response.json());
     },
@@ -44,9 +47,7 @@ export function createHttpAssetsApi(options: AssetsApiOptions = {}): AssetsApi {
         method: 'DELETE',
       });
 
-      if (!response.ok) {
-        throw new Error(`Asset delete failed with status ${response.status}`);
-      }
+      await assertHttpResponse(response, 'Asset delete');
     },
   };
 }

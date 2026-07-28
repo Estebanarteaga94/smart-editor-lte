@@ -5,6 +5,7 @@ import {
   type CreateEditorVersionPayload,
   type EditorVersion,
 } from '../editor/models/editor-version';
+import { assertHttpResponse } from './http-error';
 
 export interface VersionsApi {
   listVersions(documentId: string): Promise<EditorVersion[]>;
@@ -30,7 +31,7 @@ export function createHttpVersionsApi(options: VersionsApiOptions = {}): Version
       const response = await fetchApi(versionsUrl(baseUrl, documentId), {
         headers: { Accept: 'application/json' },
       });
-      assertOk(response, 'Version list');
+      await assertHttpResponse(response, 'Version list');
       return parseEditorVersions(await response.json());
     },
     async createVersion(documentId, payload) {
@@ -39,7 +40,7 @@ export function createHttpVersionsApi(options: VersionsApiOptions = {}): Version
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parseCreateEditorVersionPayload(payload)),
       });
-      assertOk(response, 'Version creation');
+      await assertHttpResponse(response, 'Version creation');
       return parseEditorVersion(await response.json());
     },
     async restoreVersion(documentId, versionId) {
@@ -47,7 +48,7 @@ export function createHttpVersionsApi(options: VersionsApiOptions = {}): Version
         `${versionsUrl(baseUrl, documentId)}/${encodeURIComponent(versionId)}/restore`,
         { method: 'POST' },
       );
-      assertOk(response, 'Version restore');
+      await assertHttpResponse(response, 'Version restore');
       return parseEditorVersion(await response.json());
     },
   };
@@ -92,12 +93,6 @@ function storageKey(documentId: string): string {
 
 function versionsUrl(baseUrl: string, documentId: string): string {
   return `${baseUrl}/api/documents/${encodeURIComponent(documentId)}/versions`;
-}
-
-function assertOk(response: Response, operation: string): void {
-  if (!response.ok) {
-    throw new Error(`${operation} failed with status ${response.status}`);
-  }
 }
 
 function createVersionId(): string {
