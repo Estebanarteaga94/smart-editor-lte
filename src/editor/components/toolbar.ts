@@ -261,7 +261,7 @@ const toolbarButtons: readonly ToolbarButtonConfig[] = [
   {
     id: 'fullscreen',
     label: 'Pantalla completa',
-    icon: '\ue830',
+    icon: '\ue84d',
     ariaLabel: 'Alternar pantalla completa',
     pressed: true,
   },

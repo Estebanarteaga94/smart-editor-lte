@@ -90,7 +90,24 @@ textarea {
 }
 
 .editor-app.editor-shell--fullscreen .editor-shell__body {
+  display: flex;
+  flex-direction: column;
   overflow: auto;
+}
+
+.editor-app.editor-shell--fullscreen .editor-shell__editable,
+.editor-app.editor-shell--fullscreen .editor-shell__source,
+.editor-app.editor-shell--fullscreen .editor-shell__body > .editor-preview {
+  flex: 1 0 auto;
+  min-height: 100%;
+}
+
+.editor-app.editor-shell--fullscreen .editor-shell__editable .tiptap,
+.editor-app.editor-shell--fullscreen .editor-source-view,
+.editor-app.editor-shell--fullscreen .editor-source-view .cm-editor,
+.editor-app.editor-shell--fullscreen .editor-source-view .cm-scroller,
+.editor-app.editor-shell--fullscreen .editor-preview {
+  min-height: 100%;
 }
 
 .editor-app.editor-shell--fullscreen .editor-shell__editable .tiptap,

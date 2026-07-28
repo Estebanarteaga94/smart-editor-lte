@@ -200,6 +200,7 @@ describe('createToolbar', () => {
     expect(fullscreenButton).not.toBeNull();
     expect(fullscreenButton?.getAttribute('aria-label')).toBe('Alternar pantalla completa');
     expect(fullscreenButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(fullscreenButton?.querySelector('.editor-shell__tool-icon')?.textContent).toBe('\ue84d');
     expect(fullscreenButton?.disabled).toBe(true);
     expect(formatHtmlButton).not.toBeNull();
     expect(formatHtmlButton?.getAttribute('aria-label')).toBe('Formatear HTML fuente');

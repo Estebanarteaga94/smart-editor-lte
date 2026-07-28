@@ -6141,6 +6141,28 @@ Decision Git:
 
 - Commit creado: `6f8bbcd Implementar pantalla completa del editor`.
 
+## 2026-07-28 - Ajuste visual de pantalla completa
+
+Objetivo:
+
+- Corregir el icono y hacer que la superficie activa del editor ocupe el alto disponible en fullscreen.
+
+Acciones realizadas:
+
+- Se sustituyo el glifo `export` por `resize-full` de Fontello.
+- En fullscreen, WYSIWYG, fuente HTML/JSON y preview crecen a la altura disponible; el contenido conserva un ancho de lectura centrado y la superficie de edicion deja de quedar limitada a su alto minimo normal.
+
+Archivos modificados:
+
+- `src/editor/components/toolbar.ts`
+- `src/editor/components/toolbar.test.ts`
+- `src/style.css`
+
+Verificacion:
+
+- `npm test -- src/editor/components/toolbar.test.ts src/editor/editor-app.test.ts src/editor/components/fullscreen.test.ts`: 3 archivos y 52 pruebas correctas.
+- `npm run build` y `npm run lint`: correctos; Vite conserva la advertencia no bloqueante de bundle mayor a 500 kB.
+
 ## 2026-07-13 - Pegado extenso con imagenes enlazadas y base64
 
 Objetivo:
