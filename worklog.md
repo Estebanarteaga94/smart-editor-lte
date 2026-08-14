@@ -6150,7 +6150,7 @@ Acciones realizadas:
 - La API de montaje admite `embedded` y `onChange`; el modo embebido oculta el encabezado demo y usa variables CSS para alto, minimo y maximo.
 - Se aislaron de la hoja de la libreria los estilos globales de `body` y `#app`, que ahora pertenecen solo a la demo.
 - El `SmartEditorComponent` de Vitraya importa `mountEditorApp`, usa `setHtml` y comandos Tiptap, implementa lectura/escritura de Angular Forms y libera `lifecycle` al desmontarse.
-- Vitraya carga el CSS del paquete desde `angular.json` y declara una dependencia local al `dist`; ya no copia ni carga el UMD antiguo para este componente.
+- Vitraya carga el CSS del paquete desde `angular.json` y declara una dependencia local al `dist`; este componente ya no carga el UMD antiguo ni requiere una regla especifica para copiarlo desde `node_modules`.
 - No se intento conservar nombres de archivos ni metodos globales antiguos. La configuracion de autocompletado se mantiene en el contrato Angular, pero queda inactiva hasta que la libreria nueva exponga esa capacidad.
 
 Archivos principales:
