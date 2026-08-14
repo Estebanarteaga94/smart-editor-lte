@@ -6190,6 +6190,36 @@ Decision Git:
 - Ajuste posterior de dependencias: `5abed78 Alinear dependencias Tiptap publicadas`.
 - Los cambios de integracion en Vitraya no se confirmaron porque ese repositorio contiene numerosos cambios ajenos en curso; permanecen limitados a su componente, `angular.json` y `package.json`.
 
+## 2026-08-14 - Carga de HTML persistido en Vitraya
+
+Objetivo:
+
+- Corregir `cargar-documento/{id}`, donde los campos `texteditor` mostraban el documento demo en lugar del HTML consultado mediante `GetDocumentoValorCampo`.
+
+Diagnostico:
+
+- La ruta y la consulta asignaban `res.data.valor` correctamente al modelo.
+- El montaje sin documento en storage inicializaba siempre el contenido de demostracion de la aplicacion.
+- El componente Angular aceptaba callbacks de cambio mientras todavia estaba aplicando el valor inicial, permitiendo que un estado interno prematuro reemplazara el `ngModel` consultado.
+
+Acciones realizadas:
+
+- Los montajes `embedded` sin documento persistido ahora comienzan vacios; la aplicacion demo conserva su ejemplo inicial.
+- `SmartEditorComponent` ignora cambios internos hasta aplicar el HTML recibido por Angular Forms.
+- La prueba de integracion comprueba que el editor embebido no contiene el ejemplo y que `setHtml` aplica y notifica el HTML del consumidor.
+- Se regenero `dist` y se actualizo la copia local instalada en Vitraya.
+
+Verificacion:
+
+- Prueba focalizada de `mountEditorApp`: correcta.
+- `npm run build:lib`: correcto.
+- `tsc -p tsconfig.app.json --noEmit` en Vitraya: correcto.
+- `npm run check`: correcto; build, lint, 39 archivos y 275 pruebas correctas.
+
+Pendientes inmediatos:
+
+- Verificar en navegador contra un documento real del entorno conectado a la base de datos.
+
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
 Objetivo:

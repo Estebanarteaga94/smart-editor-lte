@@ -164,7 +164,8 @@ export async function mountEditorApp({
   const editor = createWysiwygEditor({
     element: shell.editable,
     initialContent:
-      loadedDocument?.contentJson ?? createDefaultDocumentContent(activeDocumentTitle),
+      loadedDocument?.contentJson ??
+      (embedded ? '' : createDefaultDocumentContent(activeDocumentTitle)),
     placeholder,
     pasteNormalizer: activePasteNormalizer,
     pasteContentSafety: activePasteContentSafety,

@@ -43,7 +43,10 @@ describe('mountEditorApp', () => {
     });
     mountedApps.add(mountedApp);
 
-    mountedApp.editor.commands.setContent('<p>Contenido Angular</p>');
+    expect(mountedApp.editor.getText()).toBe('');
+    expect(appRoot.textContent).not.toContain('Documento de ejemplo');
+
+    expect(mountedApp.setHtml('<p>Contenido Angular</p>')).toMatchObject({ ok: true });
 
     expect(appRoot.querySelector('.editor-app')?.classList.contains('editor-app--embedded')).toBe(
       true,

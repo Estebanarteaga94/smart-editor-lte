@@ -753,6 +753,9 @@ Estas tareas no bloquean la primera version, pero deben quedar visibles para no 
 - [x] Verificar la integracion real con el componente Angular de Vitraya.
   - Criterio: `SmartEditorComponent` importa el paquete, monta sobre un `div`, implementa `ControlValueAccessor`, libera el ciclo de vida y compila con Angular 18.
   - Nota: Vitraya declara temporalmente la dependencia local `file:../../typescript/smart-editor-lte/dist`; el autocompletado de la version antigua queda pendiente porque la API nueva aun no ofrece esa extension.
+- [x] Evitar que el contenido demo reemplace HTML persistido en consumidores embebidos.
+  - Criterio: un montaje con `embedded: true` inicia vacio cuando el storage no devuelve documento y permite que Angular aplique el valor consultado sin recibir primero un cambio con contenido de ejemplo.
+  - Nota: el componente Angular ignora callbacks del editor hasta terminar de aplicar su valor inicial.
 
 - [ ] El proyecto queda documentado y ejecutado como Vite + TypeScript `vanilla-ts`, sin framework frontend.
 - [ ] Los modulos visuales vanilla TypeScript tienen ciclo de vida de montaje y desmontaje.
