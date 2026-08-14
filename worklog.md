@@ -6236,6 +6236,7 @@ Acciones realizadas:
 - El modo legado transforma `<font color>` en `span` con color canonico, conserva sus nodos hijos y sanitiza etiquetas, eventos, URL, estilos y atributos no permitidos.
 - Un resultado aplicado puede incluir `warnings`; la sanitizacion deja de presentarse como error bloqueante.
 - `SmartEditorComponent` usa el modo legado al recibir HTML y expone `editorWarning` separado de `editorError`.
+- Cuando hubo adaptaciones, `SmartEditorComponent` reemplaza el valor de `ngModel` por el HTML canonico aplicado para que un guardado posterior migre el contenido y no vuelva a persistir la entrada insegura.
 - `cargar-documento/{id}` agrupa las advertencias de todos los editores durante 300 ms y muestra una sola alerta con el numero de campos adaptados.
 - Se agregaron pruebas del servicio y de la API publica con `<font>`, color, evento inline y script.
 
