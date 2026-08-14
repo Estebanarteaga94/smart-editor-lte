@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { isSafeImageSource, isSafeLinkHref } from '../utils/safe-url';
+import { isSafeCanonicalImageSource, isSafeLinkHref } from '../utils/safe-url';
 import {
   invalidSourceJsonSchemaMessage,
   invalidSourceJsonSyntaxMessage,
@@ -99,7 +99,10 @@ const imageAttrsSchema = z
     src: z
       .string()
       .min(1)
-      .refine(isSafeImageSource, 'Image source must use http, https, blob or a relative URL'),
+      .refine(
+        isSafeCanonicalImageSource,
+        'Image source must use http, https, blob, a relative URL or a supported Base64 image',
+      ),
     alt: z.string().nullable().optional(),
     title: z.string().nullable().optional(),
     width: dimensionSchema,

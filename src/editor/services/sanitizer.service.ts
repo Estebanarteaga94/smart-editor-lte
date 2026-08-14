@@ -6,7 +6,10 @@ export interface SanitizerService {
   sanitizeHtml(html: string): string;
 }
 
-const allowedUriPattern = /^(?:(?:https?|mailto):|\/(?!\/)|#|\.{1,2}\/)/i;
+const allowedUriPattern =
+  /^(?:(?:https?|mailto):\S*|\/(?!\/)\S*|#\S*|\.{1,2}\/\S*|(?![a-z][a-z0-9+.-]*:)(?!\/\/)[^\\\s]+)$/i;
+const importedHtmlAllowedUriPattern =
+  /^(?:(?:https?|mailto):\S*|\/(?!\/)\S*|#\S*|\.{1,2}\/\S*|(?![a-z][a-z0-9+.-]*:)(?!\/\/)[^\\\s]+|data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/]+={0,2})$/i;
 const blobUriPattern = /^blob:/i;
 const tableCellSpanAttrs = new Set(['colspan', 'rowspan']);
 const tableCellWidthAttrs = new Set(['colwidth']);
@@ -44,13 +47,10 @@ DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
     return;
   }
 
-  if (
-    node instanceof HTMLImageElement &&
-    data.attrName === 'align' &&
-    imageAlignments.has(data.attrValue)
-  ) {
-    data.keepAttr = true;
-    data.forceKeepAttr = true;
+  if (node instanceof HTMLImageElement && data.attrName === 'align') {
+    const validAlignment = imageAlignments.has(data.attrValue);
+    data.keepAttr = validAlignment;
+    data.forceKeepAttr = validAlignment;
     return;
   }
 
@@ -82,6 +82,13 @@ DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
 
 export function sanitizeHtml(html: string): string {
   return DOMPurify.sanitize(html, editorSanitizerConfig);
+}
+
+export function sanitizeImportedHtml(html: string): string {
+  return DOMPurify.sanitize(html, {
+    ...editorSanitizerConfig,
+    ALLOWED_URI_REGEXP: importedHtmlAllowedUriPattern,
+  });
 }
 
 export function createSanitizerService(): SanitizerService {

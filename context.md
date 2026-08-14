@@ -281,6 +281,66 @@ Decision sobre importacion y exportacion HTML con imagenes:
 - Si una imagen no se puede resolver, la exportacion completa falla: no se devuelve HTML parcialmente autocontenido.
 - Base64 aumenta el payload aproximadamente un tercio antes de contar el HTML que lo contiene; deben mantenerse limites de imagen y documentarse limites de exportacion.
 
+API publica implementada:
+
+```ts
+type SetHtmlResult =
+  | { ok: true; code: 'applied'; html: string }
+  | {
+      ok: false;
+      code: 'empty-html' | 'unsafe-content' | 'unsupported-schema';
+      message: string;
+    };
+
+editorApp.setHtml(html: string): SetHtmlResult;
+editorApp.getHtmlWithBase64Images(options?: {
+  signal?: AbortSignal;
+}): Promise<string>;
+```
+
+La configuracion del montaje permite resolver rutas del backend, inyectar un
+`fetch` autenticado, agregar opciones comunes de request y ajustar limites:
+
+```ts
+const editorApp = await mountEditorApp({
+  app,
+  htmlBase64Export: {
+    baseUrl: 'https://api.example.com/documents/123/',
+    fetch: authenticatedFetch,
+    requestInit: { credentials: 'include' },
+    maxImageBytes: 10 * 1024 * 1024,
+    concurrency: 4,
+  },
+});
+
+const imported = editorApp.setHtml(htmlFromBackend);
+
+if (imported.ok) {
+  const controller = new AbortController();
+  const portableHtml = await editorApp.getHtmlWithBase64Images({
+    signal: controller.signal,
+  });
+}
+```
+
+`HtmlBase64ExportError` identifica `aborted`, `invalid-source`, `http-error`,
+`network-error`, `unsupported-mime` y `size-limit`, e incluye la fuente original
+en `source` y el error subyacente en `cause` cuando existe. Los errores HTTP,
+CORS/red, MIME, limite o cancelacion rechazan toda la operacion.
+
+Por defecto se procesan hasta cuatro fuentes distintas en paralelo y se aceptan
+hasta 10 MiB por imagen. Una misma URL se descarga una sola vez por llamada. El
+Base64 aumenta los bytes de la imagen aproximadamente 33 %, ademas del HTML, por
+lo que esta salida debe solicitarse bajo demanda y no reemplaza el guardado
+normal. CORS, cookies o encabezados de autorizacion deben resolverse mediante el
+backend o el `fetch` inyectado.
+
+El roundtrip `setHtml(await getHtmlWithBase64Images())` esta soportado. Las URI
+Base64 solo se admiten para PNG, JPEG y WebP validos en `img[src]`; no se habilita
+el protocolo `data:` en links ni en otros atributos. Importar esa copia hace que
+el Base64 pase a ser el `src` del nuevo documento; exportarla por si sola nunca
+muta las rutas del documento existente.
+
 ### Fase 5 - Vista de codigo
 
 Incluye HTML, JSON, CodeMirror, validacion JSON, sanitizacion HTML, sincronizacion con WYSIWYG y errores amigables.

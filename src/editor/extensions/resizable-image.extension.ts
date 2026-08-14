@@ -20,7 +20,7 @@ export const ResizableImage = Image.extend<ImageOptions>({
   addOptions() {
     const parentOptions = this.parent?.() ?? {
       inline: false,
-      allowBase64: false,
+      allowBase64: true,
       HTMLAttributes: {},
       resize: false,
     };

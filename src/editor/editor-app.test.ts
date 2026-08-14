@@ -12,6 +12,7 @@ import type {
   DocumentStorageService,
 } from './services/document-storage.service';
 import type { HtmlFormatService } from './services/html-format.service';
+import type { HtmlBase64ExportService } from './services/html-base64-export.service';
 import type { MediaUploadService } from './services/media-upload.service';
 import { safeParseCanonicalEditorContent } from './models/editor-content';
 import { mountEditorApp, type MountedEditorApp } from './editor-app';
@@ -28,6 +29,174 @@ afterEach(() => {
 });
 
 describe('mountEditorApp', () => {
+  it('imports HTML through the public API without changing content on failure', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-public-html-import',
+    });
+    mountedApps.add(mountedApp);
+    mountedApp.editor.commands.setContent('<p>Contenido anterior</p>');
+
+    const result = mountedApp.setHtml(
+      '<h2>Importado</h2><p>Contenido seguro</p><img src="/assets/diagram.webp" alt="Diagrama">',
+    );
+
+    expect(result).toMatchObject({ ok: true, code: 'applied' });
+    expect(mountedApp.editor.getHTML()).toContain('<h2>Importado</h2>');
+    expect(mountedApp.editor.getJSON().content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'image',
+          attrs: expect.objectContaining({ src: '/assets/diagram.webp', alt: 'Diagrama' }),
+        }),
+      ]),
+    );
+    expect(appRoot.querySelector('.editor-preview__content')?.innerHTML).toContain(
+      '<h2>Importado</h2>',
+    );
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe('HTML importado');
+
+    const contentAfterSuccess = mountedApp.editor.getJSON();
+    const failure = mountedApp.setHtml('<img src="javascript:alert(1)">');
+
+    expect(failure).toMatchObject({ ok: false, code: 'unsafe-content' });
+    expect(mountedApp.editor.getJSON()).toEqual(contentAfterSuccess);
+
+    appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]')?.click();
+    await flushPromises();
+    expect(storageDouble.saveDocument).toHaveBeenCalledWith(
+      'doc-public-html-import',
+      expect.objectContaining({
+        contentHtml: expect.stringContaining('/assets/diagram.webp'),
+      }),
+    );
+  });
+
+  it('persists and reloads HTML imported through the public API', async () => {
+    let storedDocument: DocumentStoragePayload | null = null;
+    const storage: DocumentStorageService = {
+      loadDocument: vi.fn(() => Promise.resolve(storedDocument)),
+      saveDocument: vi.fn((_documentId, payload) => {
+        storedDocument = structuredClone(payload);
+        return Promise.resolve();
+      }),
+    };
+    const firstRoot = document.createElement('div');
+    document.body.append(firstRoot);
+    const firstApp = await mountEditorApp({
+      app: firstRoot,
+      storage,
+      documentId: 'doc-import-reload',
+    });
+    mountedApps.add(firstApp);
+
+    expect(firstApp.setHtml('<h3>Persistido</h3><img src="/assets/saved.webp">')).toMatchObject({
+      ok: true,
+    });
+    firstRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]')?.click();
+    await flushPromises();
+    firstApp.lifecycle.dispose();
+    firstRoot.remove();
+
+    const secondRoot = document.createElement('div');
+    document.body.append(secondRoot);
+    const secondApp = await mountEditorApp({
+      app: secondRoot,
+      storage,
+      documentId: 'doc-import-reload',
+    });
+    mountedApps.add(secondApp);
+
+    expect(secondApp.editor.getHTML()).toContain('<h3>Persistido</h3>');
+    expect(secondApp.editor.getHTML()).toContain('src="/assets/saved.webp"');
+  });
+
+  it('exports a Base64 HTML copy without mutating the editor and supports importing it again', async () => {
+    const appRoot = document.createElement('div');
+    const storageDouble = createStorageDouble(null);
+    const fetchImage = vi.fn().mockResolvedValue(
+      new Response(Uint8Array.from([1, 2, 3]), {
+        status: 200,
+        headers: {
+          'content-type': 'image/png',
+          'content-length': '3',
+        },
+      }),
+    );
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: storageDouble.service,
+      documentId: 'doc-public-html-export',
+      htmlBase64Export: {
+        baseUrl: 'https://api.example.test/documents/1/',
+        fetch: fetchImage,
+      },
+    });
+    mountedApps.add(mountedApp);
+    expect(
+      mountedApp.setHtml(
+        '<p>Contenido editable</p><img src="assets/image.png" alt="Original"><img src="assets/image.png" alt="Repetida">',
+      ),
+    ).toMatchObject({ ok: true });
+    mountedApp.editor.commands.setTextSelection({ from: 1, to: 10 });
+
+    const jsonBefore = mountedApp.editor.getJSON();
+    const htmlBefore = mountedApp.editor.getHTML();
+    const selectionBefore = {
+      from: mountedApp.editor.state.selection.from,
+      to: mountedApp.editor.state.selection.to,
+    };
+    const statusBefore = appRoot.querySelector('#editor-status')?.textContent;
+    const exported = await mountedApp.getHtmlWithBase64Images();
+
+    expect(fetchImage).toHaveBeenCalledTimes(1);
+    expect(exported.match(/data:image\/png;base64,AQID/g)).toHaveLength(2);
+    expect(exported).not.toContain('assets/image.png');
+    expect(mountedApp.editor.getJSON()).toEqual(jsonBefore);
+    expect(mountedApp.editor.getHTML()).toBe(htmlBefore);
+    expect(mountedApp.editor.state.selection).toMatchObject(selectionBefore);
+    expect(appRoot.querySelector('#editor-status')?.textContent).toBe(statusBefore);
+
+    expect(mountedApp.setHtml(exported)).toMatchObject({ ok: true, code: 'applied' });
+    expect(mountedApp.editor.getHTML()).toContain('data:image/png;base64,AQID');
+  });
+
+  it('cancels a public Base64 export when the editor is unmounted', async () => {
+    const appRoot = document.createElement('div');
+    const exporter: HtmlBase64ExportService = {
+      exportHtml: vi.fn(
+        (_html, options) =>
+          new Promise<string>((_resolve, reject) => {
+            options?.signal?.addEventListener(
+              'abort',
+              () => reject(new DOMException('Aborted', 'AbortError')),
+              { once: true },
+            );
+          }),
+      ),
+    };
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: createStorageDouble(null).service,
+      documentId: 'doc-cancel-html-export',
+      htmlBase64Exporter: exporter,
+    });
+    const exported = mountedApp.getHtmlWithBase64Images();
+
+    mountedApp.lifecycle.dispose();
+
+    await expect(exported).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
   it('restores an existing document from storage before mounting the editor', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble({

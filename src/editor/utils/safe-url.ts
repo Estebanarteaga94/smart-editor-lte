@@ -1,5 +1,6 @@
 export const allowedLinkProtocols = ['http:', 'https:', 'mailto:'] as const;
 export const allowedImageProtocols = ['http:', 'https:', 'blob:'] as const;
+const embeddedImagePattern = /^data:(image\/(?:png|jpeg|webp));base64,([a-z0-9+/]+={0,2})$/i;
 
 export function normalizeLinkHref(value: string): string | null {
   const trimmedValue = value.trim();
@@ -32,7 +33,46 @@ export function isSafeLinkHref(value: string): boolean {
 }
 
 export function isSafeImageSource(value: string): boolean {
-  return isSafeUrl(value, allowedImageProtocols);
+  return isSafeUrl(value, allowedImageProtocols) || isBareRelativePath(value);
+}
+
+export function isSafeCanonicalImageSource(value: string): boolean {
+  return isSafeImageSource(value) || isValidEmbeddedImageSource(value);
+}
+
+export function isSafeImportedImageSource(value: string): boolean {
+  const trimmedValue = value.trim();
+
+  if (/^blob:/i.test(trimmedValue)) {
+    return false;
+  }
+
+  return (
+    isSafeUrl(trimmedValue, ['http:', 'https:']) ||
+    isBareRelativePath(trimmedValue) ||
+    isValidEmbeddedImageSource(trimmedValue)
+  );
+}
+
+export function isValidEmbeddedImageSource(value: string): boolean {
+  const match = value.trim().match(embeddedImagePattern);
+
+  if (!match) {
+    return false;
+  }
+
+  const payload = match[2] ?? '';
+
+  if (payload.length === 0 || payload.length % 4 !== 0) {
+    return false;
+  }
+
+  try {
+    globalThis.atob(payload);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function isSafeUrl(value: string, protocols: readonly string[]): boolean {
@@ -88,5 +128,18 @@ function isRelativeUrl(value: string): boolean {
     (value.startsWith('/') && !value.startsWith('//')) ||
     value.startsWith('./') ||
     value.startsWith('../')
+  );
+}
+
+function isBareRelativePath(value: string): boolean {
+  const trimmedValue = value.trim();
+
+  return (
+    trimmedValue.length > 0 &&
+    !hasControlCharacters(trimmedValue) &&
+    !trimmedValue.includes('\\') &&
+    !trimmedValue.startsWith('//') &&
+    !hasExplicitScheme(trimmedValue) &&
+    !trimmedValue.startsWith('#')
   );
 }

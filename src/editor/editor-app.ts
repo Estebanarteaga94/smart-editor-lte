@@ -59,6 +59,13 @@ import {
   uploadEmbeddedPasteImages,
 } from './services/embedded-image-paste.service';
 import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
+import { prepareHtmlImport, type SetHtmlResult } from './services/html-import.service';
+import {
+  createHtmlBase64ExportService,
+  type HtmlBase64ExportConfig,
+  type HtmlBase64ExportOptions,
+  type HtmlBase64ExportService,
+} from './services/html-base64-export.service';
 import {
   invalidSourceHtmlSchemaMessage,
   invalidSourceJsonSchemaMessage,
@@ -78,6 +85,8 @@ export interface MountEditorAppOptions {
   placeholder?: string;
   autosave?: EditorAutosaveConfig;
   versionsApi?: VersionsApi;
+  htmlBase64Export?: HtmlBase64ExportConfig;
+  htmlBase64Exporter?: HtmlBase64ExportService;
 }
 
 export interface MountedEditorApp {
@@ -89,6 +98,8 @@ export interface MountedEditorApp {
   getSourceHtmlValue: () => string | null;
   getSourceJsonValue: () => string | null;
   setFullscreen: (enabled: boolean) => void;
+  setHtml: (html: string) => SetHtmlResult;
+  getHtmlWithBase64Images: (options?: HtmlBase64ExportOptions) => Promise<string>;
   getAgentSections: () => AgentSection[];
 }
 
@@ -107,6 +118,8 @@ export async function mountEditorApp({
   placeholder = defaultEditorConfig.placeholder,
   autosave: autosaveConfig = defaultEditorConfig.autosave,
   versionsApi = createLocalVersionsApi(),
+  htmlBase64Export,
+  htmlBase64Exporter,
 }: MountEditorAppOptions): Promise<MountedEditorApp> {
   const activePasteNormalizer = pasteNormalizer ?? createPasteNormalizerService();
   const activePasteContentSafety = pasteContentSafety ?? createPasteContentSafetyService(sanitizer);
@@ -114,6 +127,10 @@ export async function mountEditorApp({
     saveStatus: 'unchanged',
   });
   const lifecycle = createEditorLifecycle();
+  const activeHtmlBase64Exporter =
+    htmlBase64Exporter ?? createHtmlBase64ExportService(htmlBase64Export);
+  const htmlExportAbortController = new AbortController();
+  lifecycle.registerCleanup(() => htmlExportAbortController.abort());
   const loadedDocument = await storage.loadDocument(documentId);
   const activeDocumentTitle = loadedDocument?.title ?? documentTitle;
   const preview = createPreviewView({
@@ -327,8 +344,78 @@ export async function mountEditorApp({
     getSourceHtmlValue: () => sourceHtmlValue,
     getSourceJsonValue: () => sourceJsonValue,
     setFullscreen: (enabled) => fullscreen.setEnabled(enabled),
+    setHtml: applyImportedHtml,
+    getHtmlWithBase64Images: exportCurrentHtmlWithBase64Images,
     getAgentSections: () => getAgentSections(editor),
   };
+
+  async function exportCurrentHtmlWithBase64Images(
+    options: HtmlBase64ExportOptions = {},
+  ): Promise<string> {
+    const linkedSignal = linkAbortSignals([
+      htmlExportAbortController.signal,
+      ...(options.signal ? [options.signal] : []),
+    ]);
+
+    try {
+      return await activeHtmlBase64Exporter.exportHtml(editor.getHTML(), {
+        signal: linkedSignal.signal,
+      });
+    } finally {
+      linkedSignal.dispose();
+    }
+  }
+
+  function applyImportedHtml(html: string): SetHtmlResult {
+    const result = prepareHtmlImport(html, editor.state.schema);
+
+    if (!result.ok) {
+      shell.setSaveStatus('error', result.message);
+      return result;
+    }
+
+    const previousContent = editor.getJSON();
+
+    try {
+      const applied = editor.commands.setContent(result.html);
+
+      if (!applied) {
+        editor.commands.setContent(previousContent, { emitUpdate: false });
+        const failure: SetHtmlResult = {
+          ok: false,
+          code: 'unsupported-schema',
+          message: 'El HTML no se pudo aplicar al editor.',
+        };
+        shell.setSaveStatus('error', failure.message);
+        return failure;
+      }
+    } catch {
+      editor.commands.setContent(previousContent, { emitUpdate: false });
+      const failure: SetHtmlResult = {
+        ok: false,
+        code: 'unsupported-schema',
+        message: 'El HTML no se pudo aplicar al editor.',
+      };
+      shell.setSaveStatus('error', failure.message);
+      return failure;
+    }
+
+    const currentHtml = editor.getHTML();
+    preview.setHtml(currentHtml);
+    sourceHtmlValue = currentHtml;
+    sourceJsonValue = JSON.stringify(editor.getJSON(), null, 2);
+
+    if (viewState.mode === 'source-html') {
+      sourceView?.setValue(currentHtml);
+    } else if (viewState.mode === 'source-json') {
+      sourceView?.setValue(sourceJsonValue);
+    }
+
+    shell.setSaveStatus('pending', 'HTML importado');
+    toolbar.updateState();
+    tableMenu.updateState();
+    return { ...result, html: currentHtml };
+  }
 
   function showSourceHtmlMode(): void {
     setActiveMode('source-html');
@@ -871,4 +958,31 @@ function isImageValidationError(message: string): boolean {
     message.startsWith('La imagen supera el limite') ||
     message === 'Archivo de imagen invalido'
   );
+}
+
+function linkAbortSignals(signals: AbortSignal[]): {
+  signal: AbortSignal;
+  dispose: () => void;
+} {
+  const controller = new AbortController();
+  const listeners = signals.map((signal) => {
+    const abort = () => controller.abort(signal.reason);
+
+    if (signal.aborted) {
+      abort();
+    } else {
+      signal.addEventListener('abort', abort, { once: true });
+    }
+
+    return { signal, abort };
+  });
+
+  return {
+    signal: controller.signal,
+    dispose: () => {
+      for (const { signal, abort } of listeners) {
+        signal.removeEventListener('abort', abort);
+      }
+    },
+  };
 }

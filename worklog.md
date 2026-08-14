@@ -6194,6 +6194,62 @@ Decision Git:
 
 - Commit creado: `2102604 Agregar secciones para asistencia de agentes`.
 
+## 2026-08-14 - API publica HTML e imagenes Base64 de Fase 4.1
+
+Objetivo:
+
+- Completar la API publica para importar HTML seguro y exportar una copia
+  autocontenida con imagenes PNG, JPEG o WebP embebidas en Base64.
+
+Acciones realizadas:
+
+- `MountedEditorApp.setHtml` valida de forma atomica el HTML completo, sincroniza
+  editor, preview y vistas fuente, y devuelve resultados discriminados para
+  exito, entrada vacia, contenido inseguro o schema incompatible.
+- La importacion acepta URL HTTP/HTTPS, rutas absolutas o relativas y Base64
+  validado exclusivamente en `img[src]`; rechaza `blob:`, SVG, JavaScript,
+  eventos inline, URI malformadas y estructuras no soportadas.
+- `MountedEditorApp.getHtmlWithBase64Images` exporta una copia del HTML sin
+  modificar JSON, HTML interno, seleccion, historial, estado ni rutas.
+- El exportador resuelve rutas mediante `URL`, admite `baseUrl`, `fetch` y
+  opciones de request inyectables, deduplica fuentes y limita la concurrencia.
+- La exportacion valida HTTP, MIME y tamano, elimina `srcset`, sanitiza el
+  resultado y comprueba que cada imagen quede autocontenida antes de retornarlo.
+- Los fallos son atomicos y usan `HtmlBase64ExportError` con codigo, fuente y
+  causa; la cancelacion se propaga desde el consumidor y al desmontar el editor.
+- Se agrego un E2E real que intercepta una ruta backend, edita el documento,
+  exporta la imagen, verifica su renderizado y confirma que la ruta interna no
+  cambia.
+- `context.md` documenta firmas, configuracion, errores, limites, CORS, costo de
+  Base64 y el roundtrip soportado.
+
+Archivos principales:
+
+- `src/editor/services/html-import.service.ts`
+- `src/editor/services/html-base64-export.service.ts`
+- `src/editor/editor-app.ts`
+- `src/editor/utils/safe-url.ts`
+- `src/editor/services/sanitizer.service.ts`
+- `e2e/html-import-export.spec.ts`
+- Pruebas asociadas, `playwright.config.ts`, `context.md`, `tasks.md` y
+  `worklog.md`.
+
+Verificacion:
+
+- Pruebas focalizadas del importador, exportador y extensiones: 3 archivos y 18
+  pruebas correctas.
+- Integracion publica focalizada: importacion, persistencia, exportacion,
+  roundtrip, ausencia de mutaciones y cancelacion correctas.
+- `npm run test:e2e`: 1 prueba correcta en Chromium.
+- `npm run check`: build, lint y 39 archivos con 273 pruebas correctas.
+- `git diff --check`: correcto.
+- Vite conserva la advertencia no bloqueante del bundle mayor a 500 kB; jsdom
+  conserva los avisos no bloqueantes de `scrollBy`.
+
+Pendientes inmediatos:
+
+- Retomar la primera tarea pendiente de Fase 9.
+
 ## 2026-07-28 - Estado visual de pantalla completa
 
 Objetivo:

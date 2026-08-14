@@ -44,7 +44,7 @@ describe('createEditorExtensions', () => {
     const imageExtension = createEditorExtensions().find((extension) => extension.name === 'image');
 
     expect(imageExtension?.options).toMatchObject({
-      allowBase64: false,
+      allowBase64: true,
       resize: {
         enabled: true,
         minWidth: 80,

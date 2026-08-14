@@ -57,7 +57,7 @@ export function createEditorExtensions(
       isAllowedUri: (url) => isSafeLinkHref(url),
     }),
     ResizableImage.configure({
-      allowBase64: false,
+      allowBase64: true,
       resize: {
         enabled: true,
         minWidth: 80,
