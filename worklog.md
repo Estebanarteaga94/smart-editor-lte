@@ -6250,6 +6250,10 @@ Pendientes inmediatos:
 
 - Retomar la primera tarea pendiente de Fase 9.
 
+Decision Git:
+
+- Commit creado: `92d722d Completar API HTML con imagenes Base64`.
+
 ## 2026-07-28 - Estado visual de pantalla completa
 
 Objetivo:
