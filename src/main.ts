@@ -1,4 +1,5 @@
 import './style.css';
+import './demo.css';
 
 import { mountEditorApp } from '@/editor/editor-app';
 

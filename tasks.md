@@ -745,6 +745,15 @@ Estas tareas no bloquean la primera version, pero deben quedar visibles para no 
 
 ## Criterios de aceptacion de primera version
 
+### Distribucion consumible como libreria
+
+- [x] Generar una carpeta `dist` instalable desde aplicaciones Angular.
+  - Criterio: `npm run build:lib` produce un paquete ESM con JavaScript, CSS, fuentes, declaraciones TypeScript, `package.json` y README, sin incluir la pantalla demo.
+  - Nota: la API publica expone montaje/desmontaje, cambios de contenido, importacion HTML y exportacion; el modo `embedded` elimina el encabezado demo y respeta dimensiones configurables mediante variables CSS.
+- [x] Verificar la integracion real con el componente Angular de Vitraya.
+  - Criterio: `SmartEditorComponent` importa el paquete, monta sobre un `div`, implementa `ControlValueAccessor`, libera el ciclo de vida y compila con Angular 18.
+  - Nota: Vitraya declara temporalmente la dependencia local `file:../../typescript/smart-editor-lte/dist`; el autocompletado de la version antigua queda pendiente porque la API nueva aun no ofrece esa extension.
+
 - [ ] El proyecto queda documentado y ejecutado como Vite + TypeScript `vanilla-ts`, sin framework frontend.
 - [ ] Los modulos visuales vanilla TypeScript tienen ciclo de vida de montaje y desmontaje.
 - [ ] Tiptap, CodeMirror, listeners manuales y timers se limpian correctamente.

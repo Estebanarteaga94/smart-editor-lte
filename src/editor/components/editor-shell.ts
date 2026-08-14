@@ -15,6 +15,7 @@ export interface EditorShellOptions {
   description?: string;
   statusLabel?: string;
   saveStatus?: EditorSaveStatus;
+  embedded?: boolean;
 }
 
 const saveStatusLabels: Record<EditorSaveStatus, string> = {
@@ -29,6 +30,7 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
   const root = document.createElement('main');
 
   root.className = 'editor-app';
+  root.classList.toggle('editor-app--embedded', options.embedded === true);
   root.innerHTML = `
     <header class="editor-app__header">
       <h1></h1>
@@ -73,6 +75,7 @@ export function createEditorShell(options: EditorShellOptions = {}): EditorShell
   title.textContent = options.title ?? 'Smart Editor LTE';
   description.textContent =
     options.description ?? 'Editor WYSIWYG base con Tiptap y JSON canonico de ProseMirror.';
+  title.parentElement?.toggleAttribute('hidden', options.embedded === true);
   statusLabel.textContent = options.statusLabel ?? 'Estado';
 
   const setSaveStatus = (status: EditorSaveStatus, message?: string): void => {

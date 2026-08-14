@@ -6137,6 +6137,52 @@ Pendientes inmediatos:
 
 - Implementar `fullscreen.ts` en Fase 6.
 
+## 2026-08-14 - Distribucion ESM e integracion Angular
+
+Objetivo:
+
+- Generar una carpeta `dist` instalable y reemplazar en Vitraya el montaje global de la version antigua por la API nueva del editor.
+
+Acciones realizadas:
+
+- Se agrego `build:lib` con una entrada publica ESM separada de la aplicacion demo.
+- `dist` incluye JavaScript, CSS con fuentes relativas, declaraciones TypeScript, metadata npm y README de consumo.
+- La API de montaje admite `embedded` y `onChange`; el modo embebido oculta el encabezado demo y usa variables CSS para alto, minimo y maximo.
+- Se aislaron de la hoja de la libreria los estilos globales de `body` y `#app`, que ahora pertenecen solo a la demo.
+- El `SmartEditorComponent` de Vitraya importa `mountEditorApp`, usa `setHtml` y comandos Tiptap, implementa lectura/escritura de Angular Forms y libera `lifecycle` al desmontarse.
+- Vitraya carga el CSS del paquete desde `angular.json` y declara una dependencia local al `dist`; ya no copia ni carga el UMD antiguo para este componente.
+- No se intento conservar nombres de archivos ni metodos globales antiguos. La configuracion de autocompletado se mantiene en el contrato Angular, pero queda inactiva hasta que la libreria nueva exponga esa capacidad.
+
+Archivos principales:
+
+- `src/lib.ts`
+- `vite.lib.config.ts`
+- `tsconfig.lib.json`
+- `scripts/write-library-package.mjs`
+- `library-readme.md`
+- `src/editor/editor-app.ts`
+- `src/editor/components/editor-shell.ts`
+- `src/style.css`
+- `src/demo.css`
+- `package.json`
+- Integracion externa: `~/Proyectos/Vitraya/vitrayaFront/src/app/smart-editor/smart-editor.component.ts`, `angular.json` y `package.json`.
+
+Verificacion:
+
+- `npm run build:lib`: correcto; genero `smart-editor-lte.js`, `smart-editor-lte.css`, fuentes, tipos y metadata en `dist`.
+- `npm run lint`: correcto.
+- Pruebas focalizadas del modo embebido y callback publico: 2 pruebas correctas.
+- `tsc -p tsconfig.app.json --noEmit` en Vitraya: correcto con Angular 18 y TypeScript 5.5.
+- `npm run check`: correcto; build, lint, 39 archivos de prueba y 275 pruebas correctas.
+- Build de desarrollo completo de Vitraya: correcto; Angular genero bundles, assets e indice sin errores.
+- `npm pack --dry-run` ejecutado dentro de `dist`: correcto; paquete de 321.2 kB comprimidos y 495.9 kB instalados.
+- `npm ls --depth=0`: correcto; dependencias declaradas instaladas sin errores.
+- Advertencias no bloqueantes: chunk principal de la demo mayor a 500 kB, `scrollBy` no implementado por jsdom y dependencias CommonJS preexistentes de Vitraya.
+
+Pendientes inmediatos:
+
+- Publicar el paquete en un registry privado o sustituir la ruta `file:` cuando la integracion deje de ser local.
+
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
 Objetivo:

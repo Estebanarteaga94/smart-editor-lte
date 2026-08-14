@@ -29,6 +29,30 @@ afterEach(() => {
 });
 
 describe('mountEditorApp', () => {
+  it('supports embedded consumers and reports content changes through the public API', async () => {
+    const appRoot = document.createElement('div');
+    const onChange = vi.fn();
+    document.body.append(appRoot);
+
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: createStorageDouble(null).service,
+      documentId: 'doc-embedded-consumer',
+      embedded: true,
+      onChange,
+    });
+    mountedApps.add(mountedApp);
+
+    mountedApp.editor.commands.setContent('<p>Contenido Angular</p>');
+
+    expect(appRoot.querySelector('.editor-app')?.classList.contains('editor-app--embedded')).toBe(
+      true,
+    );
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ contentHtml: '<p>Contenido Angular</p>' }),
+    );
+  });
+
   it('imports HTML through the public API without changing content on failure', async () => {
     const appRoot = document.createElement('div');
     const storageDouble = createStorageDouble(null);

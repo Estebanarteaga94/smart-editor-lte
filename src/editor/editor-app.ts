@@ -15,6 +15,7 @@ import { createTableMenu } from './components/table-menu';
 import { createToolbar } from './components/toolbar';
 import { createVersionHistory } from './components/version-history';
 import { createWysiwygEditor } from './core/create-editor';
+import type { EditorChangeHandler } from './core/editor-types';
 import { editorCommands } from './core/editor-commands';
 import { createEditorLifecycle } from './core/editor-lifecycle';
 import {
@@ -87,6 +88,8 @@ export interface MountEditorAppOptions {
   versionsApi?: VersionsApi;
   htmlBase64Export?: HtmlBase64ExportConfig;
   htmlBase64Exporter?: HtmlBase64ExportService;
+  embedded?: boolean;
+  onChange?: EditorChangeHandler;
 }
 
 export interface MountedEditorApp {
@@ -120,11 +123,14 @@ export async function mountEditorApp({
   versionsApi = createLocalVersionsApi(),
   htmlBase64Export,
   htmlBase64Exporter,
+  embedded = false,
+  onChange,
 }: MountEditorAppOptions): Promise<MountedEditorApp> {
   const activePasteNormalizer = pasteNormalizer ?? createPasteNormalizerService();
   const activePasteContentSafety = pasteContentSafety ?? createPasteContentSafetyService(sanitizer);
   const shell = createEditorShell({
     saveStatus: 'unchanged',
+    embedded,
   });
   const lifecycle = createEditorLifecycle();
   const activeHtmlBase64Exporter =
@@ -164,6 +170,7 @@ export async function mountEditorApp({
     pasteContentSafety: activePasteContentSafety,
     onChange: ({ contentJson, contentHtml }) => {
       preview.setHtml(contentHtml);
+      onChange?.({ contentJson, contentHtml });
 
       if (contentJson.type && contentHtml.length > 0) {
         if (autosaveService) {

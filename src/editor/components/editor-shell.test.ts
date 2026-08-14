@@ -34,6 +34,13 @@ describe('createEditorShell', () => {
     expect(shell.toolbar.querySelectorAll('button')).toHaveLength(0);
   });
 
+  it('can render as an embedded library surface without the demo header', () => {
+    const shell = createEditorShell({ embedded: true });
+
+    expect(shell.root.classList.contains('editor-app--embedded')).toBe(true);
+    expect(shell.root.querySelector('.editor-app__header')?.hasAttribute('hidden')).toBe(true);
+  });
+
   it('renders all supported save status states', () => {
     const shell = createEditorShell();
 

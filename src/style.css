@@ -1,4 +1,4 @@
-:root {
+.editor-app {
   --app-bg: #f6f7f9;
   --surface: #ffffff;
   --surface-muted: #f2f4f7;
@@ -40,25 +40,18 @@
   font-display: block;
 }
 
-* {
+.editor-app,
+.editor-app *,
+.editor-app *::before,
+.editor-app *::after {
   box-sizing: border-box;
 }
 
-body {
-  min-width: 320px;
-  min-height: 100vh;
-  margin: 0;
-}
-
-button,
-input,
-select,
-textarea {
+.editor-app button,
+.editor-app input,
+.editor-app select,
+.editor-app textarea {
   font: inherit;
-}
-
-#app {
-  min-height: 100vh;
 }
 
 .editor-app {
@@ -66,6 +59,31 @@ textarea {
   min-height: 100vh;
   margin: 0 auto;
   padding: 32px 24px;
+}
+
+.editor-app--embedded {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.editor-app--embedded .editor-app__header {
+  display: none;
+}
+
+.editor-app--embedded .editor-shell {
+  min-height: var(--smart-editor-min-height, 300px);
+  max-height: var(--smart-editor-max-height, 600px);
+  height: var(--smart-editor-height, 400px);
+}
+
+.editor-app--embedded .editor-shell__editable .tiptap,
+.editor-app--embedded .editor-shell__source,
+.editor-app--embedded .editor-source-view,
+.editor-app--embedded .editor-source-view .cm-editor,
+.editor-app--embedded .editor-source-view .cm-scroller {
+  min-height: max(180px, calc(var(--smart-editor-height, 400px) - 112px));
 }
 
 .editor-app.editor-shell--fullscreen {
