@@ -6220,6 +6220,10 @@ Pendientes inmediatos:
 
 - Verificar en navegador contra un documento real del entorno conectado a la base de datos.
 
+Decision Git:
+
+- Commit creado: `e961625 Conservar HTML inicial en Angular`.
+
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
 Objetivo:
