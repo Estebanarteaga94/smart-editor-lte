@@ -6177,6 +6177,7 @@ Verificacion:
 - Build de desarrollo completo de Vitraya: correcto; Angular genero bundles, assets e indice sin errores.
 - `npm pack --dry-run` ejecutado dentro de `dist`: correcto; paquete de 321.2 kB comprimidos y 495.9 kB instalados.
 - `npm ls --depth=0`: correcto; dependencias declaradas instaladas sin errores.
+- Todas las dependencias directas y transitivas de Tiptap se alinearon en `3.30.1`; esto evita que un consumidor con pnpm mezcle extensiones `3.30.x` con un core `3.27.x`.
 - Advertencias no bloqueantes: chunk principal de la demo mayor a 500 kB, `scrollBy` no implementado por jsdom y dependencias CommonJS preexistentes de Vitraya.
 
 Pendientes inmediatos:
