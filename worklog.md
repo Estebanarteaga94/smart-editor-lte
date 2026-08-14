@@ -37,6 +37,7 @@ Pendientes inmediatos:
 Decision Git:
 
 - Se crea un commit documental porque la planificacion solicitada quedo completa y verificada; no se marca ninguna tarea de implementacion como completada.
+- Commit creado: `1975801 Planificar API HTML con imagenes Base64`.
 
 ## 2026-07-06 - Preparacion de documentos operativos
 
