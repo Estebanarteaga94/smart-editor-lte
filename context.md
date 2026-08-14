@@ -270,6 +270,17 @@ Decision sobre captions:
 - Un caption editable debe modelarse como contenido estructural, no como atributo simple de `image`.
 - Si se retoma, debe definirse un contenedor canonico como `figure`/`figcaption` o alternativa equivalente, ampliar el schema permitido, ajustar sanitizacion/serializacion y agregar pruebas de persistencia.
 
+Decision sobre importacion y exportacion HTML con imagenes:
+
+- No se agregan modos nuevos a `EditorMode`. El flujo normal conserva en `contentJson` y `contentHtml` las rutas seguras retornadas por el backend.
+- `MountedEditorApp.setHtml(html)` sera la entrada publica para cargar HTML. Debe sanitizar y validar todo el contenido antes de reemplazar el documento, y la operacion debe ser atomica.
+- `MountedEditorApp.getHtmlWithBase64Images()` sera una salida adicional y asincrona. Trabaja sobre una copia del HTML actual, descarga cada imagen enlazada y devuelve HTML autocontenido sin mutar el JSON canonico, las rutas internas, la seleccion ni el historial.
+- El resultado de `getHtmlWithBase64Images()` solo puede contener `data:image/png|jpeg|webp;base64,...` en `img[src]`; no puede contener rutas, URL remotas, `blob:`, `srcset`, scripts o eventos inline.
+- `setHtml` debe aceptar tanto rutas/URL seguras como Base64 validado para permitir el roundtrip de la API, pero permitir Base64 no habilita `data:` de forma global. Se rechazan SVG, MIME no admitidos, payloads malformados y data URI fuera de `img[src]`.
+- La conversion de una ruta existente a Base64 puede requerir CORS, autorizacion o un proxy del backend. El exportador debe admitir URL base y `fetch`/resolvedor inyectable, errores tipados y cancelacion.
+- Si una imagen no se puede resolver, la exportacion completa falla: no se devuelve HTML parcialmente autocontenido.
+- Base64 aumenta el payload aproximadamente un tercio antes de contar el HTML que lo contiene; deben mantenerse limites de imagen y documentarse limites de exportacion.
+
 ### Fase 5 - Vista de codigo
 
 Incluye HTML, JSON, CodeMirror, validacion JSON, sanitizacion HTML, sincronizacion con WYSIWYG y errores amigables.

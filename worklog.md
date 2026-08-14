@@ -2,6 +2,42 @@
 
 Bitacora cronologica del trabajo realizado. Cada entrada debe permitir que otro agente continue sin perder contexto.
 
+## 2026-08-14 - Planificacion de API HTML con imagenes Base64
+
+Objetivo:
+
+- Revisar la documentacion y el manejo actual de imagenes.
+- Agregar las tareas necesarias para recibir HTML y obtener una copia autocontenida con imagenes Base64.
+
+Acciones realizadas:
+
+- Se revisaron `instructions.md`, `context.md`, `tasks.md`, el plan original y la implementacion actual de configuracion, subida, schema canonico, sanitizacion y serializacion.
+- Se descarto modelar la necesidad como nuevos modos globales del editor.
+- Se agrego la Fase 4.1 centrada en `setHtml(html)` y `getHtmlWithBase64Images()` como API publica de `MountedEditorApp`.
+- Se documento que la exportacion Base64 trabaja sobre una copia y no modifica `contentJson`, rutas internas, historial ni seleccion.
+- Se incluyeron tareas de sanitizacion, conversion atomica, CORS/autorizacion, cancelacion, limites de recursos y pruebas de roundtrip.
+
+Archivos modificados:
+
+- `tasks.md`
+- `context.md`
+- `worklog.md`
+
+Verificacion:
+
+- Revision manual de consistencia entre las nuevas tareas, las reglas de seguridad y los contratos actuales de assets.
+- `git diff --check`: correcto, sin errores de whitespace.
+- `npx prettier --check tasks.md context.md worklog.md`: correcto.
+
+Pendientes inmediatos:
+
+- Implementar la primera tarea de Fase 4.1: exponer `setHtml(html)` con resultado tipado y aplicacion atomica.
+- Implementar despues el servicio asincrono usado por `getHtmlWithBase64Images()`.
+
+Decision Git:
+
+- Se crea un commit documental porque la planificacion solicitada quedo completa y verificada; no se marca ninguna tarea de implementacion como completada.
+
 ## 2026-07-06 - Preparacion de documentos operativos
 
 Objetivo:

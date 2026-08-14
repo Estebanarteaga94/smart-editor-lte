@@ -366,6 +366,41 @@ Objetivo medible: el editor inserta imagenes validas, con metadata util y sin ac
   - Criterio: existe funcion para `DELETE /api/documents/{id}/assets/{assetId}` o decision documentada.
   - Nota: `createHttpAssetsApi` expone `deleteAsset(documentId, assetId)` con `DELETE`, codifica ambos identificadores, soporta `baseUrl` y rechaza respuestas no OK con error controlado.
 
+### 4.1 API publica para importar HTML y exportarlo con imagenes Base64
+
+Objetivo medible: la aplicacion puede cargar HTML seguro en el editor y obtener, bajo demanda, una copia autocontenida del HTML actual en la que todas las imagenes estan embebidas en Base64. El flujo normal de edicion y persistencia conserva las rutas retornadas por el backend.
+
+> No se agregan modos nuevos a `EditorMode` ni se cambia la representacion canonica durante la exportacion. La conversion a Base64 opera sobre una copia del HTML y devuelve una `Promise` porque puede descargar imagenes.
+
+- [ ] Exponer `setHtml(html)` en `MountedEditorApp`.
+  - Criterio: recibe un `string`, sanitiza y valida todo el documento contra el schema permitido antes de llamar a Tiptap, actualiza preview/estado de guardado y no modifica el contenido actual si la entrada es invalida.
+- [ ] Definir el resultado y los errores publicos de `setHtml`.
+  - Criterio: el consumidor puede distinguir aplicacion correcta, HTML vacio, schema no compatible y contenido inseguro sin depender de mensajes internos de la UI.
+- [ ] Admitir fuentes de imagen seguras al importar HTML.
+  - Criterio: `setHtml` acepta `http`, `https`, rutas relativas y URI Base64 de PNG/JPEG/WEBP validas; rechaza `blob:`, SVG embebido, MIME no admitidos, `javascript:` y data URI malformadas.
+- [ ] Exponer `getHtmlWithBase64Images()` en `MountedEditorApp`.
+  - Criterio: devuelve `Promise<string>` con HTML sanitizado y los atributos canonicos actuales, sin mutar `contentJson`, el historial, la seleccion, el estado de guardado ni las rutas que usa el editor.
+- [ ] Implementar un servicio reutilizable para embeber las imagenes del HTML.
+  - Criterio: clona/parsea el HTML, conserva URI Base64 validas, descarga fuentes `http`/`https`/relativas, valida status y MIME, convierte sus bytes a `data:image/...;base64` y sustituye solamente `src`.
+- [ ] Resolver correctamente las rutas relativas retornadas por el backend.
+  - Criterio: el exportador recibe una URL base o un resolvedor inyectable; no concatena rutas de forma insegura y conserva soporte para requests autenticadas mediante `fetch` inyectable.
+- [ ] Definir el comportamiento atomico de la exportacion Base64.
+  - Criterio: si una imagen no puede descargarse, viola CORS, excede el limite o devuelve un MIME inesperado, la promesa rechaza con la fuente y causa identificables; nunca devuelve HTML parcialmente autocontenido.
+- [ ] Garantizar la invariante del HTML exportado.
+  - Criterio: cada `<img>` del resultado tiene un `src` `data:image/png|jpeg|webp;base64,...`; no sobreviven rutas, URL remotas, `blob:`, `srcset`, scripts ni eventos inline.
+- [ ] Evitar trabajo duplicado y fugas de recursos al exportar.
+  - Criterio: fuentes repetidas se descargan/convierten una sola vez por llamada, existe un limite de concurrencia y no quedan object URLs, lectores ni requests activos despues de completar, fallar o abortar.
+- [ ] Agregar cancelacion a la exportacion Base64.
+  - Criterio: el metodo admite `AbortSignal` o contrato equivalente y termina de forma controlada si el editor se desmonta o el consumidor cancela la operacion.
+- [ ] Cubrir `setHtml` con pruebas unitarias y de integracion.
+  - Criterio: hay casos de HTML valido, vacio, XSS, nodos no soportados, rutas backend, Base64 permitido/rechazado, aplicacion atomica, preview y guardado/recarga.
+- [ ] Cubrir `getHtmlWithBase64Images` con pruebas unitarias y de integracion.
+  - Criterio: se prueban URL absoluta/relativa, imagen ya embebida, fuentes repetidas, MIME/tamano, error HTTP/CORS simulado, cancelacion, ausencia de mutaciones y HTML final sin rutas.
+- [ ] Agregar prueba E2E de importacion y exportacion HTML.
+  - Criterio: se carga HTML con una ruta mockeada del backend, se edita, se obtiene HTML Base64, se comprueba que la imagen renderiza y que el documento interno conserva la ruta original.
+- [ ] Documentar la API publica y sus limites.
+  - Criterio: se incluyen firmas, ejemplo de `await`, configuracion de URL base/fetch, manejo de errores, efecto aproximado de Base64 sobre el tamano y aclaracion de que `setHtml(getHtmlWithBase64Images())` es un roundtrip soportado.
+
 ## Fase 5 - Vista de codigo HTML/JSON
 
 Objetivo medible: se puede alternar entre WYSIWYG, HTML y JSON sin corromper el documento.
@@ -709,6 +744,8 @@ Estas tareas no bloquean la primera version, pero deben quedar visibles para no 
 - [ ] Soporta titulos, listas, formato basico y enlaces.
 - [ ] Soporta tablas.
 - [ ] Soporta imagenes.
+- [ ] Expone una API segura para recibir HTML y otra para obtener HTML autocontenido con imagenes Base64.
+- [ ] Exportar HTML Base64 no muta las rutas de imagen del documento canonico.
 - [ ] Normaliza contenido pegado desde Word y Excel.
 - [ ] Tiene vista de codigo HTML/JSON funcional.
 - [ ] Tiene vista previa.
