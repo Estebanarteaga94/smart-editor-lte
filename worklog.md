@@ -6183,6 +6183,11 @@ Pendientes inmediatos:
 
 - Publicar el paquete en un registry privado o sustituir la ruta `file:` cuando la integracion deje de ser local.
 
+Decision Git:
+
+- Commit creado: `f2dcb3b Empaquetar editor para Angular`.
+- Los cambios de integracion en Vitraya no se confirmaron porque ese repositorio contiene numerosos cambios ajenos en curso; permanecen limitados a su componente, `angular.json` y `package.json`.
+
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
 Objetivo:
