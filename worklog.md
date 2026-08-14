@@ -6250,6 +6250,10 @@ Pendientes inmediatos:
 
 - Verificar con una muestra real de HTML historico del entorno de produccion.
 
+Decision Git:
+
+- Commit creado: `2a0846c Sanitizar HTML historico sin bloquear carga`.
+
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
 Objetivo:
