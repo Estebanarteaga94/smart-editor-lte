@@ -6224,6 +6224,32 @@ Decision Git:
 
 - Commit creado: `e961625 Conservar HTML inicial en Angular`.
 
+## 2026-08-14 - Compatibilidad con HTML del editor anterior
+
+Objetivo:
+
+- Renderizar de forma segura el HTML historico de produccion aunque contenga etiquetas obsoletas como `<font>`, sin perder el contenido completo por un error `unsupported-schema`.
+
+Acciones realizadas:
+
+- `setHtml` admite el modo explicito `legacy`, manteniendo el comportamiento atomico estricto por defecto.
+- El modo legado transforma `<font color>` en `span` con color canonico, conserva sus nodos hijos y sanitiza etiquetas, eventos, URL, estilos y atributos no permitidos.
+- Un resultado aplicado puede incluir `warnings`; la sanitizacion deja de presentarse como error bloqueante.
+- `SmartEditorComponent` usa el modo legado al recibir HTML y expone `editorWarning` separado de `editorError`.
+- `cargar-documento/{id}` agrupa las advertencias de todos los editores durante 300 ms y muestra una sola alerta con el numero de campos adaptados.
+- Se agregaron pruebas del servicio y de la API publica con `<font>`, color, evento inline y script.
+
+Verificacion:
+
+- Pruebas focalizadas: 2 archivos y 3 pruebas correctas.
+- `npm run build:lib`: correcto.
+- `tsc -p tsconfig.app.json --noEmit` en Vitraya: correcto.
+- `npm run check`: correcto; build, lint, 39 archivos y 277 pruebas correctas.
+
+Pendientes inmediatos:
+
+- Verificar con una muestra real de HTML historico del entorno de produccion.
+
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
 Objetivo:

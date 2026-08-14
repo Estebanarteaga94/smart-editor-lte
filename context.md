@@ -285,14 +285,16 @@ API publica implementada:
 
 ```ts
 type SetHtmlResult =
-  | { ok: true; code: 'applied'; html: string }
+  | { ok: true; code: 'applied'; html: string; warnings?: string[] }
   | {
       ok: false;
       code: 'empty-html' | 'unsafe-content' | 'unsupported-schema';
       message: string;
     };
 
-editorApp.setHtml(html: string): SetHtmlResult;
+editorApp.setHtml(html: string, options?: {
+  mode?: 'strict' | 'legacy';
+}): SetHtmlResult;
 editorApp.getHtmlWithBase64Images(options?: {
   signal?: AbortSignal;
 }): Promise<string>;
@@ -322,6 +324,15 @@ if (imported.ok) {
   });
 }
 ```
+
+El modo `strict`, usado por defecto, rechaza de forma atomica etiquetas y
+atributos fuera del schema. Para migrar contenido historico de editores
+anteriores se puede usar `setHtml(html, { mode: 'legacy' })`: primero adapta
+marcas obsoletas como `<font color>`, sanitiza scripts, eventos, URL y atributos
+no permitidos, conserva el texto y la estructura compatibles, y devuelve
+`warnings` sin impedir que el resultado seguro se renderice. Las advertencias
+deben mostrarse al usuario o registrarse para revisar la migracion; nunca se
+debe volver a persistir el HTML original inseguro como contenido canonico.
 
 `HtmlBase64ExportError` identifica `aborted`, `invalid-source`, `http-error`,
 `network-error`, `unsupported-mime` y `size-limit`, e incluye la fuente original

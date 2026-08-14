@@ -104,6 +104,31 @@ describe('mountEditorApp', () => {
     );
   });
 
+  it('loads sanitized legacy HTML through the public API without blocking rendering', async () => {
+    const appRoot = document.createElement('div');
+    document.body.append(appRoot);
+    const mountedApp = await mountEditorApp({
+      app: appRoot,
+      storage: createStorageDouble(null).service,
+      documentId: 'doc-legacy-html',
+      embedded: true,
+    });
+    mountedApps.add(mountedApp);
+
+    const result = mountedApp.setHtml(
+      '<font color="blue" face="Arial"><strong>Contenido de produccion</strong></font><script>alert(1)</script>',
+      { mode: 'legacy' },
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      warnings: [expect.stringContaining('<font>')],
+    });
+    expect(mountedApp.editor.getText()).toBe('Contenido de produccion');
+    expect(mountedApp.editor.getHTML()).toContain('color: blue');
+    expect(mountedApp.editor.getHTML()).not.toContain('script');
+  });
+
   it('persists and reloads HTML imported through the public API', async () => {
     let storedDocument: DocumentStoragePayload | null = null;
     const storage: DocumentStorageService = {

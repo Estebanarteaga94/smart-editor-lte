@@ -378,6 +378,9 @@ Objetivo medible: la aplicacion puede cargar HTML seguro en el editor y obtener,
 - [x] Definir el resultado y los errores publicos de `setHtml`.
   - Criterio: el consumidor puede distinguir aplicacion correcta, HTML vacio, schema no compatible y contenido inseguro sin depender de mensajes internos de la UI.
   - Nota: `SetHtmlResult` discrimina `applied`, `empty-html`, `unsupported-schema` y `unsafe-content`.
+- [x] Agregar importacion compatible de HTML historico sin bloquear el renderizado.
+  - Criterio: `setHtml(html, { mode: 'legacy' })` conserva texto y estructura compatibles, adapta `<font color>`, retira scripts/eventos/atributos inseguros y devuelve advertencias en un resultado exitoso.
+  - Nota: el modo estricto permanece como valor por defecto; Vitraya usa el modo legado solo en su adaptador Angular y agrupa las advertencias de varios campos en una alerta.
 - [x] Admitir fuentes de imagen seguras al importar HTML.
   - Criterio: `setHtml` acepta `http`, `https`, rutas relativas y URI Base64 de PNG/JPEG/WEBP validas; rechaza `blob:`, SVG embebido, MIME no admitidos, `javascript:` y data URI malformadas.
   - Nota: Base64 se habilita solo en el atributo `src` de imagen y se valida antes de entrar al schema canonico.

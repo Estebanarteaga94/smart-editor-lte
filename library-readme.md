@@ -31,3 +31,18 @@ const editor = await mountEditorApp({
 
 La API publica tambien expone `setHtml`, `getHtmlWithBase64Images` y
 `getAgentSections`.
+
+Para cargar HTML historico generado por editores anteriores sin bloquear el
+renderizado por etiquetas obsoletas, usa el modo de compatibilidad:
+
+```ts
+const result = editor.setHtml(htmlGuardado, { mode: 'legacy' });
+
+if (result.ok && result.warnings?.length) {
+  console.warn(result.warnings);
+}
+```
+
+Este modo conserva el contenido compatible, transforma `<font color>` y elimina
+scripts, eventos y atributos inseguros. El resultado aplicado sigue siendo HTML
+sanitizado y canonico.

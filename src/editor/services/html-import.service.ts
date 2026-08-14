@@ -11,6 +11,7 @@ export interface SetHtmlSuccess {
   ok: true;
   code: 'applied';
   html: string;
+  warnings?: string[];
 }
 
 export interface SetHtmlFailure {
@@ -21,6 +22,10 @@ export interface SetHtmlFailure {
 
 export type SetHtmlResult = SetHtmlSuccess | SetHtmlFailure;
 
+export interface SetHtmlOptions {
+  mode?: 'strict' | 'legacy';
+}
+
 const supportedTags = new Set<string>([...allowedHtmlTags, 'input', 'label']);
 const supportedAttributes = new Set<string>([
   ...allowedHtmlAttributes,
@@ -30,7 +35,11 @@ const supportedAttributes = new Set<string>([
 ]);
 const unsafeStylePattern = /(?:expression\s*\(|url\s*\(|@import|behavior\s*:)/i;
 
-export function prepareHtmlImport(html: string, schema: Schema): SetHtmlResult {
+export function prepareHtmlImport(
+  html: string,
+  schema: Schema,
+  options: SetHtmlOptions = {},
+): SetHtmlResult {
   if (html.trim().length === 0) {
     return failure('empty-html', 'El HTML esta vacio.');
   }
@@ -39,15 +48,17 @@ export function prepareHtmlImport(html: string, schema: Schema): SetHtmlResult {
     return failure('unsupported-schema', 'La importacion HTML requiere un entorno DOM.');
   }
 
+  const legacyPreparation =
+    options.mode === 'legacy' ? prepareLegacyHtml(html) : { html, warnings: [] };
   const container = document.createElement('div');
-  container.innerHTML = html;
+  container.innerHTML = legacyPreparation.html;
   const inputValidation = validateImportElements(container);
 
   if (inputValidation) {
     return inputValidation;
   }
 
-  const result = sanitizeAndValidateHtmlAgainstSchema(html, schema, {
+  const result = sanitizeAndValidateHtmlAgainstSchema(legacyPreparation.html, schema, {
     sanitizeHtml: sanitizeImportedHtml,
   });
 
@@ -63,7 +74,95 @@ export function prepareHtmlImport(html: string, schema: Schema): SetHtmlResult {
     ok: true,
     code: 'applied',
     html: result.html,
+    ...(legacyPreparation.warnings.length > 0 ? { warnings: legacyPreparation.warnings } : {}),
   };
+}
+
+function prepareLegacyHtml(html: string): { html: string; warnings: string[] } {
+  const container = document.createElement('div');
+  const adaptedElements = new Set<string>();
+  const adaptedAttributes = new Set<string>();
+  container.innerHTML = html;
+
+  for (const element of Array.from(container.querySelectorAll('*'))) {
+    const tagName = element.tagName.toLowerCase();
+
+    if (!supportedTags.has(tagName)) {
+      adaptedElements.add(`<${tagName}>`);
+    }
+
+    for (const attribute of Array.from(element.attributes)) {
+      const name = attribute.name.toLowerCase();
+      if (
+        name.startsWith('on') ||
+        !supportedAttributes.has(name) ||
+        (name === 'style' && unsafeStylePattern.test(attribute.value))
+      ) {
+        adaptedAttributes.add(name);
+      }
+    }
+
+    if (
+      element instanceof HTMLAnchorElement &&
+      element.hasAttribute('href') &&
+      !isSafeLinkHref(element.getAttribute('href') ?? '')
+    ) {
+      adaptedAttributes.add('href');
+    }
+
+    if (
+      element instanceof HTMLImageElement &&
+      !isSafeImportedImageSource(element.getAttribute('src') ?? '')
+    ) {
+      adaptedAttributes.add('src');
+    }
+  }
+
+  for (const font of Array.from(container.querySelectorAll('font'))) {
+    const replacement = document.createElement('span');
+    const color = font.getAttribute('color')?.trim() ?? '';
+
+    if (color && isSupportedLegacyColor(color)) {
+      replacement.style.color = color;
+    }
+
+    replacement.append(...Array.from(font.childNodes));
+    font.replaceWith(replacement);
+  }
+
+  const sanitizedContainer = document.createElement('div');
+  sanitizedContainer.innerHTML = sanitizeImportedHtml(container.innerHTML);
+
+  for (const element of Array.from(sanitizedContainer.querySelectorAll('[style]'))) {
+    if (unsafeStylePattern.test(element.getAttribute('style') ?? '')) {
+      adaptedAttributes.add('style');
+      element.removeAttribute('style');
+    }
+  }
+
+  for (const image of Array.from(sanitizedContainer.querySelectorAll('img'))) {
+    const source = image.getAttribute('src') ?? '';
+    if (!isSafeImportedImageSource(source)) {
+      adaptedAttributes.add('src');
+      image.remove();
+    }
+  }
+
+  const adapted = [...adaptedElements, ...adaptedAttributes].sort();
+  const warnings =
+    adapted.length > 0
+      ? [
+          `Se sanitizo HTML heredado. Se adaptaron o retiraron elementos no compatibles: ${adapted.join(', ')}.`,
+        ]
+      : [];
+
+  return { html: sanitizedContainer.innerHTML, warnings };
+}
+
+function isSupportedLegacyColor(color: string): boolean {
+  return /^(#[0-9a-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-z]+)$/i.test(
+    color,
+  );
 }
 
 function validateImportElements(container: HTMLElement): SetHtmlFailure | null {

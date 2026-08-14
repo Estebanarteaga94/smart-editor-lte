@@ -60,7 +60,11 @@ import {
   uploadEmbeddedPasteImages,
 } from './services/embedded-image-paste.service';
 import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
-import { prepareHtmlImport, type SetHtmlResult } from './services/html-import.service';
+import {
+  prepareHtmlImport,
+  type SetHtmlOptions,
+  type SetHtmlResult,
+} from './services/html-import.service';
 import {
   createHtmlBase64ExportService,
   type HtmlBase64ExportConfig,
@@ -101,7 +105,7 @@ export interface MountedEditorApp {
   getSourceHtmlValue: () => string | null;
   getSourceJsonValue: () => string | null;
   setFullscreen: (enabled: boolean) => void;
-  setHtml: (html: string) => SetHtmlResult;
+  setHtml: (html: string, options?: SetHtmlOptions) => SetHtmlResult;
   getHtmlWithBase64Images: (options?: HtmlBase64ExportOptions) => Promise<string>;
   getAgentSections: () => AgentSection[];
 }
@@ -374,8 +378,8 @@ export async function mountEditorApp({
     }
   }
 
-  function applyImportedHtml(html: string): SetHtmlResult {
-    const result = prepareHtmlImport(html, editor.state.schema);
+  function applyImportedHtml(html: string, options?: SetHtmlOptions): SetHtmlResult {
+    const result = prepareHtmlImport(html, editor.state.schema, options);
 
     if (!result.ok) {
       shell.setSaveStatus('error', result.message);
