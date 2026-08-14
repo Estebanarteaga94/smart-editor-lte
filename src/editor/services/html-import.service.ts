@@ -139,6 +139,9 @@ function prepareLegacyHtml(html: string): { html: string; warnings: string[] } {
     font.replaceWith(replacement);
   }
 
+  normalizeLegacyBlockStructure(container);
+  normalizeLegacyStyles(container, adaptedAttributes);
+
   const sanitizedContainer = document.createElement('div');
   sanitizedContainer.innerHTML = sanitizeImportedHtml(
     normalizePaste({ html: container.innerHTML }).normalizedHtml,
@@ -185,6 +188,84 @@ function prepareLegacyHtml(html: string): { html: string; warnings: string[] } {
 
   return { html: sanitizedContainer.innerHTML, warnings };
 }
+
+function normalizeLegacyBlockStructure(container: HTMLElement): void {
+  for (const list of Array.from(container.querySelectorAll('ul, ol'))) {
+    if (!list.querySelector('li')) {
+      list.remove();
+    }
+  }
+
+  const blockTags = new Set([
+    'blockquote',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'ol',
+    'p',
+    'pre',
+    'table',
+    'ul',
+  ]);
+
+  for (const legacyContainer of Array.from(container.querySelectorAll('div')).reverse()) {
+    const hasBlockChild = Array.from(legacyContainer.children).some((child) =>
+      blockTags.has(child.tagName.toLowerCase()),
+    );
+
+    if (hasBlockChild) {
+      legacyContainer.replaceWith(...Array.from(legacyContainer.childNodes));
+      continue;
+    }
+
+    const paragraph = document.createElement('p');
+    for (const attribute of Array.from(legacyContainer.attributes)) {
+      paragraph.setAttribute(attribute.name, attribute.value);
+    }
+    paragraph.append(...Array.from(legacyContainer.childNodes));
+    legacyContainer.replaceWith(paragraph);
+  }
+}
+
+function normalizeLegacyStyles(container: HTMLElement, adaptedAttributes: Set<string>): void {
+  const textAlignTags = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']);
+
+  for (const element of Array.from(container.querySelectorAll<HTMLElement>('[style]'))) {
+    const originalStyle = element.getAttribute('style') ?? '';
+    const supportedStyles: string[] = [];
+    const color = element.style.color.trim();
+
+    if (color && isSupportedLegacyColor(color)) {
+      supportedStyles.push(`color: ${color}`);
+    }
+
+    const tagName = element.tagName.toLowerCase();
+    const textAlign = element.style.textAlign.trim().toLowerCase();
+    if (textAlignTags.has(tagName) && supportedTextAlignments.has(textAlign)) {
+      supportedStyles.push(`text-align: ${textAlign}`);
+    }
+
+    const backgroundColor = element.style.backgroundColor.trim();
+    if (tagName === 'mark' && backgroundColor && isSupportedLegacyColor(backgroundColor)) {
+      supportedStyles.push(`background-color: ${backgroundColor}`);
+    }
+
+    if (supportedStyles.length === 0) {
+      element.removeAttribute('style');
+    } else {
+      element.setAttribute('style', supportedStyles.join('; '));
+    }
+
+    if (element.getAttribute('style') !== originalStyle) {
+      adaptedAttributes.add('style');
+    }
+  }
+}
+
+const supportedTextAlignments = new Set(['left', 'center', 'right', 'justify']);
 
 function isSupportedLegacyColor(color: string): boolean {
   return /^(#[0-9a-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-z]+)$/i.test(

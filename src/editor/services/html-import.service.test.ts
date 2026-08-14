@@ -9,6 +9,7 @@ import { prepareHtmlImport } from './html-import.service';
 
 const pngDataUri =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+const outlookLegacyHtml = `<p></p><p></p><ul></ul><div class="x_elementToProof" style="border: 0px; font-size: 11pt; line-height: inherit; font-family: Arial, Helvetica, sans-serif; margin: 0px; padding: 0px; vertical-align: baseline;">1.&nbsp;<a id="LPlnk230545" class="x_OWAAutoLink" data-auth="NotApplicable" rel="noopener noreferrer" target="_blank" href="https://www.intranet.clinicasagradocorazon.com.co/wp-content/uploads/2016/02/005-INSTRUCTIVO-PLAN-DE-CUIDADOS-DE-ENFERMERIA.pdf" data-linkindex="0" title="https://www.intranet.clinicasagradocorazon.com.co/wp-content/uploads/2016/02/005-INSTRUCTIVO-PLAN-DE-CUIDADOS-DE-ENFERMERIA.pdf" data-olk-copy-source="MessageBody" style="font-family: Arial, Helvetica, sans-serif; font-size: inherit; background-color: rgb(255, 255, 255); font-style: inherit; font-weight: normal; border: 0px; margin: 0px; padding: 0px; vertical-align: baseline;">INSTRUCTIVO-PLAN-DE-CUIDADOS-DE-ENFERMERIA</a><span style="font-size: 11pt;">. Clinica Sagrado Corazón en el año 2016.</span></div><p></p><p style="border: 0px; font-size: 11pt; line-height: inherit; font-family: Arial, Helvetica, sans-serif; margin: 0px; padding: 0px; vertical-align: baseline;"><span style="font-size: 14.6667px;">2. North American Nursing Diagnosis Association. Diagnósticos Enfermeros: definiciones y clasificaciones 2012 - 2014. Barcelona: Elsevier España; 2012.</span></p>`;
 const editors = new Set<ReturnType<typeof createWysiwygEditor>>();
 
 afterEach(() => {
@@ -85,6 +86,18 @@ describe('prepareHtmlImport', () => {
     expect(result.ok && result.html).not.toContain('javascript:');
     expect(result.ok && result.html).not.toContain('<br');
     expect(result.ok && result.warnings?.[0]).toContain('href');
+  });
+
+  it('normalizes the historical Outlook reference-list structure without losing its links', () => {
+    const editor = mountEditor();
+    const result = prepareHtmlImport(outlookLegacyHtml, editor.state.schema, { mode: 'legacy' });
+
+    expect(result).toMatchObject({ ok: true, code: 'applied' });
+    expect(result.ok && result.html).toContain('INSTRUCTIVO-PLAN-DE-CUIDADOS-DE-ENFERMERIA');
+    expect(result.ok && result.html).toContain('North American Nursing Diagnosis Association');
+    expect(result.ok && result.html).toContain('https://www.intranet.clinicasagradocorazon.com.co');
+    expect(result.ok && result.html).not.toContain('data-olk-copy-source');
+    expect(result.ok && result.html).not.toContain('data-auth');
   });
 });
 

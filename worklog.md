@@ -6260,6 +6260,37 @@ Decision Git:
 - Commit creado: `2a0846c Sanitizar HTML historico sin bloquear carga`.
 - Ajuste de metadata Outlook y fullscreen: `de437c2 Normalizar HTML de Outlook y elevar fullscreen`.
 
+## 2026-08-14 - Referencias historicas copiadas desde Outlook
+
+Objetivo:
+
+- Renderizar una muestra real de produccion compuesta por parrafos vacios, una lista vacia, un `div` raiz de Outlook, enlaces con metadata y spans con estilos tipograficos no canonicos.
+
+Diagnostico:
+
+- La lista `<ul></ul>` no produce un nodo de lista valido para el schema.
+- Al retirar el `div` no soportado, su contenido inline podia quedar sin un bloque canonico que lo contuviera.
+- Tiptap interpretaba los spans que solo tenian `font-size` como una marca `textStyle` con `color: ""`; el schema canonico rechaza correctamente ese color vacio y descartaba atomicamente toda la importacion.
+
+Acciones realizadas:
+
+- El modo legado elimina listas sin elementos `li`.
+- Los `div` con contenido inline se convierten en parrafos; los contenedores con bloques se desenvuelven sin perder sus hijos.
+- Los estilos heredados se reducen a los que el documento canonico puede representar: color de texto, alineacion de bloque y color de resaltado.
+- Se agrego como regresion el fragmento de referencias de Outlook reportado, verificando ambos textos, el enlace y la eliminacion de `data-auth` y `data-olk-copy-source`.
+- Se regenero `dist` y se actualizo la copia instalada en Vitraya.
+
+Verificacion:
+
+- Regresion exacta de Outlook: correcta.
+- `npm run check`: correcto; build, lint, 39 archivos y 278 pruebas correctas.
+- `npm run build:lib`: correcto.
+- `tsc -p tsconfig.app.json --noEmit` en Vitraya: correcto.
+
+Decision Git:
+
+- Se crea commit porque la muestra real ya se importa sin bloquear la renderizacion y queda cubierta por pruebas.
+
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
 Objetivo:
