@@ -6187,6 +6187,7 @@ Pendientes inmediatos:
 Decision Git:
 
 - Commit creado: `f2dcb3b Empaquetar editor para Angular`.
+- Ajuste posterior de dependencias: `5abed78 Alinear dependencias Tiptap publicadas`.
 - Los cambios de integracion en Vitraya no se confirmaron porque ese repositorio contiene numerosos cambios ajenos en curso; permanecen limitados a su componente, `angular.json` y `package.json`.
 
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
