@@ -6258,6 +6258,7 @@ Pendientes inmediatos:
 Decision Git:
 
 - Commit creado: `2a0846c Sanitizar HTML historico sin bloquear carga`.
+- Ajuste de metadata Outlook y fullscreen: `de437c2 Normalizar HTML de Outlook y elevar fullscreen`.
 
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
