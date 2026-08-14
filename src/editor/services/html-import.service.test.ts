@@ -65,7 +65,7 @@ describe('prepareHtmlImport', () => {
   it('sanitizes legacy HTML, preserves its content and reports a non-blocking warning', () => {
     const editor = mountEditor();
     const result = prepareHtmlImport(
-      '<div onclick="alert(1)"><font color="#336699" face="Arial" size="4"><b>Contenido historico</b></font><a href="javascript:alert(3)">enlace seguro</a><script>alert(2)</script></div>',
+      '<div data-olk-copy-source="MessageBody" onclick="alert(1)"><font color="#336699" face="Arial" size="4" data-auth="NotApplicable"><b>Contenido historico</b><br>segunda linea</font><a href="javascript:alert(3)">enlace seguro</a><script>alert(2)</script></div>',
       editor.state.schema,
       { mode: 'legacy' },
     );
@@ -80,7 +80,10 @@ describe('prepareHtmlImport', () => {
     expect(result.ok && result.html).toMatch(/color: (?:#336699|rgb\(51, 102, 153\))/);
     expect(result.ok && result.html).not.toContain('script');
     expect(result.ok && result.html).not.toContain('onclick');
+    expect(result.ok && result.html).not.toContain('data-auth');
+    expect(result.ok && result.html).not.toContain('data-olk-copy-source');
     expect(result.ok && result.html).not.toContain('javascript:');
+    expect(result.ok && result.html).not.toContain('<br');
     expect(result.ok && result.warnings?.[0]).toContain('href');
   });
 });

@@ -380,7 +380,7 @@ Objetivo medible: la aplicacion puede cargar HTML seguro en el editor y obtener,
   - Nota: `SetHtmlResult` discrimina `applied`, `empty-html`, `unsupported-schema` y `unsafe-content`.
 - [x] Agregar importacion compatible de HTML historico sin bloquear el renderizado.
   - Criterio: `setHtml(html, { mode: 'legacy' })` conserva texto y estructura compatibles, adapta `<font color>`, retira scripts/eventos/atributos inseguros y devuelve advertencias en un resultado exitoso.
-  - Nota: el modo estricto permanece como valor por defecto; Vitraya usa el modo legado solo en su adaptador Angular y agrupa las advertencias de varios campos en una alerta.
+  - Nota: el modo estricto permanece como valor por defecto; el modo legado retira metadata de Outlook como `data-olk-copy-source`/`data-auth`, normaliza estructuras Office y Vitraya agrupa las advertencias de varios campos en una alerta.
 - [x] Admitir fuentes de imagen seguras al importar HTML.
   - Criterio: `setHtml` acepta `http`, `https`, rutas relativas y URI Base64 de PNG/JPEG/WEBP validas; rechaza `blob:`, SVG embebido, MIME no admitidos, `javascript:` y data URI malformadas.
   - Nota: Base64 se habilita solo en el atributo `src` de imagen y se valida antes de entrar al schema canonico.
@@ -551,6 +551,9 @@ Objetivo medible: el editor ofrece preview y un estado fullscreen usable en escr
   - Criterio: presionar Escape revierte el estado fullscreen sin cambiar el modo de contenido activo.
 - [x] Mantener toolbar fija en fullscreen.
   - Criterio: la toolbar permanece disponible mientras se edita contenido largo.
+- [x] Mantener el fullscreen por encima de overlays de la aplicacion consumidora.
+  - Criterio: el root fullscreen crea una capa global superior a barras, menus y overlays habituales de Bootstrap/Angular sin alterar el orden interno de dialogos del editor.
+  - Nota: la capa fullscreen usa `z-index: 2147483000` dentro del limite seguro de CSS.
 - [x] Centrar area de edicion cuando aplique.
   - Criterio: documentos largos son legibles en pantallas grandes.
 - [x] Verificar fullscreen sobre cada vista.

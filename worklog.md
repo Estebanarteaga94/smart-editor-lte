@@ -6234,10 +6234,13 @@ Acciones realizadas:
 
 - `setHtml` admite el modo explicito `legacy`, manteniendo el comportamiento atomico estricto por defecto.
 - El modo legado transforma `<font color>` en `span` con color canonico, conserva sus nodos hijos y sanitiza etiquetas, eventos, URL, estilos y atributos no permitidos.
+- La limpieza posterior a DOMPurify elimina explicitamente metadata `data-*` no canonica que DOMPurify conserva por defecto, incluyendo `data-olk-copy-source` y `data-auth` de Outlook.
+- El HTML legado pasa por el normalizador de Office y convierte `<br>` a una representacion compatible antes de validar el schema, evitando rechazar todo el documento por estructuras historicas normalizables.
 - Un resultado aplicado puede incluir `warnings`; la sanitizacion deja de presentarse como error bloqueante.
 - `SmartEditorComponent` usa el modo legado al recibir HTML y expone `editorWarning` separado de `editorError`.
 - Cuando hubo adaptaciones, `SmartEditorComponent` reemplaza el valor de `ngModel` por el HTML canonico aplicado para que un guardado posterior migre el contenido y no vuelva a persistir la entrada insegura.
 - `cargar-documento/{id}` agrupa las advertencias de todos los editores durante 300 ms y muestra una sola alerta con el numero de campos adaptados.
+- El fullscreen eleva su contexto de apilamiento global para quedar sobre barras y overlays de Vitraya.
 - Se agregaron pruebas del servicio y de la API publica con `<font>`, color, evento inline y script.
 
 Verificacion:
@@ -6246,6 +6249,7 @@ Verificacion:
 - `npm run build:lib`: correcto.
 - `tsc -p tsconfig.app.json --noEmit` en Vitraya: correcto.
 - `npm run check`: correcto; build, lint, 39 archivos y 277 pruebas correctas.
+- Regresion focalizada de metadata Outlook y estructura Office: correcta.
 
 Pendientes inmediatos:
 

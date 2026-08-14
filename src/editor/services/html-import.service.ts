@@ -2,7 +2,11 @@ import type { Schema } from '@tiptap/pm/model';
 
 import { allowedHtmlAttributes, allowedHtmlTags, forbiddenHtmlTags } from '../utils/html-policy';
 import { isSafeImportedImageSource, isSafeLinkHref } from '../utils/safe-url';
-import { sanitizeAndValidateHtmlAgainstSchema } from './paste-content-safety.service';
+import { normalizePaste } from './paste-normalizer.service';
+import {
+  sanitizeAndValidateHtmlAgainstSchema,
+  sanitizeAndValidatePastedHtml,
+} from './paste-content-safety.service';
 import { sanitizeImportedHtml } from './sanitizer.service';
 
 export type SetHtmlFailureCode = 'empty-html' | 'unsafe-content' | 'unsupported-schema';
@@ -58,9 +62,14 @@ export function prepareHtmlImport(
     return inputValidation;
   }
 
-  const result = sanitizeAndValidateHtmlAgainstSchema(legacyPreparation.html, schema, {
-    sanitizeHtml: sanitizeImportedHtml,
-  });
+  const result =
+    options.mode === 'legacy'
+      ? sanitizeAndValidatePastedHtml(legacyPreparation.html, schema, {
+          sanitizeHtml: sanitizeImportedHtml,
+        })
+      : sanitizeAndValidateHtmlAgainstSchema(legacyPreparation.html, schema, {
+          sanitizeHtml: sanitizeImportedHtml,
+        });
 
   if (!result.ok) {
     return failure('unsupported-schema', 'El HTML contiene una estructura no compatible.');
@@ -131,12 +140,30 @@ function prepareLegacyHtml(html: string): { html: string; warnings: string[] } {
   }
 
   const sanitizedContainer = document.createElement('div');
-  sanitizedContainer.innerHTML = sanitizeImportedHtml(container.innerHTML);
+  sanitizedContainer.innerHTML = sanitizeImportedHtml(
+    normalizePaste({ html: container.innerHTML }).normalizedHtml,
+  );
 
-  for (const element of Array.from(sanitizedContainer.querySelectorAll('[style]'))) {
-    if (unsafeStylePattern.test(element.getAttribute('style') ?? '')) {
-      adaptedAttributes.add('style');
-      element.removeAttribute('style');
+  for (const element of Array.from(sanitizedContainer.querySelectorAll('*'))) {
+    for (const attribute of Array.from(element.attributes)) {
+      const name = attribute.name.toLowerCase();
+      if (
+        name.startsWith('on') ||
+        !supportedAttributes.has(name) ||
+        (name === 'style' && unsafeStylePattern.test(attribute.value))
+      ) {
+        adaptedAttributes.add(name);
+        element.removeAttribute(attribute.name);
+      }
+    }
+
+    if (
+      element instanceof HTMLAnchorElement &&
+      element.hasAttribute('href') &&
+      !isSafeLinkHref(element.getAttribute('href') ?? '')
+    ) {
+      adaptedAttributes.add('href');
+      element.removeAttribute('href');
     }
   }
 

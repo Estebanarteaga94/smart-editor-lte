@@ -88,7 +88,7 @@
 
 .editor-app.editor-shell--fullscreen {
   position: fixed;
-  z-index: 100;
+  z-index: 2147483000;
   inset: 0;
   width: 100%;
   margin: 0;
