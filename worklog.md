@@ -6289,7 +6289,7 @@ Verificacion:
 
 Decision Git:
 
-- Se crea commit porque la muestra real ya se importa sin bloquear la renderizacion y queda cubierta por pruebas.
+- Commit creado: `3b16a3c Compatibilizar referencias HTML de Outlook`.
 
 ## 2026-07-28 - Secciones temporales para asistencia de agentes
 
