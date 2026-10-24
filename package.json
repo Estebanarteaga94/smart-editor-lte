@@ -3,10 +3,28 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "main": "./dist/smart-editor-lte.js",
+  "module": "./dist/smart-editor-lte.js",
+  "types": "./dist/types/lib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/lib.d.ts",
+      "import": "./dist/smart-editor-lte.js",
+      "default": "./dist/smart-editor-lte.js"
+    },
+    "./style.css": "./dist/smart-editor-lte.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "build:lib": "vite build --config vite.lib.config.ts && tsc -p tsconfig.lib.json && node scripts/write-library-package.mjs",
+    "prepare": "npm run build:lib",
     "preview": "vite preview",
     "lint": "eslint src vite.config.ts vite.lib.config.ts eslint.config.js",
     "format": "prettier --write \"**/*.{ts,js,css,html,json,md}\"",
