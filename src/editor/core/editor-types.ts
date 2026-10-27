@@ -17,4 +17,5 @@ export interface CreateWysiwygEditorOptions {
   pasteNormalizer?: PasteNormalizerService;
   pasteContentSafety?: PasteContentSafetyService;
   onChange?: EditorChangeHandler;
+  onInvalidHtml?: (message: string) => void;
 }

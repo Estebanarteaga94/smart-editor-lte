@@ -16,10 +16,20 @@ import { StarterKit } from '@tiptap/starter-kit';
 
 import { ResizableImage } from '../extensions/resizable-image.extension';
 import { AgentSectionExtension } from '../extensions/agent-section.extension';
+import { PreservedTableView } from '../extensions/preserved-table-view';
 import { isSafeLinkHref } from '../utils/safe-url';
+import {
+  HtmlPreservation,
+  HtmlContainer,
+  HtmlInlineContainer,
+  HtmlToken,
+  HtmlBlockToken,
+  HtmlSpan,
+} from '../extensions/html-preservation.extension';
 
 export interface CreateEditorExtensionsOptions {
   placeholder?: string;
+  onInvalidHtml?: (message: string) => void;
 }
 
 export type EditorExtensionList = Extensions;
@@ -30,6 +40,12 @@ export function createEditorExtensions(
   options: CreateEditorExtensionsOptions = {},
 ): EditorExtensionList {
   return [
+    HtmlPreservation.configure({ onInvalidHtml: options.onInvalidHtml }),
+    HtmlContainer,
+    HtmlInlineContainer,
+    HtmlToken,
+    HtmlBlockToken,
+    HtmlSpan,
     StarterKit.configure({
       link: false,
       underline: false,
@@ -66,6 +82,7 @@ export function createEditorExtensions(
       },
     }),
     Table.configure({
+      View: PreservedTableView,
       resizable: true,
       handleWidth: 6,
       cellMinWidth: 80,

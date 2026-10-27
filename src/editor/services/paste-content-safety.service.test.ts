@@ -32,16 +32,16 @@ describe('sanitizeAndValidatePastedHtml', () => {
     });
   });
 
-  it('normalizes line breaks before validating pasted HTML against the canonical schema', () => {
+  it('preserves consecutive and trailing line breaks in pasted HTML', () => {
     const editor = mountEditor();
     const result = sanitizeAndValidatePastedHtml(
-      '<p>Linea uno<br>Linea dos</p>',
+      '<p>Linea uno<br><br>Linea dos<br></p>',
       editor.state.schema,
     );
 
     expect(result).toEqual({
       ok: true,
-      html: '<p>Linea uno Linea dos</p>',
+      html: '<p>Linea uno<br><br>Linea dos<br></p>',
     });
   });
 });

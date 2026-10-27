@@ -29,9 +29,8 @@ export function sanitizeAndValidatePastedHtml(
   sanitizer: SanitizerService = createSanitizerService(),
 ): SafePastedHtmlResult {
   const sanitizedHtml = sanitizer.sanitizeHtml(html);
-  const normalizedHtml = normalizePastedHtmlForCanonicalSchema(sanitizedHtml);
 
-  return validateSanitizedHtmlAgainstSchema(normalizedHtml, schema);
+  return validateSanitizedHtmlAgainstSchema(sanitizedHtml, schema);
 }
 
 export function sanitizeAndValidateHtmlAgainstSchema(
@@ -92,23 +91,4 @@ function validateSanitizedHtmlAgainstSchema(
       error: invalidSourceHtmlSchemaMessage,
     };
   }
-}
-
-function normalizePastedHtmlForCanonicalSchema(html: string): string {
-  if (!/<br\b/i.test(html)) {
-    return html;
-  }
-
-  if (typeof document === 'undefined') {
-    return html.replace(/<br\s*\/?>/gi, ' ');
-  }
-
-  const container = document.createElement('div');
-  container.innerHTML = html;
-
-  for (const lineBreak of container.querySelectorAll('br')) {
-    lineBreak.replaceWith(document.createTextNode(' '));
-  }
-
-  return container.innerHTML;
 }

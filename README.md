@@ -349,3 +349,48 @@ pnpm test:e2e
 - La demo local se monta desde `src/main.ts`.
 - La libreria publica se monta desde `src/lib.ts` y se empaqueta con
   `npm run build:lib`.
+
+## Conservación de plantillas en el editor actual
+
+La misma API `mountEditorApp` admite documentos HTML completos y fragmentos
+Handlebars mediante `setHtml`. Usa la barra, el menú de tablas, la selección,
+el historial y el almacenamiento existentes. La demo conserva un único editor;
+el prototipo `mountTemplateEditor` fue retirado.
+
+```ts
+const mounted = await mountEditorApp({ app, storage });
+const result = mounted.setHtml(htmlDeLaPlantilla);
+if (!result.ok) mostrarError(result.message);
+const html = mounted.editor.getHTML();
+```
+
+- Se conservan doctype, atributos html/body, head, hojas CSS, clases, IDs,
+  contenedores, secciones de tablas y expresiones Handlebars. Sin edición se
+  devuelve la fuente original; tras editar, ProseMirror puede normalizar la
+  sintaxis y agregar los párrafos que requiere su esquema.
+- El JSON canónico **versión 2** incluye metadatos `preservedDocument` en la raíz
+  y `preservedHtml` en elementos/marcas, además de contenedores y referencias
+  de plantilla. Se guardan junto al contenido mediante el almacenamiento actual.
+  Conservar solo el HTML de la proyección visual perdería esos metadatos.
+- Los comandos de tablas siguen siendo los de Tiptap. Las filas nuevas mantienen
+  su sección/bloque; se rechazan combinaciones entre regiones y cambios que
+  dejen Handlebars incompleto, conservando el documento anterior.
+- Las expresiones se muestran como referencias atómicas, sin evaluarlas. La
+  vista HTML existente permite modificar la fuente completa. Se conserva el CSS
+  original al guardar; la proyección de hojas CSS se limita al área editable y
+  omite reglas que cargan recursos. La vista previa existente aísla el documento en
+  un iframe sin scripts ni recursos remotos.
+- La exportación Base64 existente conserva la plantilla, convierte imágenes de
+  URL fija y deja expresiones como `src="{{firma}}"` sin descargar ni evaluar.
+  Una plantilla con referencias dinámicas aún requiere datos para renderizarse.
+- Se rechazan contenido activo, elementos sin representación conservable y
+  estructuras condicionales entre celdas que el esquema no puede interpretar;
+  no se eliminan silenciosamente. No es un compilador Handlebars ni una garantía
+  de equivalencia PDF de cualquier HTML. Las definiciones originales `colgroup`
+  se mantienen. Se rechazan cambios de cantidad/ancho de columnas en esas tablas
+  hasta coordinar la actualización de sus definiciones explícitas; no se guarda
+  una definición desincronizada.
+
+Esta corrección es local a la biblioteca. La actualización de Vitraya requiere
+seleccionar una versión y verificar sus consumidores del JSON v2 y del HTML
+completo; no se realizó aquí. Tampoco se modificaron dependencias para publicar.

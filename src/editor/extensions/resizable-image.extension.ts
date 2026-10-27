@@ -1,5 +1,6 @@
 import { Image, type ImageOptions } from '@tiptap/extension-image';
 import { mergeAttributes, ResizableNodeView } from '@tiptap/core';
+import { preservedHtmlSchema } from '../models/preserved-html';
 
 export interface ResizableImageAttributes {
   src: string;
@@ -142,7 +143,9 @@ function syncImageElementAttributes(
   extensionAttributes: Record<string, unknown>,
   nodeAttributes: Record<string, unknown>,
 ): void {
-  const mergedAttributes = mergeAttributes(extensionAttributes, nodeAttributes);
+  const { preservedHtml, ...attributes } = nodeAttributes;
+  const imported = preservedHtml ? preservedHtmlSchema.parse(preservedHtml).attributes : {};
+  const mergedAttributes = mergeAttributes(extensionAttributes, imported, attributes);
 
   Object.entries(mergedAttributes).forEach(([key, value]) => {
     if (value == null) {

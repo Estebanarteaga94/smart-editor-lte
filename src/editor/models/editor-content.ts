@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { preservedHtmlSchema, preservedDocumentSchema } from './preserved-html';
 
 import { isSafeCanonicalImageSource, isSafeLinkHref } from '../utils/safe-url';
 import {
@@ -6,12 +7,13 @@ import {
   invalidSourceJsonSyntaxMessage,
 } from '../utils/source-error-messages';
 
-export const canonicalContentSchemaVersion = 1;
+export const canonicalContentSchemaVersion = 2;
 
 export const allowedCanonicalNodeTypes = [
   'doc',
   'paragraph',
   'text',
+  'hardBreak',
   'heading',
   'bulletList',
   'orderedList',
@@ -26,6 +28,10 @@ export const allowedCanonicalNodeTypes = [
   'blockquote',
   'codeBlock',
   'horizontalRule',
+  'htmlContainer',
+  'htmlInlineContainer',
+  'htmlToken',
+  'htmlBlockToken',
 ] as const;
 
 export const allowedCanonicalMarkTypes = [
@@ -36,6 +42,7 @@ export const allowedCanonicalMarkTypes = [
   'link',
   'textStyle',
   'highlight',
+  'htmlSpan',
 ] as const;
 
 export type CanonicalNodeType = (typeof allowedCanonicalNodeTypes)[number];
@@ -45,6 +52,11 @@ export const canonicalJsonSpecification = {
   version: canonicalContentSchemaVersion,
   nodes: allowedCanonicalNodeTypes,
   marks: allowedCanonicalMarkTypes,
+  preservation: {
+    documentAttribute: 'preservedDocument',
+    elementAttribute: 'preservedHtml',
+    tokenAttributes: ['value'],
+  },
   attributes: {
     link: ['href', 'target', 'rel', 'class', 'title'],
     image: ['src', 'alt', 'title', 'width', 'height', 'align'],
@@ -147,6 +159,7 @@ const canonicalMarkSchema = z
       case 'italic':
       case 'underline':
       case 'strike':
+      case 'htmlSpan':
         validateAttrs(mark.attrs, emptyAttrsSchema, ctx);
         break;
     }
@@ -235,16 +248,26 @@ export function validateSourceJsonContent(source: string): SourceJsonValidationR
 }
 
 function validateCanonicalNode(node: CanonicalJsonNode, ctx: z.RefinementCtx): void {
-  if (node.type !== 'text' && node.marks !== undefined) {
+  if (
+    node.type !== 'text' &&
+    node.type !== 'hardBreak' &&
+    node.type !== 'htmlToken' &&
+    node.marks !== undefined
+  ) {
     ctx.addIssue({
       code: 'custom',
-      message: 'Only text nodes can contain marks',
+      message: 'Only text and hardBreak nodes can contain marks',
       path: ['marks'],
     });
   }
 
   switch (node.type) {
     case 'doc':
+      validateAttrs(node.attrs, emptyAttrsSchema, ctx, true);
+      rejectText(node, ctx);
+      break;
+    case 'htmlContainer':
+    case 'htmlInlineContainer':
     case 'bulletList':
     case 'listItem':
     case 'taskList':
@@ -284,8 +307,15 @@ function validateCanonicalNode(node: CanonicalJsonNode, ctx: z.RefinementCtx): v
       validateAttrs(node.attrs, codeBlockAttrsSchema, ctx);
       rejectText(node, ctx);
       break;
+    case 'hardBreak':
     case 'horizontalRule':
       validateAttrs(node.attrs, emptyAttrsSchema, ctx);
+      rejectText(node, ctx);
+      rejectContent(node, ctx);
+      break;
+    case 'htmlToken':
+    case 'htmlBlockToken':
+      validateAttrs(node.attrs, z.object({ value: z.string() }).strict(), ctx);
       rejectText(node, ctx);
       rejectContent(node, ctx);
       break;
@@ -307,8 +337,28 @@ function validateAttrs(
   attrs: Record<string, unknown> | undefined,
   schema: z.ZodType,
   ctx: z.RefinementCtx,
+  allowDocument = false,
 ): void {
-  const validation = schema.safeParse(attrs ?? {});
+  const clean = Object.fromEntries(
+    Object.entries(attrs ?? {}).filter(([, value]) => value !== undefined),
+  );
+  const { preservedHtml, preservedDocument, ...rest } = clean;
+  if (preservedHtml !== undefined && !preservedHtmlSchema.safeParse(preservedHtml).success)
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Invalid preserved HTML metadata',
+      path: ['attrs', 'preservedHtml'],
+    });
+  if (
+    preservedDocument !== undefined &&
+    (!allowDocument || !preservedDocumentSchema.safeParse(preservedDocument).success)
+  )
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Invalid preserved document metadata',
+      path: ['attrs', 'preservedDocument'],
+    });
+  const validation = schema.safeParse(rest);
 
   if (!validation.success) {
     for (const issue of validation.error.issues) {

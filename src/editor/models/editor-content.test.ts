@@ -157,13 +157,39 @@ const validContent: CanonicalEditorContent = {
 
 describe('canonical editor content schema', () => {
   it('documents the versioned allowed nodes and marks', () => {
-    expect(canonicalJsonSpecification.version).toBe(1);
+    expect(canonicalJsonSpecification.version).toBe(2);
     expect(canonicalJsonSpecification.nodes).toEqual(allowedCanonicalNodeTypes);
     expect(canonicalJsonSpecification.marks).toEqual(allowedCanonicalMarkTypes);
   });
 
   it('accepts valid canonical ProseMirror JSON', () => {
     expect(parseCanonicalEditorContent(validContent)).toEqual(validContent);
+  });
+
+  it('accepts hard breaks with inline formatting', () => {
+    const content = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Primera linea' },
+            { type: 'hardBreak', marks: [{ type: 'bold' }] },
+            { type: 'text', text: 'Segunda linea' },
+          ],
+        },
+      ],
+    };
+
+    expect(parseCanonicalEditorContent(content)).toEqual(content);
+  });
+
+  it.each([
+    { type: 'hardBreak', text: 'No es texto' },
+    { type: 'hardBreak', content: [{ type: 'text', text: 'No tiene hijos' }] },
+    { type: 'hardBreak', attrs: { onclick: 'alert(1)' } },
+  ])('rejects invalid hard break payloads: %j', (node) => {
+    expect(() => parseCanonicalEditorContent({ type: 'doc', content: [node] })).toThrow();
   });
 
   it('accepts heading levels from H1 through H6', () => {

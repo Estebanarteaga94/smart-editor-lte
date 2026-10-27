@@ -29,6 +29,40 @@ afterEach(() => {
 });
 
 describe('mountEditorApp', () => {
+  it.each([
+    ['<p>Borrador actual</p>', true],
+    [
+      '<!DOCTYPE html><html><head><style>p{color:red}</style></head><body><script>alert(1)</script>{{nombre}}</body></html>',
+      false,
+    ],
+  ] as const)('validates source before returning to visual editing: %s', async (draft, valid) => {
+    const appRoot = document.createElement('div');
+    document.body.append(appRoot);
+    const storage = createStorageDouble(null);
+    const mounted = await mountEditorApp({
+      app: appRoot,
+      storage: storage.service,
+      documentId: 'source-save-regression',
+    });
+    mountedApps.add(mounted);
+    const before = mounted.editor.getHTML();
+    appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="source-html"]')!.click();
+    await flushPromises();
+    mounted.getSourceView()!.setValue(draft);
+    appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="source-html"]')!.click();
+    appRoot.querySelector<HTMLButtonElement>('[data-toolbar-action="save"]')!.click();
+    await flushPromises();
+    if (valid) {
+      expect(storage.saveDocument).toHaveBeenCalled();
+      expect(mounted.editor.getHTML()).toBe(draft);
+    } else {
+      expect(storage.saveDocument).not.toHaveBeenCalled();
+      expect(mounted.editor.getHTML()).toBe(before);
+      expect(mounted.getSourceView()!.getValue()).toBe(draft);
+      expect(appRoot.textContent).toContain('elementos activos');
+    }
+  });
+
   it('supports embedded consumers and reports content changes through the public API', async () => {
     const appRoot = document.createElement('div');
     const onChange = vi.fn();
@@ -2595,7 +2629,7 @@ describe('mountEditorApp', () => {
     await flushPromises();
 
     const sourceView = mountedApp.getSourceView();
-    sourceView?.setValue('<p>Linea uno<br>Linea dos</p>');
+    sourceView?.setValue('<p><code>Marca fuera del esquema canonico</code></p>');
 
     sourceHtmlButton?.click();
     await flushPromises();

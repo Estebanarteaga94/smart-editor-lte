@@ -1,4 +1,6 @@
 import type { Schema } from '@tiptap/pm/model';
+import type { JSONContent } from '@tiptap/core';
+import { needsHtmlPreservation, preparePreservedHtml } from './preserved-html.service';
 
 import { allowedHtmlAttributes, allowedHtmlTags, forbiddenHtmlTags } from '../utils/html-policy';
 import { isSafeImportedImageSource, isSafeLinkHref } from '../utils/safe-url';
@@ -16,6 +18,7 @@ export interface SetHtmlSuccess {
   code: 'applied';
   html: string;
   warnings?: string[];
+  content?: JSONContent;
 }
 
 export interface SetHtmlFailure {
@@ -50,6 +53,16 @@ export function prepareHtmlImport(
 
   if (typeof document === 'undefined') {
     return failure('unsupported-schema', 'La importacion HTML requiere un entorno DOM.');
+  }
+  if (needsHtmlPreservation(html)) {
+    try {
+      return { ok: true, code: 'applied', html, content: preparePreservedHtml(html, schema) };
+    } catch (cause) {
+      return failure(
+        'unsupported-schema',
+        cause instanceof Error ? cause.message : 'No se pudo conservar el HTML.',
+      );
+    }
   }
 
   const legacyPreparation =

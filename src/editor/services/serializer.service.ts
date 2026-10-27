@@ -6,6 +6,7 @@ import {
   type CanonicalJsonNode,
 } from '../models/editor-content';
 import { sanitizeHtml } from './sanitizer.service';
+import { serializePreservedHtml } from './preserved-html.service';
 
 export interface SerializedEditorContent {
   contentJson: CanonicalEditorContent;
@@ -33,10 +34,14 @@ export function createSerializerService(editor: Editor): SerializerService {
 }
 
 export function getCanonicalEditorJson(editor: Editor): CanonicalEditorContent {
-  return parseCanonicalEditorContent(editor.getJSON());
+  return parseCanonicalEditorContent(JSON.parse(JSON.stringify(editor.getJSON())));
 }
 
 export function getRenderableEditorHtml(editor: Editor): string {
+  const preserved = editor.getJSON().attrs?.preservedDocument
+    ? serializePreservedHtml(editor.state.doc)
+    : null;
+  if (preserved !== null) return preserved;
   return getRenderableEditorHtmlFromContent(editor.getHTML(), getCanonicalEditorJson(editor));
 }
 
@@ -45,7 +50,9 @@ export function serializeEditorContent(editor: Editor): SerializedEditorContent 
 
   return {
     contentJson,
-    contentHtml: getRenderableEditorHtmlFromContent(editor.getHTML(), contentJson),
+    contentHtml: contentJson.attrs?.preservedDocument
+      ? serializePreservedHtml(editor.state.doc)!
+      : getRenderableEditorHtmlFromContent(editor.getHTML(), contentJson),
   };
 }
 

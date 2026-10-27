@@ -20,6 +20,16 @@ afterEach(() => {
 });
 
 describe('source-html roundtrip', () => {
+  it('preserves hard breaks through public import, HTML source and serialization', async () => {
+    const { appRoot, mountedApp } = await mountRoundtripApp('doc-html-hard-breaks');
+    const html = '<p><strong>Primera<br>Segunda</strong><br><br>Tercera<br></p>';
+
+    expect(mountedApp.setHtml(html)).toMatchObject({ ok: true });
+    expect(mountedApp.editor.getHTML().match(/<br>/g)).toHaveLength(4);
+    await expectHtmlRoundtripToPreserveContent(appRoot, mountedApp);
+    expect(mountedApp.editor.getHTML().match(/<br>/g)).toHaveLength(4);
+  }, 15_000);
+
   it('preserves simple headings, paragraphs, marks and lists', async () => {
     const { appRoot, mountedApp } = await mountRoundtripApp('doc-html-roundtrip-simple');
 

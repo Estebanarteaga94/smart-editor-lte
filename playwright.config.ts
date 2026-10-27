@@ -5,6 +5,9 @@ export default defineConfig({
   testMatch: '**/*.spec.ts',
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    launchOptions: {
+      executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined,
+    },
   },
   webServer: {
     command: 'npm run dev -- --host 127.0.0.1 --port 4173',

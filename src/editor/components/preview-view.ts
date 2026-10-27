@@ -1,4 +1,5 @@
 import { createSanitizerService, type SanitizerService } from '../services/sanitizer.service';
+import { needsHtmlPreservation, preservedHtmlPreview } from '../services/preserved-html.service';
 
 export interface PreviewViewOptions {
   title?: string;
@@ -29,6 +30,19 @@ export function createPreviewView(options: PreviewViewOptions = {}): PreviewView
   element.append(title, content);
 
   const setHtml = (html: string): void => {
+    if (needsHtmlPreservation(html)) {
+      try {
+        const frame = document.createElement('iframe');
+        frame.title = 'Vista renderizada del documento';
+        frame.setAttribute('sandbox', '');
+        frame.style.cssText = 'width:100%;min-height:600px;border:0';
+        frame.srcdoc = preservedHtmlPreview(html);
+        content.replaceChildren(frame);
+        return;
+      } catch {
+        /* Unsafe inputs retain the ordinary sanitized preview. */
+      }
+    }
     content.innerHTML = sanitizer.sanitizeHtml(html);
   };
 

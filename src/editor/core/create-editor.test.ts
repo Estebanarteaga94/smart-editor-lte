@@ -342,7 +342,7 @@ describe('createWysiwygEditor', () => {
     expect(editor.getHTML()).toContain('<td colspan="1" rowspan="1"><p>Cafe</p></td>');
   });
 
-  it('normalizes line breaks in tabulated paste without discarding its content', () => {
+  it('preserves line breaks in tabulated paste without discarding its content', () => {
     const element = document.createElement('div');
     const normalizePaste = vi.fn<PasteNormalizerService['normalizePaste']>(() => ({
       normalizedHtml: '<p>Linea uno<br>Linea dos</p>',
@@ -366,7 +366,8 @@ describe('createWysiwygEditor', () => {
     expect(handled).toBe(true);
     expect(pasteEvent.defaultPrevented).toBe(true);
     expect(editor.getHTML()).not.toBe('<p>Base</p>');
-    expect(editor.getText()).toContain('Linea uno Linea dos');
+    expect(editor.getText()).toContain('Linea uno\nLinea dos');
+    expect(editor.getHTML()).toContain('<br>');
   });
 
   it('pastes extensive HTML with line breaks as valid canonical content', () => {
@@ -393,7 +394,8 @@ describe('createWysiwygEditor', () => {
     expect(editor.getHTML()).not.toBe('<p>Base original</p>');
     expect(editor.getText()).toContain('Parrafo extenso 0');
     expect(editor.getText()).toContain(`Parrafo extenso ${paragraphCount - 1}`);
-    expect(editor.getText()).toContain('Linea uno Linea dos');
+    expect(editor.getText()).toContain('Linea uno\nLinea dos');
+    expect(editor.getHTML()).toContain('<br>');
     expect(editor.getJSON().content?.length).toBeGreaterThan(paragraphCount);
     expect(safeParseCanonicalEditorContent(editor.getJSON()).success).toBe(true);
   });

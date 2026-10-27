@@ -1,5 +1,6 @@
 import { sanitizeImportedHtml } from './sanitizer.service';
 import { isValidEmbeddedImageSource } from '../utils/safe-url';
+import { needsHtmlPreservation, preparePreservedHtmlExport } from './preserved-html.service';
 
 export type HtmlBase64ExportErrorCode =
   'aborted' | 'invalid-source' | 'http-error' | 'network-error' | 'unsupported-mime' | 'size-limit';
@@ -68,8 +69,21 @@ async function exportHtmlWithBase64Images(
   }
 
   throwIfAborted(options.signal);
-  const container = document.createElement('div');
-  container.innerHTML = sanitizeImportedHtml(html);
+  let preserved: ReturnType<typeof preparePreservedHtmlExport> | null = null;
+  if (needsHtmlPreservation(html)) {
+    try {
+      preserved = preparePreservedHtmlExport(html);
+    } catch (cause) {
+      throw exportError(
+        'invalid-source',
+        '',
+        'El HTML de la plantilla no es seguro o está incompleto.',
+        cause,
+      );
+    }
+  }
+  const container = preserved?.container ?? document.createElement('div');
+  if (!preserved) container.innerHTML = sanitizeImportedHtml(html);
   const images = Array.from(container.querySelectorAll('img'));
   const sourcesToDownload = new Map<string, string>();
 
@@ -77,7 +91,7 @@ async function exportHtmlWithBase64Images(
     image.removeAttribute('srcset');
     const source = image.getAttribute('src')?.trim() ?? '';
 
-    if (isValidEmbeddedImageSource(source)) {
+    if (preserved?.isExpression(source) || isValidEmbeddedImageSource(source)) {
       continue;
     }
 
@@ -95,7 +109,7 @@ async function exportHtmlWithBase64Images(
     for (const image of images) {
       const source = image.getAttribute('src')?.trim() ?? '';
 
-      if (isValidEmbeddedImageSource(source)) {
+      if (preserved?.isExpression(source) || isValidEmbeddedImageSource(source)) {
         continue;
       }
 
@@ -109,8 +123,8 @@ async function exportHtmlWithBase64Images(
       image.setAttribute('src', embeddedSource);
     }
 
-    const result = sanitizeImportedHtml(container.innerHTML);
-    assertSelfContainedHtml(result);
+    const result = preserved ? preserved.serialize() : sanitizeImportedHtml(container.innerHTML);
+    if (!preserved) assertSelfContainedHtml(result);
     throwIfAborted(controller.signal);
     return result;
   } finally {

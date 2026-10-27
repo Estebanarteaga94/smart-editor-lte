@@ -60,6 +60,7 @@ import {
   uploadEmbeddedPasteImages,
 } from './services/embedded-image-paste.service';
 import { getCanonicalEditorJson, serializeEditorContent } from './services/serializer.service';
+import { applyPreservedContent, needsHtmlPreservation } from './services/preserved-html.service';
 import {
   prepareHtmlImport,
   type SetHtmlOptions,
@@ -168,11 +169,16 @@ export async function mountEditorApp({
   const editor = createWysiwygEditor({
     element: shell.editable,
     initialContent:
-      loadedDocument?.contentJson ??
+      (loadedDocument &&
+      !loadedDocument.contentJson.attrs?.preservedDocument &&
+      needsHtmlPreservation(loadedDocument.contentHtml)
+        ? loadedDocument.contentHtml
+        : loadedDocument?.contentJson) ??
       (embedded ? '' : createDefaultDocumentContent(activeDocumentTitle)),
     placeholder,
     pasteNormalizer: activePasteNormalizer,
     pasteContentSafety: activePasteContentSafety,
+    onInvalidHtml: (message) => shell.setSaveStatus('error', message),
     onChange: ({ contentJson, contentHtml }) => {
       preview.setHtml(contentHtml);
       onChange?.({ contentJson, contentHtml });
@@ -223,7 +229,11 @@ export async function mountEditorApp({
     },
     restoreVersion: async (version) => {
       const restoredVersion = await versionsApi.restoreVersion(documentId, version.id);
-      const applied = editor.commands.setContent(restoredVersion.contentJson);
+      const applied =
+        restoredVersion.contentJson.attrs?.preservedDocument ||
+        editor.state.doc.attrs.preservedDocument
+          ? (applyPreservedContent(editor, restoredVersion.contentJson), true)
+          : editor.commands.setContent(restoredVersion.contentJson);
       if (!applied) {
         throw new Error('Version content could not be applied');
       }
@@ -389,10 +399,19 @@ export async function mountEditorApp({
     const previousContent = editor.getJSON();
 
     try {
-      const applied = editor.commands.setContent(result.html);
+      const applied = result.content
+        ? (applyPreservedContent(editor, result.content), true)
+        : editor
+            .chain()
+            .command(({ tr }) => {
+              tr.setDocAttribute('preservedDocument', undefined);
+              return true;
+            })
+            .setContent(result.html)
+            .run();
 
       if (!applied) {
-        editor.commands.setContent(previousContent, { emitUpdate: false });
+        applyPreservedContent(editor, previousContent);
         const failure: SetHtmlResult = {
           ok: false,
           code: 'unsupported-schema',
@@ -402,7 +421,7 @@ export async function mountEditorApp({
         return failure;
       }
     } catch {
-      editor.commands.setContent(previousContent, { emitUpdate: false });
+      applyPreservedContent(editor, previousContent);
       const failure: SetHtmlResult = {
         ok: false,
         code: 'unsupported-schema',
@@ -569,6 +588,12 @@ export async function mountEditorApp({
     }
 
     const source = sourceView?.getValue() ?? sourceHtmlValue ?? '';
+    if (
+      editor.state.doc.attrs.preservedDocument ||
+      /<!doctype\b|<(?:html|head|style)\b|{{/i.test(source)
+    ) {
+      return applyImportedHtml(source).ok;
+    }
     const result = sanitizeAndValidateHtmlAgainstSchema(source, editor.state.schema, sanitizer);
 
     if (!result.ok) {
@@ -629,7 +654,10 @@ export async function mountEditorApp({
     }
 
     try {
-      const applied = editor.commands.setContent(result.content);
+      const applied =
+        result.content.attrs?.preservedDocument || editor.state.doc.attrs.preservedDocument
+          ? (applyPreservedContent(editor, result.content), true)
+          : editor.commands.setContent(result.content);
 
       if (!applied) {
         shell.setSaveStatus('error', sourceJsonApplyErrorMessage);

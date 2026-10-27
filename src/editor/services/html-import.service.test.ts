@@ -21,6 +21,16 @@ afterEach(() => {
 });
 
 describe('prepareHtmlImport', () => {
+  it.each(['strict', 'legacy'] as const)('preserves line breaks in %s imports', (mode) => {
+    const editor = mountEditor();
+    const html = '<p>Primera linea<br><br>Segunda linea<br></p>';
+
+    expect(prepareHtmlImport(html, editor.state.schema, { mode })).toMatchObject({
+      ok: true,
+      html,
+    });
+  });
+
   it('accepts canonical HTML with remote, relative and supported Base64 images', () => {
     const editor = mountEditor();
     const result = prepareHtmlImport(
@@ -63,6 +73,31 @@ describe('prepareHtmlImport', () => {
     });
   });
 
+  it.each(['strict', 'legacy'] as const)(
+    'prepares full templates without destructive %s import',
+    (mode) => {
+      const editor = mountEditor();
+      const before = editor.getHTML();
+      expect(
+        prepareHtmlImport(
+          '<!DOCTYPE html><html><head><style>p{color:red}</style></head><body><p>{{nombre}}</p></body></html>',
+          editor.state.schema,
+          { mode },
+        ),
+      ).toMatchObject({
+        ok: true,
+        code: 'applied',
+        content: expect.objectContaining({
+          type: 'doc',
+          attrs: expect.objectContaining({
+            preservedDocument: expect.objectContaining({ fullDocument: true }),
+          }),
+        }),
+      });
+      expect(editor.getHTML()).toBe(before);
+    },
+  );
+
   it('sanitizes legacy HTML, preserves its content and reports a non-blocking warning', () => {
     const editor = mountEditor();
     const result = prepareHtmlImport(
@@ -84,7 +119,7 @@ describe('prepareHtmlImport', () => {
     expect(result.ok && result.html).not.toContain('data-auth');
     expect(result.ok && result.html).not.toContain('data-olk-copy-source');
     expect(result.ok && result.html).not.toContain('javascript:');
-    expect(result.ok && result.html).not.toContain('<br');
+    expect(result.ok && result.html).toContain('<br');
     expect(result.ok && result.warnings?.[0]).toContain('href');
   });
 

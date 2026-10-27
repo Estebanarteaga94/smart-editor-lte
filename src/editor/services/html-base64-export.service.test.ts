@@ -138,3 +138,24 @@ function imageResponse(mimeType: string, bytes: number[]): Response {
     },
   });
 }
+
+describe('template preservation during existing Base64 export', () => {
+  it('keeps CSS, Handlebars loops and dynamic image references while embedding fixed images', async () => {
+    const fetchImage = vi.fn().mockResolvedValue(imageResponse('image/png', [1, 2, 3]));
+    const service = createHtmlBase64ExportService({
+      fetch: fetchImage,
+      baseUrl: 'https://example.test/',
+    });
+    const html =
+      '<!DOCTYPE html><html lang="es"><head><style>table{width:100%}@media print{tr{break-inside:avoid}}</style></head><body><table class="data"><tbody>{{#each miembros}}<tr><td>{{nombre}}</td><td><img class="signature" src="{{firma}}"></td></tr>{{/each}}</tbody></table><img src="/logo.png"></body></html>';
+    const result = await service.exportHtml(html);
+    expect(result).toContain('<html lang="es">');
+    expect(result).toContain('@media print{tr{break-inside:avoid}}');
+    expect(result).toContain('{{#each miembros}}<tr>');
+    expect(result).toContain('</tr>{{/each}}');
+    expect(result).toContain('src="{{firma}}"');
+    expect(result).toContain('src="data:image/png;base64,AQID"');
+    expect(fetchImage).toHaveBeenCalledTimes(1);
+    expect(fetchImage).toHaveBeenCalledWith('https://example.test/logo.png', expect.any(Object));
+  });
+});
