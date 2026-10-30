@@ -115,17 +115,17 @@ describe('HtmlBase64ExportService', () => {
     );
   });
 
-  it('rejects non-exportable image sources before making requests', async () => {
-    const fetchImage = vi.fn();
+  it('embeds local blob sources created by the default media upload service', async () => {
+    const fetchImage = vi.fn().mockResolvedValue(imageResponse('image/png', [1, 2, 3]));
     const service = createHtmlBase64ExportService({ fetch: fetchImage as typeof fetch });
 
-    await expect(
-      service.exportHtml('<img src="blob:http://localhost/image">'),
-    ).rejects.toMatchObject({
-      code: 'invalid-source',
-      source: 'blob:http://localhost/image',
-    });
-    expect(fetchImage).not.toHaveBeenCalled();
+    await expect(service.exportHtml('<img src="blob:http://localhost/image">')).resolves.toBe(
+      '<img src="data:image/png;base64,AQID">',
+    );
+    expect(fetchImage).toHaveBeenCalledWith(
+      'blob:http://localhost/image',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 });
 

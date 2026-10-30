@@ -251,8 +251,15 @@ async function downloadAsDataUri(
 }
 
 function resolveImageSource(source: string, configuredBaseUrl?: string): string {
-  if (source.length === 0 || /^blob:/i.test(source) || /^data:/i.test(source)) {
+  if (source.length === 0 || /^data:/i.test(source)) {
     throw exportError('invalid-source', source, 'La fuente de imagen no es exportable.');
+  }
+
+  // El servicio local de carga del editor usa URL.createObjectURL(). Esas URL
+  // solo existen en la sesion actual, pero fetch puede leerlas y convertir sus
+  // bytes al data URI autocontenido que exige esta exportacion.
+  if (/^blob:/i.test(source)) {
+    return source;
   }
 
   try {
