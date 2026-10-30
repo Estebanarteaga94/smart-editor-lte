@@ -1,14 +1,5 @@
 import { defineConfig } from 'vite';
 
-const externalDependencies = [
-  /^@codemirror\//,
-  /^@tiptap\//,
-  /^prettier(?:\/|$)/,
-  'codemirror',
-  'dompurify',
-  'zod',
-];
-
 export default defineConfig({
   base: './',
   publicDir: false,
@@ -18,9 +9,6 @@ export default defineConfig({
       formats: ['es'],
       fileName: 'smart-editor-lte',
       cssFileName: 'smart-editor-lte',
-    },
-    rolldownOptions: {
-      external: externalDependencies,
     },
   },
 });
