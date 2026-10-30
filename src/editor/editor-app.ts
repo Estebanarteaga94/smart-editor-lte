@@ -1,4 +1,10 @@
 import type { JSONContent } from '@tiptap/core';
+import {
+  applyPreparedHtml,
+  setPreparedHtmlAvailability,
+  type PreparedHtmlContent,
+  type ApplyPreparedHtmlResult,
+} from './services/apply-prepared-html.service';
 
 import { createLocalVersionsApi, type VersionsApi } from '../api/versions.api';
 import { createEditorShell } from './components/editor-shell';
@@ -107,6 +113,7 @@ export interface MountedEditorApp {
   getSourceJsonValue: () => string | null;
   setFullscreen: (enabled: boolean) => void;
   setHtml: (html: string, options?: SetHtmlOptions) => SetHtmlResult;
+  applyPreparedHtml: (candidate: PreparedHtmlContent) => ApplyPreparedHtmlResult;
   getHtmlWithBase64Images: (options?: HtmlBase64ExportOptions) => Promise<string>;
   getAgentSections: () => AgentSection[];
 }
@@ -197,6 +204,7 @@ export async function mountEditorApp({
       shell.setSaveStatus('error');
     },
   });
+  setPreparedHtmlAvailability(editor, () => viewState.mode === 'wysiwyg');
   preview.setHtml(editor.getHTML());
   if (autosaveConfig.enabled) {
     autosaveService = createAutosaveService({
@@ -371,6 +379,10 @@ export async function mountEditorApp({
     getSourceJsonValue: () => sourceJsonValue,
     setFullscreen: (enabled) => fullscreen.setEnabled(enabled),
     setHtml: applyImportedHtml,
+    applyPreparedHtml: (candidate) =>
+      viewState.mode === 'wysiwyg'
+        ? applyPreparedHtml(editor, candidate)
+        : { ok: false, codigo: 'EDITOR_NO_DISPONIBLE' },
     getHtmlWithBase64Images: exportCurrentHtmlWithBase64Images,
     getAgentSections: () => getAgentSections(editor),
   };

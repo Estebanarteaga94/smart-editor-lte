@@ -56,7 +56,7 @@ export function serializeEditorContent(editor: Editor): SerializedEditorContent 
   };
 }
 
-function getRenderableEditorHtmlFromContent(
+export function getRenderableEditorHtmlFromContent(
   html: string,
   contentJson: CanonicalEditorContent,
 ): string {

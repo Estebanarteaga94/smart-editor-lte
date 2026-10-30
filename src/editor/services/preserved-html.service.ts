@@ -100,7 +100,10 @@ const supported = new Set([
 export function needsHtmlPreservation(html: string): boolean {
   return (
     /<!doctype\b|<(?:html|head|style)\b|{{/.test(html) ||
-    /<!doctype\b|<(?:html|head|style)\b/i.test(html)
+    /<!doctype\b|<(?:html|head|style)\b/i.test(html) ||
+    /<(?:ul|ol)\b[^>]*\bclass\s*=\s*["'][^"']*\b(?:wysiwyg-list|converted-from-office)\b/i.test(
+      html,
+    )
   );
 }
 function parseSource(html: string): Document {
@@ -272,9 +275,15 @@ export function preparePreservedHtmlExport(source: string) {
 }
 
 /** Import a full document into the existing ProseMirror schema, preserving its envelope and table regions. */
-export function preparePreservedHtml(source: string, schema: Schema): JSONContent {
-  const prefix = `html${crypto.randomUUID().replaceAll('-', '')}x`;
-  const masked = maskSource(source, prefix);
+export function preparePreservedHtml(
+  source: string,
+  schema: Schema,
+  options: Readonly<{ prefix?: string; literalHandlebars?: boolean }> = {},
+): JSONContent {
+  const prefix = options.prefix ?? `html${crypto.randomUUID().replaceAll('-', '')}x`;
+  const masked = options.literalHandlebars
+    ? { html: source, tokens: [] }
+    : maskSource(source, prefix);
   const doc = parseSource(masked.html);
   assertSafePreservedHtml(doc);
   const envelope: PreservedDocument = {

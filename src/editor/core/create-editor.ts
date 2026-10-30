@@ -1,4 +1,5 @@
 import { Editor } from '@tiptap/core';
+import { registerPreparedHtmlEditor } from '../services/apply-prepared-html.service';
 
 import type { CreateWysiwygEditorOptions } from './editor-types';
 import { createEditorExtensions } from './editor-extensions';
@@ -92,6 +93,7 @@ export const createWysiwygEditor: WysiwygEditorFactory = ({
     },
   });
 
+  registerPreparedHtmlEditor(editor);
   editorRef.current = editor;
   const getJson = editor.getJSON.bind(editor);
   editor.getJSON = () =>

@@ -31,6 +31,8 @@ export type SetHtmlResult = SetHtmlSuccess | SetHtmlFailure;
 
 export interface SetHtmlOptions {
   mode?: 'strict' | 'legacy';
+  /** Retain the exact source using the editor's existing preservation model. */
+  preserveSource?: boolean;
 }
 
 const supportedTags = new Set<string>([...allowedHtmlTags, 'input', 'label']);
@@ -54,9 +56,13 @@ export function prepareHtmlImport(
   if (typeof document === 'undefined') {
     return failure('unsupported-schema', 'La importacion HTML requiere un entorno DOM.');
   }
-  if (needsHtmlPreservation(html)) {
+  if (needsHtmlPreservation(html) || options.preserveSource) {
     try {
-      return { ok: true, code: 'applied', html, content: preparePreservedHtml(html, schema) };
+      let suffix = 0;
+      while (html.includes(`html${suffix.toString(16)}x`)) suffix++;
+      return { ok: true, code: 'applied', html, content: preparePreservedHtml(html, schema, {
+        prefix: `html${suffix.toString(16)}x`,
+      }) };
     } catch (cause) {
       return failure(
         'unsupported-schema',
