@@ -161,6 +161,7 @@ export async function mountEditorApp({
       toolbar.updateState();
     },
   });
+  lifecycle.registerCleanup(() => fullscreen.destroy());
 
   lifecycle.mountRoot(app, shell.root);
   preview.element.hidden = true;
@@ -303,6 +304,9 @@ export async function mountEditorApp({
     },
     onToggleFullscreen: () => {
       fullscreen.toggle();
+      if (viewState.mode === 'wysiwyg') {
+        window.requestAnimationFrame(() => editor.view.focus());
+      }
     },
     onOpenVersions: () => {
       void versionHistory.open();

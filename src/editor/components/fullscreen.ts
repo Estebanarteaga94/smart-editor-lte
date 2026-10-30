@@ -8,6 +8,7 @@ export interface FullscreenController {
   getState: () => FullscreenState;
   setEnabled: (enabled: boolean) => void;
   toggle: () => void;
+  destroy: () => void;
 }
 
 export interface CreateFullscreenControllerOptions {
@@ -23,15 +24,49 @@ export function createFullscreenController({
   onChange,
 }: CreateFullscreenControllerOptions): FullscreenController {
   let enabled = initialState.enabled;
+  let restoreMarker: Comment | null = null;
+
+  const moveToDocumentBody = (): void => {
+    if (!root.parentNode || root.parentNode === root.ownerDocument.body) {
+      return;
+    }
+
+    restoreMarker = root.ownerDocument.createComment('smart-editor-fullscreen');
+    root.parentNode.insertBefore(restoreMarker, root);
+    root.ownerDocument.body.append(root);
+  };
+
+  const restoreOriginalPosition = (): void => {
+    if (!restoreMarker) {
+      return;
+    }
+
+    if (restoreMarker.parentNode) {
+      restoreMarker.parentNode.replaceChild(root, restoreMarker);
+    } else {
+      restoreMarker.remove();
+    }
+
+    restoreMarker = null;
+  };
 
   const setEnabled = (nextEnabled: boolean): void => {
     if (enabled === nextEnabled) {
       return;
     }
 
+    if (nextEnabled) {
+      moveToDocumentBody();
+    }
+
     enabled = nextEnabled;
     root.classList.toggle('editor-shell--fullscreen', enabled);
     root.setAttribute('data-fullscreen', String(enabled));
+
+    if (!nextEnabled) {
+      restoreOriginalPosition();
+    }
+
     onChange?.({ enabled });
   };
 
@@ -42,5 +77,11 @@ export function createFullscreenController({
     getState: () => ({ enabled }),
     setEnabled,
     toggle: () => setEnabled(!enabled),
+    destroy: () => {
+      enabled = false;
+      root.classList.remove('editor-shell--fullscreen');
+      root.setAttribute('data-fullscreen', 'false');
+      restoreOriginalPosition();
+    },
   };
 }

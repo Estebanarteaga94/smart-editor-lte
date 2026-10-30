@@ -2464,9 +2464,11 @@ describe('mountEditorApp', () => {
     expect(fullscreenButton).not.toBeNull();
 
     fullscreenButton?.click();
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
     expect(mountedApp.getViewState()).toEqual({ mode: 'wysiwyg', fullscreen: true });
     expect(shellRoot?.classList.contains('editor-shell--fullscreen')).toBe(true);
     expect(fullscreenButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(document.activeElement).toBe(mountedApp.editor.view.dom);
 
     sourceHtmlButton?.click();
     await flushPromises();

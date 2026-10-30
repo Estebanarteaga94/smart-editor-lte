@@ -3,7 +3,7 @@
  */
 
 import type { JSONContent } from '@tiptap/core';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createWysiwygEditor } from '../core/create-editor';
 import { createEditorLifecycle } from '../core/editor-lifecycle';
@@ -191,6 +191,41 @@ describe('createTableMenu', () => {
       configurable: true,
       value: originalInnerHeight,
     });
+  });
+
+  it('repositions the contextual dialog when a nested container scrolls', () => {
+    const editor = mountEditor();
+    const lifecycle = createEditorLifecycle();
+    let animationCallback: FrameRequestCallback = () => undefined;
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationCallback = callback;
+      return 1;
+    });
+    const tableMenu = createTableMenu({ editor, lifecycle });
+    document.body.append(tableMenu.element);
+
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: false });
+    setSelectionInFirstTableCell(editor);
+    const selectedCell = editor.view.dom.querySelector<HTMLElement>(
+      'th.selectedCell, td.selectedCell',
+    );
+    let cellRect = new DOMRect(120, 100, 100, 40);
+
+    vi.spyOn(selectedCell as HTMLElement, 'getBoundingClientRect').mockImplementation(
+      () => cellRect,
+    );
+    mockElementRect(tableMenu.element, { width: 240, height: 92 });
+    tableMenu.updateState();
+
+    expect(tableMenu.element.style.top).toBe('148px');
+
+    cellRect = new DOMRect(120, 40, 100, 40);
+    editor.view.dom.dispatchEvent(new Event('scroll'));
+    animationCallback(performance.now());
+
+    expect(tableMenu.element.style.top).toBe('88px');
+
+    lifecycle.dispose();
   });
 
   it('adds rows before and after from the contextual table menu', () => {

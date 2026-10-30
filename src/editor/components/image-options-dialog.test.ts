@@ -219,6 +219,59 @@ describe('createImageOptionsDialog', () => {
     lifecycle.dispose();
   });
 
+  it('repositions the image dialog when a nested container scrolls', () => {
+    const editor = mountEditor();
+    const lifecycle = createEditorLifecycle();
+    const { container: imageContainer, image: imageElement } = createImageNodeView();
+    let animationCallback: FrameRequestCallback = () => undefined;
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationCallback = callback;
+      return 1;
+    });
+    const dialog = createImageOptionsDialog({ editor, lifecycle });
+
+    document.body.append(dialog.element);
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 });
+    vi.spyOn(editor.view, 'nodeDOM').mockReturnValue(imageContainer);
+    vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue(
+      createRect({ top: 0, left: 0, right: 260, bottom: 44, width: 260, height: 44 }),
+    );
+    let imageRect = createRect({
+      top: 100,
+      left: 120,
+      right: 420,
+      bottom: 300,
+      width: 300,
+      height: 200,
+    });
+    vi.spyOn(imageElement, 'getBoundingClientRect').mockImplementation(() => imageRect);
+
+    editor.commands.setContent({
+      type: 'doc',
+      content: [{ type: 'image', attrs: { src: '/assets/image.png', alt: 'Imagen' } }],
+    });
+    editor.commands.setNodeSelection(0);
+    dialog.updateState();
+
+    expect(dialog.element.style.top).toBe('308px');
+
+    imageRect = createRect({
+      top: 40,
+      left: 120,
+      right: 420,
+      bottom: 240,
+      width: 300,
+      height: 200,
+    });
+    editor.view.dom.dispatchEvent(new Event('scroll'));
+    animationCallback(performance.now());
+
+    expect(dialog.element.style.top).toBe('248px');
+
+    lifecycle.dispose();
+  });
+
   it('repositions after image alignment changes its rectangle', () => {
     const editor = mountEditor();
     const lifecycle = createEditorLifecycle();

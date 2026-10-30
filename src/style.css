@@ -941,6 +941,8 @@
   min-height: 480px;
   padding: 24px;
   outline: none;
+  cursor: text;
+  caret-color: var(--text);
   white-space: pre-wrap;
 }
 

@@ -124,6 +124,18 @@ export function createImageOptionsDialog({
 
   element.append(title, alignmentGroup, dimensionGroup);
 
+  const ownerDocument = editor.view.dom.ownerDocument;
+  const ownerWindow = ownerDocument.defaultView ?? window;
+
+  lifecycle.addEventListener(ownerWindow, 'resize', () => {
+    scheduleLayoutPositionUpdate();
+  });
+  // Los eventos scroll de contenedores anidados no hacen bubble. Escucharlos
+  // en captura permite seguir tanto el scroll del editor como el de la pagina.
+  lifecycle.addEventListener(ownerDocument, 'scroll', () => {
+    scheduleLayoutPositionUpdate();
+  }, { capture: true, passive: true });
+
   const refresh = (): void => {
     updateState();
 

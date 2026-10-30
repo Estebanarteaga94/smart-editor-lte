@@ -139,6 +139,9 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
   const title = document.createElement('strong');
   const actions = document.createElement('div');
   const buttons = new Map<TableMenuAction, HTMLButtonElement>();
+  const ownerDocument = editor.view.dom.ownerDocument;
+  const ownerWindow = ownerDocument.defaultView ?? window;
+  let pendingPositionFrame: number | null = null;
 
   element.className = 'editor-table-options';
   element.dataset.tableOptions = 'dialog';
@@ -174,21 +177,20 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
     });
   }
 
-  lifecycle.addEventListener(window, 'resize', () => {
-    updatePosition();
+  lifecycle.addEventListener(ownerWindow, 'resize', () => {
+    schedulePositionUpdate();
   });
-
-  lifecycle.addEventListener(window, 'scroll', () => {
-    updatePosition();
+  // Captura el scroll de cualquier ancestro, incluida la pagina, el cuerpo del
+  // editor y los wrappers horizontales de tabla, aunque el evento no haga bubble.
+  lifecycle.addEventListener(ownerDocument, 'scroll', () => {
+    schedulePositionUpdate();
+  }, { capture: true, passive: true });
+  lifecycle.registerCleanup(() => {
+    if (pendingPositionFrame !== null) {
+      ownerWindow.cancelAnimationFrame(pendingPositionFrame);
+      pendingPositionFrame = null;
+    }
   });
-
-  const scrollContainer = editor.view.dom.closest('.editor-shell__body');
-
-  if (scrollContainer instanceof HTMLElement) {
-    lifecycle.addEventListener(scrollContainer, 'scroll', () => {
-      updatePosition();
-    });
-  }
 
   const updateState = (): void => {
     const state = getTableMenuState(editor);
@@ -230,6 +232,17 @@ export function createTableMenu({ editor, lifecycle }: TableMenuOptions): TableM
     element,
     updateState,
   };
+
+  function schedulePositionUpdate(): void {
+    if (pendingPositionFrame !== null) {
+      return;
+    }
+
+    pendingPositionFrame = ownerWindow.requestAnimationFrame(() => {
+      pendingPositionFrame = null;
+      updateState();
+    });
+  }
 
   function updatePosition(): void {
     if (element.hidden) {

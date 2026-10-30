@@ -7,8 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createSourceEditorState, createSourceView } from './source-view';
 
-const originalRequestAnimationFrame = window.requestAnimationFrame;
-const originalCancelAnimationFrame = window.cancelAnimationFrame;
+const originalRequestAnimationFrame = window.requestAnimationFrame.bind(window);
+const originalCancelAnimationFrame = window.cancelAnimationFrame.bind(window);
 
 function mountSourceEditor(value: string, language: 'html' | 'json'): EditorView {
   const parent = document.createElement('div');
